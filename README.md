@@ -1,2 +1,2 @@
 # napapp
-Group project for Wearable course
+Yeyy
