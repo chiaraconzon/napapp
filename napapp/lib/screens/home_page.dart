@@ -1,4 +1,3 @@
-import 'package:bottom_navy_bar/bottom_navy_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_page.dart';
@@ -14,12 +13,14 @@ class _MyHomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      // title theme and fonts
       title: "NapApp",
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
         textTheme: GoogleFonts.notoSansTextTheme(),
       ),
       home: Scaffold(
+        // appBar
         appBar: AppBar(
           leading: Builder(
             builder: (context) {
@@ -33,7 +34,8 @@ class _MyHomePageState extends State<HomePage> {
           ),
           backgroundColor: Colors.amber,
         ),
-        // Menu' laterale
+
+        // menu' laterale
         drawer: Drawer(
           child: ListView(
             children: [
@@ -62,6 +64,7 @@ class _MyHomePageState extends State<HomePage> {
             ],
           ),
         ),
+
         // Rettangolo scorrevole
         body: ListView(
           padding: EdgeInsets.all(100),
@@ -77,6 +80,8 @@ class _MyHomePageState extends State<HomePage> {
             ),
           ],
         ),
+
+        // navigationbar
         bottomNavigationBar: BottomNavigationBar(
           /*currentIndex: _currentIndex,
         onTap: (index) {
