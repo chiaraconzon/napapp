@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   google_fonts: ^8.0.2
   bottom_navy_bar: ^6.1.0
+  calendar_date_picker2: ^2.0.1
+  flutter_iconpicker: ^4.0.3
 
 dev_dependencies:
   flutter_test:
