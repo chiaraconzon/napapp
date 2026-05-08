@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_iconpicker/flutter_iconpicker.dart';
-import 'package:napapp/screens/calendar_page.dart';
-import 'package:napapp/screens/stats_page.dart';
+import 'calendar_page.dart';
+import 'stats_page.dart';
 import 'login_page.dart';
-import 'dart:async';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,212 +10,138 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Map<String, dynamic>> listaImpegni = [];
-  final TextEditingController _titoloController = TextEditingController();
-  final TextEditingController _orarioController = TextEditingController();
-  final TextEditingController _noteController = TextEditingController();
-  IconData _selectedIcon = Icons.event;
-
-  final double tileHeight = 100;
-  int _pageIndex = 1;
+  // Sorgente dati unica condivisa tra Home e Calendario
+  Map<DateTime, List<MyEvent>> globalEvents = {};
+  int _pageIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    // C: definizione delle pagine dell'app
+    String name = "";
     final List<Widget> pagesList = [
-      const CalendarPage(),
+      // Passiamo la mappa e la funzione di aggiornamento al Calendario
       _homeWidget(),
-      const StatsPage(),
+      CalendarPage(
+        eventsMap: globalEvents,
+        onEventsUpdated: (newMap) => setState(() => globalEvents = newMap),
+      ),
+      StatsPage(),
     ];
+    name = ModalRoute.of(context)!.settings.arguments as String? ?? "Utente";
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.transparent, // Rende l'AppBar trasparente
         actions: [
           Builder(
             builder: (context) => IconButton(
-              icon: const Icon(Icons.person, size: 30, color: Colors.black87),
+              icon: const Icon(Icons.more_vert, size: 30),
               onPressed: () => Scaffold.of(context).openDrawer(),
             ),
           ),
         ],
       ),
-
-      // Menu laterale (Drawer)
       drawer: Drawer(
         child: Column(
           children: [
-            Container(),
+            DrawerHeader(child: Center(child: Text("Ciao $name"))),
+            ListTile(title: Text("THEME"), onTap: () {}),
+            ListTile(title: Text("LANGUAGE"), onTap: () {}),
+            ListTile(title: Text("NOTIFICATIONS"), onTap: () {}),
+            ListTile(title: Text("OPTIONS"), onTap: () {}),
+            ListTile(title: Text("CREDITS"), onTap: () {}),
+
             const Spacer(),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text("Logout", style: TextStyle(color: Colors.red)),
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginPage()),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-      body: pagesList[_pageIndex],
-      floatingActionButton: _pageIndex == 1
-          ? FloatingActionButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: const Text("Nuova Attività"),
-                      content: Column(
-                        mainAxisSize: MainAxisSize
-                            .min, // La finestra si adatta al contenuto
-                        children: [
-                          TextField(
-                            controller: _titoloController,
-                            decoration: InputDecoration(
-                              labelText: "Titolo (es. Coccinelle)",
-                            ),
-                          ),
-                          TextField(
-                            controller: _orarioController,
-                            decoration: InputDecoration(
-                              labelText: "Orario (es. 21:00)",
-                            ),
-                          ),
-                          TextField(
-                            controller: _noteController,
-                            decoration: InputDecoration(
-                              labelText: "Descrizione",
-                            ),
-                          ),
-                        ],
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text("Annulla"),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              Map<String, dynamic> newImpegno = {
-                                'titolo': _titoloController.text,
-                                'orario': _orarioController.text,
-                                'note': _noteController.text,
-                                'icona': _selectedIcon,
-                              };
-                              listaImpegni.add(newImpegno);
-                              _titoloController.clear();
-                              _orarioController.clear();
-                              _noteController.clear();
-                            });
-                            Navigator.pop(context);
-                          },
-                          child: const Text("Aggiungi"),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-              child: const Icon(Icons.add),
-            )
-          : null,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _pageIndex,
-        onTap: (index) => setState(() => _pageIndex = index),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month),
-            label: 'Calendar',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Stats'),
-        ],
-      ),
-    );
-  }
-
-  // C: Page builder
-  Widget _homeWidget() {
-    return Column(
-      children: [
-        Text(
-          "Ciao oggi il pisolino è da questo a questo",
-          style: TextStyle(fontSize: 15),
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: listaImpegni.length, // Quante card dobbiamo disegnare?
-            itemBuilder: (context, index) {
-              // Prendiamo i dati della card numero "index"
-              final impegno = listaImpegni[index];
-              // Usiamo il tuo widget _buildCard per disegnarla
-              return _buildCard(
-                Colors.white,
-                impegno['titolo'] ?? "no title",
-                impegno['orario'] ?? "--.--",
-                impegno['note'] ?? "",
-                impegno['icona'] ?? Icons.notifications,
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  // C: Widget per generare le card bianche e pulite
-  Widget _buildCard(
-    Color color,
-    String title,
-    String time,
-    String notes,
-    IconData icon,
-  ) {
-    return Card(
-      color: color,
-      elevation: 1,
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(icon, size: 35, color: Colors.amber[700]),
-            const SizedBox(width: 15),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  Text(
-                    time,
-                    style: TextStyle(
-                      color: Colors.amber[900],
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    notes,
-                    style: const TextStyle(color: Colors.black54, fontSize: 13),
-                  ),
-                ],
+              title: const Text("Logout"),
+              onTap: () => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
               ),
             ),
           ],
         ),
       ),
+      body: pagesList[_pageIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _pageIndex,
+        onTap: (index) => setState(() => _pageIndex = index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_month),
+            label: 'Calendario',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart),
+            label: 'Statistiche',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _homeWidget() {
+    final DateTime now = DateTime.now();
+    final DateTime today = DateTime(now.year, now.month, now.day);
+
+    // 1. Recuperiamo la lista degli eventi
+    List<MyEvent> eventiOggi = List.from(globalEvents[today] ?? []);
+
+    // 2. Ordiniamo la lista in base all'orario di inizio
+    eventiOggi.sort((a, b) {
+      final int minutiA = a.startTime.hour * 60 + a.startTime.minute;
+      final int minutiB = b.startTime.hour * 60 + b.startTime.minute;
+      return minutiA.compareTo(minutiB);
+    });
+
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Text(
+            "Impegni di oggi",
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+        ),
+        Expanded(
+          child: eventiOggi.isEmpty
+              ? const Center(child: Text("Nessun impegno per oggi"))
+              : ListView.builder(
+                  itemCount: eventiOggi.length,
+                  itemBuilder: (context, index) {
+                    final ev = eventiOggi[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 15,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: ev.color.withOpacity(0.4),
+                          width: 2,
+                        ),
+                      ),
+                      child: ListTile(
+                        leading: Icon(Icons.circle, color: ev.color),
+                        title: Text(
+                          ev.title,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        // Mostriamo l'orario ordinato
+                        subtitle: Text(
+                          "${ev.startTime.format(context)} — Durata: ${ev.duration} min",
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 }
