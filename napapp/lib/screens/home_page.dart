@@ -10,28 +10,52 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Sorgente dati unica condivisa tra Home e Calendario
+  // mappa che orgainzza gli eventi usando DateTime come chiave raggruppate in event che accadono in un dato giorno
   Map<DateTime, List<MyEvent>> globalEvents = {};
+  // indice per selezionare la pagina
   int _pageIndex = 0;
+
+  // funzione di supporto per le icone
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case "Pranzo":
+        return Icons.restaurant;
+      case "Studio":
+        return Icons.menu_book;
+      case "Allenamento":
+        return Icons.fitness_center;
+      case "Lezione":
+        return Icons.school;
+      case "Altro":
+        return Icons.more_horiz;
+      default:
+        return Icons.event_available;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    // nome utente che passiamo da login
     String name = "";
+    // lista con le page della nostra app
     final List<Widget> pagesList = [
-      // Passiamo la mappa e la funzione di aggiornamento al Calendario
       _homeWidget(),
       CalendarPage(
+        // connette il widget alla sorgente di dati globali garantendo l'aggiornamento dopo ogni modifica
         eventsMap: globalEvents,
+        // callback che agisce come un ponte, sincronizza
         onEventsUpdated: (newMap) => setState(() => globalEvents = newMap),
       ),
       StatsPage(),
     ];
+    // estrazione del nome dagli argomenti della rotta, se non ci sono parametri allora scrive "utente"
     name = ModalRoute.of(context)!.settings.arguments as String? ?? "Utente";
 
     return Scaffold(
+      // fa partire lo scaffold da in cima alla pagina
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: false, // toglie l'icona iniziale
         backgroundColor: Colors.transparent, // Rende l'AppBar trasparente
         actions: [
           Builder(
@@ -48,15 +72,15 @@ class _HomePageState extends State<HomePage> {
             DrawerHeader(child: Center(child: Text("Ciao $name"))),
             ListTile(title: Text("THEME"), onTap: () {}),
             ListTile(title: Text("LANGUAGE"), onTap: () {}),
-            ListTile(title: Text("NOTIFICATIONS"), onTap: () {}),
             ListTile(title: Text("OPTIONS"), onTap: () {}),
             ListTile(title: Text("CREDITS"), onTap: () {}),
-
             const Spacer(),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text("Logout"),
+              // sostituisce la schermata con quella di login
+              // la freccia => è un "abbreviatore sintattico" (poche righe di codice)
               onTap: () => Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => LoginPage()),
@@ -65,6 +89,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+      // prende la pagina dalla lista in base all'indice
       body: pagesList[_pageIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _pageIndex,
@@ -84,11 +109,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // widget per "costruire" l'homepage
   Widget _homeWidget() {
     final DateTime now = DateTime.now();
     final DateTime today = DateTime(now.year, now.month, now.day);
 
-    // 1. Recuperiamo la lista degli eventi
+    // 1. Creo una lista di eventi del giorno stesso
+    // se oggi non ci sono eventi restituisco una lista vuota
     List<MyEvent> eventiOggi = List.from(globalEvents[today] ?? []);
 
     // 2. Ordiniamo la lista in base all'orario di inizio
@@ -100,41 +127,111 @@ class _HomePageState extends State<HomePage> {
 
     return Column(
       children: [
-        const Padding(
+        // titoletto carino
+        Padding(
           padding: EdgeInsets.all(20.0),
           child: Text(
             "Impegni di oggi",
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
         ),
+        //
         Expanded(
           child: eventiOggi.isEmpty
-              ? const Center(child: Text("Nessun impegno per oggi"))
+              // se oggi non ci sono impegin allora mostra
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.calendar_month,
+                        size: 80,
+                        color: Colors.grey.shade300,
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        "Nessun impegno per oggi",
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                )
+              // se ci sono impegni li mostra
               : ListView.builder(
+                  padding: EdgeInsets.only(bottom: 20),
+                  // per tutti gli eventi di oggi...
                   itemCount: eventiOggi.length,
+                  // ...allora creo nel contest una card con listtile
                   itemBuilder: (context, index) {
                     final ev = eventiOggi[index];
+
+                    // creo le card per gli eventi
                     return Card(
+                      elevation: 2,
                       margin: const EdgeInsets.symmetric(
                         horizontal: 15,
                         vertical: 8,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(15),
                         side: BorderSide(
-                          color: ev.color.withOpacity(0.4),
-                          width: 2,
+                          color: ev.color.withOpacity(0.5),
+                          width: 1.5,
                         ),
                       ),
+
+                      // creo una lista per tutti gli eventi
                       child: ListTile(
-                        leading: Icon(Icons.circle, color: ev.color),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: ev.color.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            _getCategoryIcon(ev.category),
+                            color: ev.color,
+                            size: 28,
+                          ),
+                        ),
                         title: Text(
                           ev.title,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
                         ),
-                        // Mostriamo l'orario ordinato
-                        subtitle: Text(
-                          "${ev.startTime.format(context)} — Durata: ${ev.duration} min",
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 5),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.access_time,
+                                size: 16,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                "${ev.startTime.format(context)} - ${ev.endTime.format(context)}",
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Piccola etichetta per la categoria a destra
+                        trailing: Text(
+                          ev.category,
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     );

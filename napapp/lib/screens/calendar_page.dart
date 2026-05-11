@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class MyEvent {
-  final String id, groupId, title;
-  final int duration;
-  final TimeOfDay startTime;
+  String id, groupId, title, category;
+  TimeOfDay startTime;
+  TimeOfDay endTime;
+  Color color;
   final bool isRecurring;
-  final Color color;
 
   MyEvent({
     required this.id,
     required this.groupId,
     required this.title,
-    required this.duration,
+    required this.category,
     required this.startTime,
+    required this.endTime,
     required this.color,
     this.isRecurring = false,
   });
@@ -45,12 +46,32 @@ class _CalendarPageState extends State<CalendarPage> {
     Colors.amber,
     Colors.purple,
     Colors.teal,
+    Colors.deepOrange,
+  ];
+
+  final List<String> _categories = [
+    "Pranzo",
+    "Studio",
+    "Allenamento",
+    "Lezione",
+    "Altro",
   ];
 
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
+  }
+
+  List<MyEvent> _getSortedEvents(DateTime day) {
+    final key = DateTime(day.year, day.month, day.day);
+    final events = widget.eventsMap[key] ?? [];
+    events.sort((a, b) {
+      final aTime = a.startTime.hour * 60 + a.startTime.minute;
+      final bTime = b.startTime.hour * 60 + b.startTime.minute;
+      return aTime.compareTo(bTime);
+    });
+    return events;
   }
 
   @override
@@ -72,8 +93,7 @@ class _CalendarPageState extends State<CalendarPage> {
             _focusedDay = foc;
           }),
           onFormatChanged: (format) => setState(() => _calendarFormat = format),
-          eventLoader: (day) =>
-              widget.eventsMap[DateTime(day.year, day.month, day.day)] ?? [],
+          eventLoader: _getSortedEvents,
           calendarBuilders: CalendarBuilders(
             markerBuilder: (context, date, events) {
               if (events.isEmpty) return null;
@@ -103,7 +123,7 @@ class _CalendarPageState extends State<CalendarPage> {
           padding: const EdgeInsets.all(8.0),
           child: FloatingActionButton.extended(
             onPressed: () => _showAddSheet(),
-            label: const Text("Aggiungi Evento"),
+            label: const Text("Aggiungi Attività"),
             icon: const Icon(Icons.add),
           ),
         ),
@@ -112,79 +132,51 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   Widget _buildEventList() {
-    final list =
-        widget.eventsMap[DateTime(
-          _selectedDay!.year,
-          _selectedDay!.month,
-          _selectedDay!.day,
-        )] ??
-        [];
+    final list = _getSortedEvents(_selectedDay!);
     return ListView.builder(
       itemCount: list.length,
-      itemBuilder: (context, i) => ListTile(
-        leading: Icon(Icons.circle, color: list[i].color, size: 14),
-        title: Text(list[i].title),
-        subtitle: Text(
-          "${list[i].startTime.format(context)} (${list[i].duration} min)",
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline),
-          onPressed: () => _showDeleteDialog(list[i]),
-        ),
-      ),
-    );
-  }
-
-  void _showDeleteDialog(MyEvent ev) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.today),
-              title: const Text("Elimina solo questo"),
-              onTap: () {
-                setState(
-                  () => widget
-                      .eventsMap[DateTime(
-                        _selectedDay!.year,
-                        _selectedDay!.month,
-                        _selectedDay!.day,
-                      )]
-                      ?.removeWhere((e) => e.id == ev.id),
-                );
-                widget.onEventsUpdated(widget.eventsMap);
-                Navigator.pop(context);
-              },
-            ),
-            if (ev.isRecurring)
-              ListTile(
-                leading: const Icon(Icons.delete_forever, color: Colors.red),
-                title: const Text("Elimina TUTTE le ripetizioni"),
-                onTap: () {
-                  setState(
-                    () => widget.eventsMap.values.forEach(
-                      (l) => l.removeWhere((e) => e.groupId == ev.groupId),
-                    ),
-                  );
-                  widget.onEventsUpdated(widget.eventsMap);
-                  Navigator.pop(context);
-                },
+      itemBuilder: (context, i) {
+        final ev = list[i];
+        return ListTile(
+          leading: Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(color: ev.color, shape: BoxShape.circle),
+          ),
+          title: Text(ev.title),
+          subtitle: Text(
+            "${ev.category} • ${ev.startTime.format(context)} - ${ev.endTime.format(context)}",
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
+                onPressed: () => _showAddSheet(eventToEdit: ev),
               ),
-          ],
-        ),
-      ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20),
+                onPressed: () => _showDeleteDialog(ev),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  void _showAddSheet() {
-    final tCtrl = TextEditingController();
-    final dCtrl = TextEditingController(text: "30");
-    TimeOfDay time = TimeOfDay.now();
-    Color selCol = _colors[0];
-    String rep = 'Singolo';
+  void _showAddSheet({MyEvent? eventToEdit}) {
+    final bool isEditing = eventToEdit != null;
+    String selectedCat = isEditing ? eventToEdit.category : _categories[0];
+    final tCtrl = TextEditingController(
+      text: isEditing ? eventToEdit.title : "",
+    );
+    TimeOfDay startTime = isEditing ? eventToEdit.startTime : TimeOfDay.now();
+    TimeOfDay endTime = isEditing
+        ? eventToEdit.endTime
+        : TimeOfDay(hour: (startTime.hour + 1) % 24, minute: startTime.minute);
+    Color selCol = isEditing ? eventToEdit.color : _colors[0];
+    String repetition = 'Singolo';
 
     showModalBottomSheet(
       context: context,
@@ -193,175 +185,374 @@ class _CalendarPageState extends State<CalendarPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSt) => Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-            left: 20,
-            right: 20,
-            top: 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: tCtrl,
-                decoration: const InputDecoration(
-                  labelText: "Titolo Evento",
-                  prefixIcon: Icon(Icons.edit),
-                  border: OutlineInputBorder(),
-                ),
+        builder: (ctx, setSt) => Stack(
+          // Uso Stack per posizionare la X in alto a destra
+          children: [
+            Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+                left: 20,
+                right: 20,
+                top: 20,
               ),
-              const SizedBox(height: 15),
-
-              // RIGA COMPATTA: DURATA + ORARIO
-              Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    flex: 2, // La durata occupa meno spazio
-                    child: TextField(
-                      controller: dCtrl,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: "Durata",
-                        suffixText: "min",
-                        border: OutlineInputBorder(),
+                  Center(
+                    child: Text(
+                      isEditing ? "Modifica Dettagli" : "Nuova Attività",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    flex: 3, // L'orario occupa più spazio
-                    child: InkWell(
-                      onTap: () async {
-                        final t = await showTimePicker(
-                          context: ctx,
-                          initialTime: time,
-                        );
-                        if (t != null) setSt(() => time = t);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[50],
-                          borderRadius: BorderRadius.circular(5),
-                          border: Border.all(color: Colors.blue.shade200),
+                  const SizedBox(height: 25),
+
+                  const Text(
+                    "Categoria",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8.0,
+                    children: _categories.map((cat) {
+                      final isSelected = selectedCat == cat;
+                      return ChoiceChip(
+                        label: Text(cat),
+                        selected: isSelected,
+                        onSelected: isEditing
+                            ? null
+                            : (selected) {
+                                if (selected) setSt(() => selectedCat = cat);
+                              },
+                      );
+                    }).toList(),
+                  ),
+
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Titolo (opzionale)",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: tCtrl,
+                    decoration: InputDecoration(
+                      hintText: "es. Nuoto, Arte, ...",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () async {
+                            final t = await showTimePicker(
+                              context: ctx,
+                              initialTime: startTime,
+                            );
+                            if (t != null) setSt(() => startTime = t);
+                          },
+                          child: _timeBox("Inizio", startTime, ctx),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.access_time,
-                              size: 20,
-                              color: Colors.blue,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              time.format(ctx),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () async {
+                            final t = await showTimePicker(
+                              context: ctx,
+                              initialTime: endTime,
+                            );
+                            if (t != null) setSt(() => endTime = t);
+                          },
+                          child: _timeBox("Fine", endTime, ctx),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  if (!isEditing) ...[
+                    const SizedBox(height: 20),
+                    const Text(
+                      "Ripetizione",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    DropdownButton<String>(
+                      value: repetition,
+                      isExpanded: true,
+                      items:
+                          ['Singolo', 'Giornaliera', 'Settimanale', 'Mensile']
+                              .map(
+                                (s) =>
+                                    DropdownMenuItem(value: s, child: Text(s)),
+                              )
+                              .toList(),
+                      onChanged: (v) => setSt(() => repetition = v!),
+                    ),
+                  ],
+
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Colore",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    height: 40,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: _colors
+                          .map(
+                            (c) => GestureDetector(
+                              onTap: () => setSt(() => selCol = c),
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                ),
+                                width: 30,
+                                decoration: BoxDecoration(
+                                  color: c,
+                                  shape: BoxShape.circle,
+                                  border: selCol == c
+                                      ? Border.all(
+                                          color: Colors.black,
+                                          width: 2,
+                                        )
+                                      : null,
+                                ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
+                          )
+                          .toList(),
                     ),
                   ),
+
+                  const SizedBox(height: 25),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 55),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      // --- NUOVA GESTIONE ERRORE ---
+                      final startMin = startTime.hour * 60 + startTime.minute;
+                      final endMin = endTime.hour * 60 + endTime.minute;
+
+                      if (endMin <= startMin) {
+                        _showErrorDialog(
+                          ctx,
+                          "L'orario di fine deve essere dopo l'orario di inizio. Per favore, seleziona un orario corretto.",
+                        );
+                        return; // Non chiude il foglio, l'utente può correggere
+                      }
+
+                      String finalTitle = tCtrl.text.trim().isEmpty
+                          ? selectedCat
+                          : tCtrl.text;
+
+                      if (isEditing) {
+                        if (eventToEdit.isRecurring) {
+                          _showUpdateOptionDialog(
+                            eventToEdit,
+                            finalTitle,
+                            startTime,
+                            endTime,
+                            selCol,
+                          );
+                        } else {
+                          _applySingleUpdate(
+                            eventToEdit,
+                            finalTitle,
+                            startTime,
+                            endTime,
+                            selCol,
+                          );
+                          Navigator.pop(context);
+                        }
+                      } else {
+                        _save(
+                          finalTitle,
+                          selectedCat,
+                          startTime,
+                          endTime,
+                          selCol,
+                          repetition,
+                        );
+                        Navigator.pop(context);
+                      }
+                    },
+                    child: Text(isEditing ? "AGGIORNA" : "SALVA ATTIVITÀ"),
+                  ),
+                  const SizedBox(height: 20),
                 ],
               ),
-
-              const SizedBox(height: 15),
-
-              // SELETTORE RIPETIZIONE
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade400),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: rep,
-                    isExpanded: true,
-                    items: ['Singolo', 'Giornaliera', 'Settimanale', 'Mensile']
-                        .map(
-                          (s) => DropdownMenuItem(
-                            value: s,
-                            child: Text("Ripetizione: $s"),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) => setSt(() => rep = v!),
-                  ),
-                ),
+            ),
+            // --- PULSANTE X DI USCITA ---
+            Positioned(
+              right: 10,
+              top: 10,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.grey),
+                onPressed: () => Navigator.pop(context),
               ),
-
-              const SizedBox(height: 15),
-
-              // SELETTORE COLORE
-              SizedBox(
-                height: 40,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: _colors
-                      .map(
-                        (c) => GestureDetector(
-                          onTap: () => setSt(() => selCol = c),
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            width: 30,
-                            decoration: BoxDecoration(
-                              color: c,
-                              shape: BoxShape.circle,
-                              border: selCol == c
-                                  ? Border.all(color: Colors.black, width: 2)
-                                  : null,
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                onPressed: () {
-                  int dur = int.tryParse(dCtrl.text) ?? 30;
-                  _save(tCtrl.text, dur, time, rep, selCol);
-                  Navigator.pop(context);
-                },
-                child: const Text(
-                  "SALVA EVENTO",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  void _save(String t, int dur, TimeOfDay tm, String r, Color c) {
+  // --- FUNZIONE DI ERRORE DEDICATA ---
+  void _showErrorDialog(BuildContext ctx, String message) {
+    showDialog(
+      context: ctx,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.red),
+            SizedBox(width: 10),
+            Text("Orario non valido"),
+          ],
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("HO CAPITO"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // LOGICA MODIFICHE E RIPETIZIONI (Invariata)
+  void _showUpdateOptionDialog(
+    MyEvent ev,
+    String title,
+    TimeOfDay start,
+    TimeOfDay end,
+    Color col,
+  ) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Modifica evento ricorrente"),
+        content: const Text(
+          "Vuoi applicare le modifiche solo a questo evento o a tutte le ripetizioni?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              _applySingleUpdate(ev, title, start, end, col);
+              Navigator.pop(ctx);
+              Navigator.pop(context);
+            },
+            child: const Text("SOLO QUESTO"),
+          ),
+          TextButton(
+            onPressed: () {
+              _applyGroupUpdate(ev.groupId, title, start, end, col);
+              Navigator.pop(ctx);
+              Navigator.pop(context);
+            },
+            child: const Text("TUTTI"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _applySingleUpdate(
+    MyEvent ev,
+    String title,
+    TimeOfDay start,
+    TimeOfDay end,
+    Color col,
+  ) {
+    setState(() {
+      ev.title = title;
+      ev.startTime = start;
+      ev.endTime = end;
+      ev.color = col;
+    });
+    widget.onEventsUpdated(widget.eventsMap);
+  }
+
+  void _applyGroupUpdate(
+    String gId,
+    String title,
+    TimeOfDay start,
+    TimeOfDay end,
+    Color col,
+  ) {
+    setState(() {
+      widget.eventsMap.forEach((date, list) {
+        for (var ev in list) {
+          if (ev.groupId == gId) {
+            ev.title = title;
+            ev.startTime = start;
+            ev.endTime = end;
+            ev.color = col;
+          }
+        }
+      });
+    });
+    widget.onEventsUpdated(widget.eventsMap);
+  }
+
+  Widget _timeBox(String label, TimeOfDay time, BuildContext ctx) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        children: [
+          Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+          Text(
+            time.format(ctx),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _save(
+    String t,
+    String cat,
+    TimeOfDay start,
+    TimeOfDay end,
+    Color c,
+    String r,
+  ) {
     final gid = DateTime.now().toString();
-    int count = r == 'Singolo'
-        ? 1
-        : (r == 'Giornaliera' ? 365 : (r == 'Settimanale' ? 52 : 12));
+    int count = 1;
+    if (r == 'Giornaliera') count = 30;
+    if (r == 'Settimanale') count = 12;
+    if (r == 'Mensile') count = 6;
+
     setState(() {
       for (int i = 0; i < count; i++) {
         DateTime d = _selectedDay!;
         if (r == 'Giornaliera') d = d.add(Duration(days: i));
         if (r == 'Settimanale') d = d.add(Duration(days: 7 * i));
         if (r == 'Mensile') d = DateTime(d.year, d.month + i, d.day);
+
         final key = DateTime(d.year, d.month, d.day);
         widget.eventsMap.putIfAbsent(key, () => []);
         widget.eventsMap[key]!.add(
@@ -369,8 +560,9 @@ class _CalendarPageState extends State<CalendarPage> {
             id: "$gid-$i",
             groupId: gid,
             title: t,
-            duration: dur, // Usiamo il valore passato
-            startTime: tm,
+            category: cat,
+            startTime: start,
+            endTime: end,
             color: c,
             isRecurring: r != 'Singolo',
           ),
@@ -378,5 +570,54 @@ class _CalendarPageState extends State<CalendarPage> {
       }
     });
     widget.onEventsUpdated(widget.eventsMap);
+  }
+
+  void _showDeleteDialog(MyEvent ev) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Elimina attività"),
+        content: Text(
+          ev.isRecurring
+              ? "Questa è un'attività ricorrente."
+              : "Vuoi eliminare questa attività?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("ANNULLA"),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(
+                () => widget
+                    .eventsMap[DateTime(
+                      _selectedDay!.year,
+                      _selectedDay!.month,
+                      _selectedDay!.day,
+                    )]
+                    ?.removeWhere((e) => e.id == ev.id),
+              );
+              widget.onEventsUpdated(widget.eventsMap);
+              Navigator.pop(ctx);
+            },
+            child: const Text("SOLO QUESTA"),
+          ), //questo VALE SIA PER RIPETIZIONI CHE SENZA, VEDERE SE FARE DUE COSE DIVERSE O LASCIARE COSì
+          if (ev.isRecurring)
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  widget.eventsMap.values.forEach(
+                    (list) => list.removeWhere((e) => e.groupId == ev.groupId),
+                  );
+                });
+                widget.onEventsUpdated(widget.eventsMap);
+                Navigator.pop(ctx);
+              },
+              child: const Text("TUTTE", style: TextStyle(color: Colors.red)),
+            ),
+        ],
+      ),
+    );
   }
 }

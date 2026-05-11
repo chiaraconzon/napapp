@@ -2,27 +2,29 @@ import 'package:flutter/material.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({Key? key}) : super(key: key);
+  // routename che utilizzo per poi passare i vari valori
   static const routename = 'LoginPage';
-
+  // controller per nome utente e psw
   final _nameController = TextEditingController();
   final _pswController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Usiamo un Center e SingleChildScrollView per evitare errori di pixel se la tastiera copre i campi
+      // ingleChildScrollView per evitare errori di pixel se la tastiera copre i campi
       body: Center(
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Un tocco di stile: Icona app
+              // icona dell'app
               Icon(
                 Icons.calendar_today_rounded,
                 size: 80,
                 color: Theme.of(context).primaryColor,
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
+              // nome app
               Text(
                 "Nap App",
                 style: TextStyle(
@@ -31,9 +33,9 @@ class LoginPage extends StatelessWidget {
                   color: Theme.of(context).primaryColor,
                 ),
               ),
-              const SizedBox(height: 50),
+              SizedBox(height: 50),
 
-              // Text box - Name
+              // textbox - username
               SizedBox(
                 width: 280,
                 child: TextField(
@@ -49,7 +51,7 @@ class LoginPage extends StatelessWidget {
               ),
               const SizedBox(height: 25),
 
-              // Text box - Password
+              // textbox - password
               SizedBox(
                 width: 280,
                 child: TextField(
@@ -64,9 +66,9 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 50),
+              SizedBox(height: 50),
 
-              // Login Button
+              // login button
               SizedBox(
                 width: 200,
                 height: 50,
@@ -81,27 +83,56 @@ class LoginPage extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   onPressed: () {
+                    // controllo nome utente e psw
                     if (_nameController.text == "admin" &&
                         _pswController.text == "123") {
-                      // Navigazione tramite route nominata
+                      // navigazione tramite route nominata
                       Navigator.pushReplacementNamed(
                         context,
                         '/homepage',
+                        // passaggio del controller "name" alla homepages
                         arguments: _nameController.text,
                       );
                     } else {
-                      // Mostra un errore se i dati sono sbagliati
-                      showDialog(
+                      // mostra un errore se i dati sono sbagliati
+                      showModalBottomSheet(
                         context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text("Errore Accesso"),
-                          content: const Text("Username o password errati."),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text("OK"),
+                        backgroundColor: Theme.of(context).canvasColor,
+                        builder: (context) => SafeArea(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0,
+                              vertical: 20.0,
                             ),
-                          ],
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "Username o password errati.",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    ),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text(
+                                    "OK",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       );
                     }
