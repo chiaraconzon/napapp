@@ -54,18 +54,17 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       // fa partire lo scaffold da in cima alla pagina
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        automaticallyImplyLeading: false, // toglie l'icona iniziale
-        backgroundColor: Colors.transparent, // Rende l'AppBar trasparente
-        actions: [
-          Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.more_vert, size: 30),
-              onPressed: () => Scaffold.of(context).openDrawer(),
+      appBar: _pageIndex == 1
+          ? null
+          : AppBar(
+              backgroundColor: Colors.transparent, // Rende l'AppBar trasparente
+              leading: Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu, size: 30),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+              ),
             ),
-          ),
-        ],
-      ),
       drawer: Drawer(
         child: Column(
           children: [

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+// creo una classe evento che poi utilizo per l'aggiunta di eventi
 class MyEvent {
   String id, groupId, title, category;
   TimeOfDay startTime;
@@ -21,7 +22,10 @@ class MyEvent {
 }
 
 class CalendarPage extends StatefulWidget {
+  // definisco una mappa di eventi
   final Map<DateTime, List<MyEvent>> eventsMap;
+  // definisco un callback, ovvero una funzione che si eseguirà in un secondo momento
+  // comunica al widget di costruzione della pagina che i dati sono cambiati
   final Function(Map<DateTime, List<MyEvent>>) onEventsUpdated;
 
   const CalendarPage({
@@ -57,12 +61,14 @@ class _CalendarPageState extends State<CalendarPage> {
     "Altro",
   ];
 
+  // decide che all'inizio il giorno selezionato è il giorno corrente
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
   }
 
+  // funzione che va a riordinare cronologicamente gli eventi di quel giorno
   List<MyEvent> _getSortedEvents(DateTime day) {
     final key = DateTime(day.year, day.month, day.day);
     final events = widget.eventsMap[key] ?? [];
@@ -95,13 +101,17 @@ class _CalendarPageState extends State<CalendarPage> {
           onFormatChanged: (format) => setState(() => _calendarFormat = format),
           eventLoader: _getSortedEvents,
           calendarBuilders: CalendarBuilders(
+            // qua stiamo andando a creare dei "marker", i pallini che segnano gli eventi
             markerBuilder: (context, date, events) {
               if (events.isEmpty) return null;
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: events
-                    .take(4)
+                    .take(4) // limite di pallini
                     .map(
+                      // 'e' abbrevia 'events'
+                      // sostanzialmente andiamo a chiamare un evento alla volta e a lavorarci sopra
+                      // (lo trasformo in un cerchio)
                       (e) => Container(
                         margin: const EdgeInsets.symmetric(horizontal: 0.5),
                         width: 7,
@@ -117,6 +127,8 @@ class _CalendarPageState extends State<CalendarPage> {
             },
           ),
         ),
+
+        // questa è tutta la parte sotto al calendar
         const Divider(),
         Expanded(child: _buildEventList()),
         Padding(
@@ -131,6 +143,7 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
+  // widget per la costruzione di liste di eventi
   Widget _buildEventList() {
     final list = _getSortedEvents(_selectedDay!);
     return ListView.builder(
@@ -151,7 +164,7 @@ class _CalendarPageState extends State<CalendarPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
+                icon: Icon(Icons.edit, color: Theme.of(context).primaryColor),
                 onPressed: () => _showAddSheet(eventToEdit: ev),
               ),
               IconButton(
@@ -165,28 +178,38 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
+  // funzione del menu adding events
   void _showAddSheet({MyEvent? eventToEdit}) {
-    final bool isEditing = eventToEdit != null;
-    String selectedCat = isEditing ? eventToEdit.category : _categories[0];
+    final bool isEditing =
+        eventToEdit !=
+        null; // verifica se stai modificando un evento o creandone uno nuovo
+    String selectedCat = isEditing
+        ? eventToEdit.category
+        : _categories[0]; // imposta la categoria dell'evento o la prima disponibile
     final tCtrl = TextEditingController(
       text: isEditing ? eventToEdit.title : "",
-    );
+    ); //controller con il titolo dell'evento (o vuoto)
+    // imposta la fine dell'evento un'ora dopo a meno che non sia in stato di modifica
     TimeOfDay startTime = isEditing ? eventToEdit.startTime : TimeOfDay.now();
     TimeOfDay endTime = isEditing
         ? eventToEdit.endTime
         : TimeOfDay(hour: (startTime.hour + 1) % 24, minute: startTime.minute);
+    // assegna il colore salvato o il primo della lista
     Color selCol = isEditing ? eventToEdit.color : _colors[0];
+    // inizializza la variabile impostandola come "non ricorrente"
     String repetition = 'Singolo';
 
+    // apertura del menù di gestione degli eventi
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
+      isScrollControlled: true, // l'altezza è adattabile
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      // con StatefulBuilder si può aggiornare il pannello con i nuovi dati senza aggiornare l'intera pagina
       builder: (ctx) => StatefulBuilder(
+        // uso Stack per posizionare la X in alto a destra
         builder: (ctx, setSt) => Stack(
-          // Uso Stack per posizionare la X in alto a destra
           children: [
             Padding(
               padding: EdgeInsets.only(
@@ -219,6 +242,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     spacing: 8.0,
                     children: _categories.map((cat) {
                       final isSelected = selectedCat == cat;
+                      // i choicechip sono i pulsanti per scegliere la categoria
                       return ChoiceChip(
                         label: Text(cat),
                         selected: isSelected,
@@ -250,19 +274,26 @@ class _CalendarPageState extends State<CalendarPage> {
                   const SizedBox(height: 20),
                   Row(
                     children: [
+                      // il widget viene forzato ad occupare tutto lo spazio a disposizione
                       Expanded(
+                        // widget che rende l'area sottostante cliccabile
                         child: InkWell(
                           onTap: () async {
+                            // è una funzione asincrona perché deve attendere la scelta dell'utente
+                            // showTimePicker apre la finestra di dialogo predefinita del sistema
                             final t = await showTimePicker(
                               context: ctx,
                               initialTime: startTime,
                             );
+                            // se l'utente non "dice nulla" allora la variabile locale viene aggiornata e si ridisegna il widget
                             if (t != null) setSt(() => startTime = t);
                           },
+                          // disegna graficamente il quadratino con l'ora
                           child: _timeBox("Inizio", startTime, ctx),
                         ),
                       ),
                       const SizedBox(width: 10),
+                      // stessa roba con ma con il tempo di fine
                       Expanded(
                         child: InkWell(
                           onTap: () async {
@@ -278,6 +309,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     ],
                   ),
 
+                  // verifico di non essere in editing, se sono in editing non mostro il menu per scegliere la ripetibilita dell'evento
                   if (!isEditing) ...[
                     const SizedBox(height: 20),
                     const Text(
@@ -301,6 +333,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     ),
                   ],
 
+                  // scelta dei colori
                   const SizedBox(height: 20),
                   const Text(
                     "Colore",
@@ -314,6 +347,7 @@ class _CalendarPageState extends State<CalendarPage> {
                       children: _colors
                           .map(
                             (c) => GestureDetector(
+                              // aggiorna il colore selzionato
                               onTap: () => setSt(() => selCol = c),
                               child: Container(
                                 margin: const EdgeInsets.symmetric(
@@ -323,6 +357,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                 decoration: BoxDecoration(
                                   color: c,
                                   shape: BoxShape.circle,
+                                  // aggiunge un bordino se è il colore selezionato
                                   border: selCol == c
                                       ? Border.all(
                                           color: Colors.black,
@@ -341,29 +376,33 @@ class _CalendarPageState extends State<CalendarPage> {
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 55),
+                      // double infinity dice al bottone di occupare tutta la larghezza disponibile
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     onPressed: () {
-                      // --- NUOVA GESTIONE ERRORE ---
                       final startMin = startTime.hour * 60 + startTime.minute;
                       final endMin = endTime.hour * 60 + endTime.minute;
-
+                      // controllo che l'orario di fine sia maggiore di quello di inizio
                       if (endMin <= startMin) {
+                        // questa funzione si trova sotto
                         _showErrorDialog(
                           ctx,
                           "L'orario di fine deve essere dopo l'orario di inizio. Per favore, seleziona un orario corretto.",
                         );
-                        return; // Non chiude il foglio, l'utente può correggere
+                        return; // non chiude il foglio, l'utente può correggere
                       }
 
+                      // verifico che ci sia un titolo, se non c'è un titolo allora si inserisce il nome della categoria selezionata
                       String finalTitle = tCtrl.text.trim().isEmpty
                           ? selectedCat
                           : tCtrl.text;
 
+                      // verifico se sto modificando un evento
                       if (isEditing) {
                         if (eventToEdit.isRecurring) {
+                          // chiedo se vuole modificare tutti gli eventi o solo quello che stiamo modificando
                           _showUpdateOptionDialog(
                             eventToEdit,
                             finalTitle,
@@ -372,6 +411,7 @@ class _CalendarPageState extends State<CalendarPage> {
                             selCol,
                           );
                         } else {
+                          // se l'evento non è ricorrente aggiorna solo quello ovviamente
                           _applySingleUpdate(
                             eventToEdit,
                             finalTitle,
@@ -382,6 +422,7 @@ class _CalendarPageState extends State<CalendarPage> {
                           Navigator.pop(context);
                         }
                       } else {
+                        // se non sono in editing semplicemente salvo il tutto
                         _save(
                           finalTitle,
                           selectedCat,
@@ -399,7 +440,8 @@ class _CalendarPageState extends State<CalendarPage> {
                 ],
               ),
             ),
-            // --- PULSANTE X DI USCITA ---
+
+            // pulsante di uscita
             Positioned(
               right: 10,
               top: 10,
@@ -414,7 +456,7 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  // --- FUNZIONE DI ERRORE DEDICATA ---
+  // funzione che apre la finestra per la non-validità dell'orario
   void _showErrorDialog(BuildContext ctx, String message) {
     showDialog(
       context: ctx,
@@ -437,7 +479,7 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  // LOGICA MODIFICHE E RIPETIZIONI (Invariata)
+  // funzione di aggiornamento evento
   void _showUpdateOptionDialog(
     MyEvent ev,
     String title,
@@ -445,6 +487,7 @@ class _CalendarPageState extends State<CalendarPage> {
     TimeOfDay end,
     Color col,
   ) {
+    // finestra per la scelta di modifica per gli eventi ricorrenti
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -454,6 +497,7 @@ class _CalendarPageState extends State<CalendarPage> {
         ),
         actions: [
           TextButton(
+            // evento singolo
             onPressed: () {
               _applySingleUpdate(ev, title, start, end, col);
               Navigator.pop(ctx);
@@ -463,6 +507,7 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
           TextButton(
             onPressed: () {
+              // tutti gli eventi modificati
               _applyGroupUpdate(ev.groupId, title, start, end, col);
               Navigator.pop(ctx);
               Navigator.pop(context);
@@ -474,6 +519,7 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
+  // funzione aggiornamento per modifica di evento singolo
   void _applySingleUpdate(
     MyEvent ev,
     String title,
@@ -490,6 +536,7 @@ class _CalendarPageState extends State<CalendarPage> {
     widget.onEventsUpdated(widget.eventsMap);
   }
 
+  // funzione aggiornamento per modifica di gruppo di eventi
   void _applyGroupUpdate(
     String gId,
     String title,
@@ -512,6 +559,7 @@ class _CalendarPageState extends State<CalendarPage> {
     widget.onEventsUpdated(widget.eventsMap);
   }
 
+  // box contenitori per l'orario cliccabile
   Widget _timeBox(String label, TimeOfDay time, BuildContext ctx) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -532,6 +580,7 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
+  // funzione di salvataggio eventi
   void _save(
     String t,
     String cat,
@@ -546,6 +595,7 @@ class _CalendarPageState extends State<CalendarPage> {
     if (r == 'Settimanale') count = 12;
     if (r == 'Mensile') count = 6;
 
+    // scelta ripetizione
     setState(() {
       for (int i = 0; i < count; i++) {
         DateTime d = _selectedDay!;
@@ -572,6 +622,7 @@ class _CalendarPageState extends State<CalendarPage> {
     widget.onEventsUpdated(widget.eventsMap);
   }
 
+  // finestra per eliminazione dell'evento
   void _showDeleteDialog(MyEvent ev) {
     showDialog(
       context: context,
@@ -602,7 +653,7 @@ class _CalendarPageState extends State<CalendarPage> {
               Navigator.pop(ctx);
             },
             child: const Text("SOLO QUESTA"),
-          ), //questo VALE SIA PER RIPETIZIONI CHE SENZA, VEDERE SE FARE DUE COSE DIVERSE O LASCIARE COSì
+          ),
           if (ev.isRecurring)
             TextButton(
               onPressed: () {
@@ -614,6 +665,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 widget.onEventsUpdated(widget.eventsMap);
                 Navigator.pop(ctx);
               },
+              // appare solo nel caso l'evento sia ripetuto
               child: const Text("TUTTE", style: TextStyle(color: Colors.red)),
             ),
         ],
