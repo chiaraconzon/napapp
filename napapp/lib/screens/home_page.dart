@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'calendar_page.dart';
 import 'stats_page.dart';
 import 'login_page.dart';
+import 'package:napapp/services/notification_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -206,6 +207,7 @@ class _HomePageState extends State<HomePage> {
 
           if (minutes != null) {
             print("Sveglia da $minutes minuti");
+            NotificationService.setAlarm(minutes);
           } else {
             print("Apri personalizzata");
           }

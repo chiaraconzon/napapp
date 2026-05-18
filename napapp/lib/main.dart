@@ -3,8 +3,13 @@ import 'package:calendar_view/calendar_view.dart'; // Fondamentale per il contro
 import 'theme/util.dart';
 import 'theme/theme.dart';
 import 'screens/home_page.dart';
+import 'services/notification_service.dart';
 
-void main() {
+void main() async {
+  // per le notifche delle sveglie
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
+
   runApp(const MyApp());
 }
 
@@ -18,7 +23,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = createTextTheme(context, "Noto Sans", "Noto Sans");
     final theme = MaterialTheme(textTheme);
-
     // Avvolgiamo tutto l'App con il Provider
     return CalendarControllerProvider(
       controller: _eventController,
