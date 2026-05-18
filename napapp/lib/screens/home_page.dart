@@ -90,6 +90,80 @@ class _HomePageState extends State<HomePage> {
       ),
       // prende la pagina dalla lista in base all'indice
       body: pagesList[_pageIndex],
+      // timer
+      floatingActionButton: _pageIndex == 0
+          ? FloatingActionButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return Dialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("Scegli la durata del riposino:"),
+                                IconButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  icon: Icon(Icons.close),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 20),
+
+                            // OPZIONI
+                            _napButton(
+                              context,
+                              "Rigenerativa 60 min",
+                              Icons.hotel,
+                              60,
+                            ),
+
+                            SizedBox(height: 10),
+
+                            _napButton(
+                              context,
+                              "Recupero 30 min",
+                              Icons.bed,
+                              30,
+                            ),
+
+                            SizedBox(height: 10),
+
+                            _napButton(
+                              context,
+                              "Power Nap 15 min",
+                              Icons.nightlight_round,
+                              15,
+                            ),
+
+                            SizedBox(height: 10),
+
+                            _napButton(
+                              context,
+                              "Personalizzata",
+                              Icons.edit,
+                              null,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+              child: Icon(Icons.add),
+            )
+          : null,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _pageIndex,
         onTap: (index) => setState(() => _pageIndex = index),
@@ -104,6 +178,42 @@ class _HomePageState extends State<HomePage> {
             label: 'Statistiche',
           ),
         ],
+      ),
+    );
+  }
+
+  // widget per le sveglie
+  Widget _napButton(
+    BuildContext context,
+    String title,
+    IconData icon,
+    int? minutes,
+  ) {
+    return SizedBox(
+      width: double.infinity,
+
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.symmetric(vertical: 15),
+
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+        ),
+
+        onPressed: () {
+          Navigator.pop(context);
+
+          if (minutes != null) {
+            print("Sveglia da $minutes minuti");
+          } else {
+            print("Apri personalizzata");
+          }
+        },
+
+        icon: Icon(icon),
+
+        label: Text(title, style: TextStyle(fontSize: 16)),
       ),
     );
   }
@@ -130,14 +240,22 @@ class _HomePageState extends State<HomePage> {
         Padding(
           padding: EdgeInsets.all(20.0),
           child: Text(
-            "Impegni di oggi",
+            "IMPEGNI DI OGGI",
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+        ),
+        //
+        Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Text(
+            "OGGI L'ORARIO PER IL RIPOSINO E' DALLE ... ALLE ...",
+            style: TextStyle(fontSize: 14),
           ),
         ),
         //
         Expanded(
           child: eventiOggi.isEmpty
-              // se oggi non ci sono impegin allora mostra
+              // se oggi non ci sono impegni allora mostra questo
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -224,7 +342,7 @@ class _HomePageState extends State<HomePage> {
                             ],
                           ),
                         ),
-                        // Piccola etichetta per la categoria a destra
+                        // piccola etichetta per la categoria a destra
                         trailing: Text(
                           ev.category,
                           style: TextStyle(
