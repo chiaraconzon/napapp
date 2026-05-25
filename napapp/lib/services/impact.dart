@@ -142,15 +142,14 @@ class Impact {
 
     List<SleepData> result = [];
 
-    for(int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
       DateTime currentDay = recentDay.subtract(Duration(days: i));
       String currentDayString = queryString(currentDay);
 
       try {
         SleepData currentData = await requestSleepData(currentDayString);
         result.add(currentData);
-      }
-      catch (e) {
+      } catch (e) {
         SleepData currentData = SleepData.missingData(currentDayString);
         result.add(currentData);
       }
@@ -158,5 +157,4 @@ class Impact {
 
     return result;
   }
-
 }

@@ -42,6 +42,8 @@ dependencies:
   flutter_iconpicker: ^4.0.3
   calendar_view: ^2.0.0
   fl_chart: ^1.2.0
+  jwt_decoder: ^2.0.1
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:

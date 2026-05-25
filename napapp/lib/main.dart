@@ -1,29 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:calendar_view/calendar_view.dart'; // Fondamentale per il controller
+import 'package:calendar_view/calendar_view.dart';
 import 'theme/util.dart';
 import 'theme/theme.dart';
 import 'screens/home_page.dart';
 import 'services/notification_service.dart';
 
 void main() async {
-  // per le notifche delle sveglie
+  // alarm notification initialization
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.init();
-
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // Creiamo il controller qui: è il "cuore" dei dati per le tue coccinelle
+  // event controller for alarms
   static final EventController _eventController = EventController();
 
   @override
   Widget build(BuildContext context) {
     final textTheme = createTextTheme(context, "Noto Sans", "Noto Sans");
     final theme = MaterialTheme(textTheme);
-    // Avvolgiamo tutto l'App con il Provider
+    // provider
     return CalendarControllerProvider(
       controller: _eventController,
       child: MaterialApp(
