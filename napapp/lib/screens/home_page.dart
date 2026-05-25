@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'calendar_page.dart';
 import 'stats_page.dart';
 import 'login_page.dart';
+import 'package:napapp/widgets/time_picker.dart';
 import 'package:napapp/services/notification_service.dart';
 
 // =============================================================================
@@ -570,6 +571,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   Map<DateTime, List<MyEvent>> globalEvents = {};
   int _pageIndex = 0;
+  int selectedAlarm = 1;
 
   static const double _sleepTarget = 8.0;
   static const int _latencyMin = 10;
@@ -710,16 +712,66 @@ class _HomePageState extends State<HomePage> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              "Seleziona il tempo di pisolino:",
-                              style: TextStyle(fontSize: 16),
-                            ),
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                _chooseAlarmButton(context, 10),
-                                _chooseAlarmButton(context, 30),
-                                _chooseAlarmButton(context, 90),
+                                Text(
+                                  "Seleziona il tempo di pisolino:",
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                ),
                               ],
+                            ),
+                            SizedBox(height: 50),
+                            TimerPicker(),
+                            SizedBox(height: 50),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _chooseAlarmButton(
+                                  context,
+                                  0,
+                                  10,
+                                  selectedAlarm,
+                                  (i) {
+                                    setState(() => selectedAlarm = i);
+                                  },
+                                ),
+
+                                const SizedBox(width: 30),
+
+                                _chooseAlarmButton(
+                                  context,
+                                  1,
+                                  30,
+                                  selectedAlarm,
+                                  (i) {
+                                    setState(() => selectedAlarm = i);
+                                  },
+                                ),
+
+                                const SizedBox(width: 30),
+
+                                _chooseAlarmButton(
+                                  context,
+                                  2,
+                                  90,
+                                  selectedAlarm,
+                                  (i) {
+                                    setState(() => selectedAlarm = i);
+                                  },
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 50),
+                            ElevatedButton(
+                              onPressed: () {},
+                              child: Text("Avvia"),
                             ),
                           ],
                         ),
@@ -852,28 +904,51 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // widget for alarms
-  Widget _chooseAlarmButton(BuildContext context, int? minutes) {
+  Widget _chooseAlarmButton(
+    BuildContext context,
+    int index,
+    int minutes,
+    int selectedIndex,
+    Function(int) onSelected,
+  ) {
+    final isSelected = index == selectedIndex;
+
     return SizedBox(
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          padding: EdgeInsets.symmetric(vertical: 15),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-        ),
-        child: Row(),
-
+      child: OutlinedButton(
         onPressed: () {
-          Navigator.pop(context);
-
-          if (minutes != null) {
-            print("Sveglia da $minutes minuti");
-            NotificationService.setAlarm(minutes);
-          } else {
-            print("Apri personalizzata");
-          }
+          onSelected(index);
         },
+
+        style: OutlinedButton.styleFrom(
+          shape: const CircleBorder(),
+
+          side: BorderSide(
+            color: isSelected
+                ? Colors
+                      .yellow // 🔥 selezionato
+                : Theme.of(context).colorScheme.primary,
+            width: isSelected ? 3 : 2,
+          ),
+
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          padding: const EdgeInsets.all(25),
+        ),
+
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "00:00",
+              style: TextStyle(
+                fontSize: 24,
+                color: isSelected
+                    ? Colors.yellow
+                    : Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

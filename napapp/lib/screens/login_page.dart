@@ -33,6 +33,15 @@ class LoginPage extends StatelessWidget {
                   color: Theme.of(context).primaryColor,
                 ),
               ),
+              SizedBox(height: 10),
+              Text(
+                "Don't give up, take a nap!",
+                style: TextStyle(
+                  fontSize: 15,
+                  fontStyle: FontStyle.italic,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
               SizedBox(height: 50),
 
               // textbox - username
