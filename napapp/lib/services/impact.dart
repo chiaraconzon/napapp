@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:http_test/sleep.dart';
+import 'package:napapp/models/sleep.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -135,7 +135,7 @@ class Impact {
   }
 
   // the function returns a list of the most recent n days of data, starting from the most recent (yesterday)
-  static Future<List<SleepData>?> getN_DaysFromMostRecent(int n) async {
+  static Future<List<SleepData>> getN_DaysFromMostRecent(int n) async {
     if (n < 0) throw Exception("n non può essere negativo");
     DateTime now = DateTime.now();
     DateTime recentDay = now.subtract(Duration(days: 1));
