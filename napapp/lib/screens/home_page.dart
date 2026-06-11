@@ -331,7 +331,8 @@ class NapAlgorithm {
   NapResult compute() {
     final sds = computeSDS();
     final lim = computeZoneLimits();
-    final nowMin = toMin(TimeOfDay.now());
+    final now = TimeOfDay.now();
+    final nowMin = toMin(now);
 
     if (nowMin >= lim.orangeEnd) return _noNap();
 
@@ -570,6 +571,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   Map<DateTime, List<MyEvent>> globalEvents = {};
+  Duration selectedDuration = const Duration(minutes: 10);
+  Duration finalDuration = const Duration(minutes: 10);
+  Duration customDuration = Duration.zero;
+  bool useCustom = false;
   int _pageIndex = 0;
   int selectedAlarm = 1;
 
@@ -703,79 +708,138 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: _pageIndex == 0
           ? FloatingActionButton(
               onPressed: () {
+                setState(() {
+                  selectedAlarm = 0;
+                });
                 showDialog(
                   context: context,
                   builder: (context) {
-                    return Dialog(
-                      child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    return StatefulBuilder(
+                      builder: (context, setDialogState) {
+                        return Dialog(
+                          child: Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
-                                  "Seleziona il tempo di pisolino:",
-                                  style: TextStyle(fontSize: 16),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Scegli tempo pisolino:",
+                                      style: TextStyle(fontSize: 18),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.close),
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                  ],
                                 ),
-                                IconButton(
-                                  icon: const Icon(Icons.close),
-                                  onPressed: () {
+                                SizedBox(height: 50),
+                                TimerPicker(
+                                  key: ValueKey(selectedDuration),
+                                  duration: selectedDuration,
+                                  onDurationChanged: (d) {
+                                    setState(() => selectedDuration = d);
+                                  },
+                                ),
+                                SizedBox(height: 50),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    _chooseAlarmButton(
+                                      context,
+                                      1,
+                                      10,
+                                      selectedAlarm,
+                                      (index) {
+                                        setDialogState(() {
+                                          selectedAlarm = index;
+                                          selectedDuration = const Duration(
+                                            minutes: 10,
+                                          );
+                                        });
+                                      },
+                                    ),
+
+                                    _chooseAlarmButton(
+                                      context,
+                                      2,
+                                      30,
+                                      selectedAlarm,
+                                      (index) {
+                                        setDialogState(() {
+                                          selectedAlarm = index;
+                                          selectedDuration = const Duration(
+                                            minutes: 30,
+                                          );
+                                        });
+                                      },
+                                    ),
+
+                                    _chooseAlarmButton(
+                                      context,
+                                      3,
+                                      90,
+                                      selectedAlarm,
+                                      (index) {
+                                        setDialogState(() {
+                                          selectedAlarm = index;
+                                          selectedDuration = const Duration(
+                                            minutes: 90,
+                                          );
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 50),
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    final Duration finalDuration =
+                                        selectedDuration;
+
+                                    final totalMinutes =
+                                        finalDuration.inMinutes;
+                                    final hours = totalMinutes ~/ 60;
+                                    final minutes = totalMinutes % 60;
+
+                                    String message;
+
+                                    if (hours > 0 && minutes > 0) {
+                                      message =
+                                          "Sveglia impostata tra ${hours}h e ${minutes}m";
+                                    } else if (hours > 0) {
+                                      message =
+                                          "Sveglia impostata tra ${hours} ore";
+                                    } else {
+                                      message =
+                                          "Sveglia impostata tra ${minutes} minuti";
+                                    }
+
+                                    await NotificationService.showNapNotification(
+                                      totalMinutes,
+                                    );
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text(message)),
+                                    );
+
                                     Navigator.pop(context);
                                   },
+                                  child: Text(
+                                    "Avvia",
+                                    style: TextStyle(fontSize: 12),
+                                  ),
                                 ),
                               ],
                             ),
-                            SizedBox(height: 50),
-                            TimerPicker(),
-                            SizedBox(height: 50),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                _chooseAlarmButton(
-                                  context,
-                                  0,
-                                  10,
-                                  selectedAlarm,
-                                  (i) {
-                                    setState(() => selectedAlarm = i);
-                                  },
-                                ),
-
-                                const SizedBox(width: 30),
-
-                                _chooseAlarmButton(
-                                  context,
-                                  1,
-                                  30,
-                                  selectedAlarm,
-                                  (i) {
-                                    setState(() => selectedAlarm = i);
-                                  },
-                                ),
-
-                                const SizedBox(width: 30),
-
-                                _chooseAlarmButton(
-                                  context,
-                                  2,
-                                  90,
-                                  selectedAlarm,
-                                  (i) {
-                                    setState(() => selectedAlarm = i);
-                                  },
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 50),
-                            ElevatedButton(
-                              onPressed: () {},
-                              child: Text("Avvia"),
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     );
                   },
                 );
@@ -912,6 +976,10 @@ class _HomePageState extends State<HomePage> {
     Function(int) onSelected,
   ) {
     final isSelected = index == selectedIndex;
+    String label =
+        '${minutes ~/ 60}'.padLeft(2, '0') +
+        ':' +
+        '${minutes % 60}'.padLeft(2, '0');
 
     return SizedBox(
       child: OutlinedButton(
@@ -924,8 +992,7 @@ class _HomePageState extends State<HomePage> {
 
           side: BorderSide(
             color: isSelected
-                ? Colors
-                      .yellow // 🔥 selezionato
+                ? const Color.fromARGB(255, 241, 127, 5) // selezionato
                 : Theme.of(context).colorScheme.primary,
             width: isSelected ? 3 : 2,
           ),
@@ -939,11 +1006,11 @@ class _HomePageState extends State<HomePage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              "00:00",
+              label,
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 18,
                 color: isSelected
-                    ? Colors.yellow
+                    ? const Color.fromARGB(255, 241, 127, 5)
                     : Theme.of(context).colorScheme.primary,
               ),
             ),

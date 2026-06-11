@@ -116,6 +116,7 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        SizedBox(height: 20),
         // --- Calendario (TableCalendar) ---
         TableCalendar<MyEvent>(
           firstDay: DateTime.utc(2025, 1, 1),
@@ -136,7 +137,7 @@ class _CalendarPageState extends State<CalendarPage> {
           headerStyle: HeaderStyle(
             formatButtonVisible: true,
             formatButtonDecoration: BoxDecoration(
-              color: Colors.deepOrange,
+              color: Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(20.0),
             ),
             formatButtonTextStyle: const TextStyle(
@@ -185,7 +186,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     color:
                         day.weekday == DateTime.sunday ||
                             day.weekday == DateTime.saturday
-                        ? Colors.red
+                        ? Theme.of(context).colorScheme.primary
                         : Colors.black87,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
