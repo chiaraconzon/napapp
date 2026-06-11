@@ -135,7 +135,7 @@ class Impact {
   }
 
   // the function returns a list of the most recent n days of data, starting from the most recent (yesterday)
-  static Future<List<SleepData>?> getN_DaysFromMostRecent(int n) async {
+  static Future<List<SleepData>> getN_DaysFromMostRecent(int n) async {
     if (n < 0) throw Exception("n non può essere negativo");
     DateTime now = DateTime.now();
     DateTime recentDay = now.subtract(Duration(days: 1));
