@@ -687,9 +687,9 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             DrawerHeader(child: Center(child: Text('Ciao $name'))),
-            ListTile(title: const Text('THEME'), onTap: () {}),
-            ListTile(title: const Text('LANGUAGE'), onTap: () {}),
-            ListTile(title: const Text('OPTIONS'), onTap: () {}),
+            ListTile(title: const Text('TEMA'), onTap: () {}),
+            ListTile(title: const Text('LINGUA'), onTap: () {}),
+            ListTile(title: const Text('TUTORIAL'), onTap: () {}),
             ListTile(title: const Text('CREDITS'), onTap: () {}),
             const Spacer(),
             const Divider(),
