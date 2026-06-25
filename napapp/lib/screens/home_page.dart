@@ -5,6 +5,7 @@ import 'stats_page.dart';
 import 'login_page.dart';
 import 'package:napapp/widgets/time_picker.dart';
 import 'package:napapp/services/notification_service.dart';
+import 'app_strings.dart';
 
 // =============================================================================
 // MODELLO DATI SONNO
@@ -95,41 +96,13 @@ class NapAlgorithm {
     return '${h.toString().padLeft(2, '0')}:${min.toString().padLeft(2, '0')}';
   }
 
-  // ---- SDS ----
-  // Media pesata esponenzialmente su finestra mobile di 7 giorni (G-1…G-7).
-  // Peso del giorno i (0-based, 0=G-1): λ^i con λ=0.65.
-  // SDS = Σ(peso_i * deficit_i) / Σ(peso_i)
-  // I giorni senza dati vengono saltati (peso non conteggiato).
-  static const double _lambda = 0.65;
+// ---- SDS ----
+// Valore fisso temporaneo in attesa dell'integrazione con il wearable.
+// 0.0 = nessun debito (propone pisolino da 15 min)
+// 1.5 = debito moderato (propone pisolino da 90 min)
+static const double _sdsDebug = 0.8;
 
-  double computeSDS() {
-    if (sleepHistory.isEmpty) return 0.0;
-
-    double deficit(SleepDay d) {
-      final napsLong = d.naps
-          .where((n) => n > 60)
-          .fold(0.0, (a, b) => a + b / 60);
-      return (sleepTarget - (d.tst + napsLong)).clamp(0.0, double.infinity);
-    }
-
-    double weightedSum = 0.0;
-    double totalWeight = 0.0;
-
-    for (int i = 0; i < sleepHistory.length && i < 7; i++) {
-      final weight = _pow(_lambda, i);
-      weightedSum += weight * deficit(sleepHistory[i]);
-      totalWeight += weight;
-    }
-
-    return totalWeight == 0.0 ? 0.0 : weightedSum / totalWeight;
-  }
-
-  /// Calcola base^exp senza dart:math (evita import aggiuntivi)
-  static double _pow(double base, int exp) {
-    double result = 1.0;
-    for (int i = 0; i < exp; i++) result *= base;
-    return result;
-  }
+double computeSDS() => _sdsDebug;
 
   // ---- sveglia effettiva ----
   TimeOfDay? get _effectiveWakeUp => wakeUpToday ?? averageSchoolWakeUp;
@@ -175,12 +148,16 @@ class NapAlgorithm {
         ? (averageSchoolWakeUp ?? _effectiveWakeUp!)
         : _effectiveWakeUp!;
     final bedtimeMin = (toMin(wakeUp) - 8 * 60 + 24 * 60) % (24 * 60);
+    // yellowEnd non può superare le 17:30 (se lo raggiunge la zona arancione scompare)
+    final yellowEnd = (bedtimeMin - 7 * 60).clamp(zoneStart, hm(17, 30));
+    // greenEnd non può superare yellowEnd
+    final greenEnd  = (bedtimeMin - 8 * 60).clamp(zoneStart, yellowEnd);
 
     return ZoneLimits(
       greenStart: zoneStart,
-      greenEnd: bedtimeMin - 8 * 60,
-      yellowEnd: bedtimeMin - 7 * 60,
-      orangeEnd: hm(17, 30),
+      greenEnd:   greenEnd,
+      yellowEnd:  yellowEnd,
+      orangeEnd:  hm(17, 30),
     );
   }
 
@@ -232,86 +209,6 @@ class NapAlgorithm {
     if (n <= 30) return 50;
     if (n <= 75) return 80;
     return 100;
-  }
-
-  // ---- check inerzie: 'ok' | 'warning' | 'no' ----
-  String _checkInertia(int napMin, int offset) {
-    final cogn = _inerziaCogn(napMin);
-    final motor = _inerziaMotor(napMin);
-    final hasAllenamento = todayEvents.any((e) => e.category == 'Allenamento');
-
-    // eventi non-allenamento dopo l'offset
-    final others = todayEvents
-        .where(
-          (e) =>
-              e.category != 'Allenamento' &&
-              e.category != 'Pranzo' &&
-              toMin(e.startTime) > offset,
-        )
-        .toList();
-    if (others.isNotEmpty) {
-      others.sort((a, b) => toMin(a.startTime).compareTo(toMin(b.startTime)));
-      final gap = toMin(others.first.startTime) - offset;
-      if (gap < cogn) {
-        final overlap = cogn - gap;
-        if (napMin >= 60 && overlap <= 10) return 'warning';
-        return 'no';
-      }
-    }
-
-    // eventi allenamento dopo l'offset
-    final allens = todayEvents
-        .where(
-          (e) => e.category == 'Allenamento' && toMin(e.startTime) > offset,
-        )
-        .toList();
-    if (allens.isNotEmpty) {
-      allens.sort((a, b) => toMin(a.startTime).compareTo(toMin(b.startTime)));
-      final gap = toMin(allens.first.startTime) - offset;
-      if (gap < motor) return 'no';
-    }
-
-    return 'ok';
-  }
-
-  // ---- sovrapposizione con eventi (escluso Pranzo) ----
-  bool _overlaps(int startMin, int endMin) {
-    for (final ev in todayEvents) {
-      if (ev.category == 'Pranzo') continue;
-      final s = toMin(ev.startTime);
-      final e = toMin(ev.endTime);
-      if (startMin < e && endMin > s) return true;
-    }
-    return false;
-  }
-
-  // Sposta startMin oltre eventi sovrapposti
-  int _skipOverlaps(int startMin) {
-    bool moved = true;
-    while (moved) {
-      moved = false;
-      for (final ev in todayEvents) {
-        if (ev.category == 'Pranzo') continue;
-        final s = toMin(ev.startTime);
-        final e = toMin(ev.endTime);
-        if (startMin >= s && startMin < e) {
-          startMin = e;
-          moved = true;
-          break;
-        }
-      }
-    }
-    return startMin;
-  }
-
-  // Fine del prossimo evento che inizia >= afterMin
-  int? _nextEventEnd(int afterMin) {
-    final list = todayEvents
-        .where((e) => e.category != 'Pranzo' && toMin(e.startTime) >= afterMin)
-        .toList();
-    if (list.isEmpty) return null;
-    list.sort((a, b) => toMin(a.startTime).compareTo(toMin(b.startTime)));
-    return toMin(list.first.endTime);
   }
 
   // ---- label scopo ----
@@ -572,11 +469,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   Map<DateTime, List<MyEvent>> globalEvents = {};
   Duration selectedDuration = const Duration(minutes: 10);
-  Duration finalDuration = const Duration(minutes: 10);
-  Duration customDuration = Duration.zero;
-  bool useCustom = false;
   int _pageIndex = 0;
   int selectedAlarm = 1;
+  bool _isEnglish = false;
 
   static const double _sleepTarget = 8.0;
   static const int _latencyMin = 10;
@@ -586,6 +481,7 @@ class _HomePageState extends State<HomePage> {
   Timer? _napTimer;
   NapResult? _napResult;
   ZoneLimits? _zoneLimits;
+  double _sds = 0.0; // calcolato una volta sola in _updateNap
 
   @override
   void initState() {
@@ -620,7 +516,8 @@ class _HomePageState extends State<HomePage> {
       today: now,
     );
     _zoneLimits = algo.computeZoneLimits();
-    _napResult = algo.compute();
+    _sds        = algo.computeSDS();
+    _napResult  = algo.compute();
   }
 
   String _fmtTOD(TimeOfDay t) =>
@@ -656,12 +553,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings(_isEnglish);
     final name =
         ModalRoute.of(context)?.settings.arguments as String? ?? 'Utente';
     final pages = [
       _homeWidget(),
       CalendarPage(
         eventsMap: globalEvents,
+        isEnglish: _isEnglish,
         onEventsUpdated: (m) => setState(() {
           globalEvents = m;
           _updateNap();
@@ -675,7 +574,7 @@ class _HomePageState extends State<HomePage> {
       appBar: _pageIndex == 1
           ? null
           : AppBar(
-              backgroundColor: Colors.transparent, // Rende l'AppBar trasparente
+              backgroundColor: Colors.transparent,
               leading: Builder(
                 builder: (context) => IconButton(
                   icon: const Icon(Icons.menu, size: 30),
@@ -686,16 +585,55 @@ class _HomePageState extends State<HomePage> {
       drawer: Drawer(
         child: Column(
           children: [
-            DrawerHeader(child: Center(child: Text('Ciao $name'))),
+            DrawerHeader(child: Center(child: Text(s.hello(name)))),
             ListTile(title: const Text('TEMA'), onTap: () {}),
-            ListTile(title: const Text('LINGUA'), onTap: () {}),
-            ListTile(title: const Text('TUTORIAL'), onTap: () {}),
+            ListTile(
+              title: const Text('LINGUA'),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: Text(s.selectLanguage),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: const Text('🇮🇹', style: TextStyle(fontSize: 24)),
+                          title: const Text('Italiano'),
+                          selected: !_isEnglish,
+                          onTap: () {
+                            setState(() => _isEnglish = false);
+                            Navigator.pop(ctx);
+                          },
+                        ),
+                        ListTile(
+                          leading: const Text('🇬🇧', style: TextStyle(fontSize: 24)),
+                          title: const Text('English'),
+                          selected: _isEnglish,
+                          onTap: () {
+                            setState(() => _isEnglish = true);
+                            Navigator.pop(ctx);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              title: const Text('TUTORIAL'),
+              onTap: () {
+                Navigator.pop(context); // chiude il drawer prima di aprire il dialog
+                _showTutorial(context);
+              },
+            ),
             ListTile(title: const Text('CREDITS'), onTap: () {}),
             const Spacer(),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Logout'),
+              title: Text(s.logout),
               onTap: () => Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (_) => LoginPage()),
@@ -727,7 +665,7 @@ class _HomePageState extends State<HomePage> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      "Scegli tempo pisolino:",
+                                      AppStrings(_isEnglish).chooseNapTime,
                                       style: TextStyle(fontSize: 18),
                                     ),
                                     IconButton(
@@ -799,26 +737,13 @@ class _HomePageState extends State<HomePage> {
                                 SizedBox(height: 50),
                                 ElevatedButton(
                                   onPressed: () async {
-                                    final Duration finalDuration =
-                                        selectedDuration;
-
+                                    final s = AppStrings(_isEnglish);
                                     final totalMinutes =
-                                        finalDuration.inMinutes;
+                                        selectedDuration.inMinutes;
                                     final hours = totalMinutes ~/ 60;
                                     final minutes = totalMinutes % 60;
 
-                                    String message;
-
-                                    if (hours > 0 && minutes > 0) {
-                                      message =
-                                          "Sveglia impostata tra ${hours}h e ${minutes}m";
-                                    } else if (hours > 0) {
-                                      message =
-                                          "Sveglia impostata tra ${hours} ore";
-                                    } else {
-                                      message =
-                                          "Sveglia impostata tra ${minutes} minuti";
-                                    }
+                                    final message = s.alarmSet(hours, minutes);
 
                                     await NotificationService.showNapNotification(
                                       totalMinutes,
@@ -831,7 +756,7 @@ class _HomePageState extends State<HomePage> {
                                     Navigator.pop(context);
                                   },
                                   child: Text(
-                                    "Avvia",
+                                    AppStrings(_isEnglish).startAlarm,
                                     style: TextStyle(fontSize: 12),
                                   ),
                                 ),
@@ -850,15 +775,15 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _pageIndex,
         onTap: (i) => setState(() => _pageIndex = i),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        items: [
+          BottomNavigationBarItem(icon: const Icon(Icons.home), label: s.navHome),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month),
-            label: 'Calendario',
+            icon: const Icon(Icons.calendar_month),
+            label: s.navCalendar,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Statistiche',
+            icon: const Icon(Icons.bar_chart),
+            label: s.navStats,
           ),
         ],
       ),
@@ -869,6 +794,7 @@ class _HomePageState extends State<HomePage> {
   // HOME WIDGET
   // -----------------------------------------------------------------------
   Widget _homeWidget() {
+    final s = AppStrings(_isEnglish);
     final now = DateTime.now();
     final key = DateTime(now.year, now.month, now.day);
     final eventiOggi = List<MyEvent>.from(globalEvents[key] ?? [])
@@ -877,16 +803,6 @@ class _HomePageState extends State<HomePage> {
         final mb = b.startTime.hour * 60 + b.startTime.minute;
         return ma.compareTo(mb);
       });
-
-    final sds = NapAlgorithm(
-      sleepTarget: _sleepTarget,
-      latencyMin: _latencyMin,
-      sleepHistory: _sleepHistory,
-      todayEvents: eventiOggi,
-      wakeUpToday: null,
-      averageSchoolWakeUp: _defaultWakeUp,
-      today: now,
-    ).computeSDS();
 
     // Lista cronologica eventi + pisolino
     final items = <_ListItem>[];
@@ -910,11 +826,11 @@ class _HomePageState extends State<HomePage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Impegni di oggi',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                Text(
+                  s.todaySchedule,
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
-                _sdsReward(sds),
+                _sdsReward(_sds),
               ],
             ),
           ),
@@ -948,9 +864,9 @@ class _HomePageState extends State<HomePage> {
                           color: Colors.grey.shade300,
                         ),
                         const SizedBox(height: 10),
-                        const Text(
-                          'Nessun impegno per oggi',
-                          style: TextStyle(color: Colors.grey),
+                        Text(
+                          s.noEvents,
+                          style: const TextStyle(color: Colors.grey),
                         ),
                       ],
                     ),
@@ -1073,10 +989,11 @@ class _HomePageState extends State<HomePage> {
   // CARD PISOLINO
   // -----------------------------------------------------------------------
   Widget _napCard(NapResult r) {
+    final s = AppStrings(_isEnglish);
     final color = _zoneColor(r.zone);
     final label = r.zone == NapZone.orange
-        ? 'Pisolino di emergenza'
-        : 'Pisolino';
+        ? s.napEmergencyLabel
+        : s.napLabel;
     final start = _fmtTOD(r.suggestedStart!);
     final end = _fmtTOD(r.suggestedEnd!);
 
@@ -1134,7 +1051,8 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  '${r.napEffectiveMin} min sonno  •  ${r.totalDisplayMin} min totali  •  ${r.scope}',
+                  s.napDetails( r.totalDisplayMin,
+                      s.translateScope(r.scope)),
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
                 if (r.hasInertiaWarning) ...[
@@ -1149,7 +1067,7 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          'Potresti avvertire stanchezza nei primi ~10 min dell\'attività successiva',
+                          s.inertiaWarning,
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.orange.shade700,
@@ -1171,6 +1089,7 @@ class _HomePageState extends State<HomePage> {
   // STRINGA PREDIZIONE
   // -----------------------------------------------------------------------
   Widget _predictionString() {
+    final s = AppStrings(_isEnglish);
     final r = _napResult;
 
     if (r == null || r.zone == NapZone.red || r.napEffectiveMin == 0) {
@@ -1186,9 +1105,9 @@ class _HomePageState extends State<HomePage> {
           children: [
             Icon(Icons.block, color: Colors.red.shade400, size: 20),
             const SizedBox(width: 10),
-            const Text(
-              'Zona Rossa • Troppo tardi per dormire',
-              style: TextStyle(
+            Text(
+              s.redZoneMsg,
+              style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
                 color: Colors.red,
@@ -1209,7 +1128,7 @@ class _HomePageState extends State<HomePage> {
           border: Border.all(color: Colors.orange.shade800),
         ),
         child: Text(
-          'Finestra di emergenza — solo per ridurre la sonnolenza momentanea',
+          s.orangeMsg,
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -1221,7 +1140,7 @@ class _HomePageState extends State<HomePage> {
 
     final isGreen = r.zone == NapZone.green;
     final color = isGreen ? Colors.green : Colors.amber;
-    final label = isGreen ? 'Pisolino ideale' : 'Pisolino di Emergenza';
+    final label = isGreen ? s.idealNap : s.emergencyNapPrediction;
     final start = _fmtTOD(r.suggestedStart!);
 
     return Container(
@@ -1248,8 +1167,8 @@ class _HomePageState extends State<HomePage> {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const TextSpan(text: '  •  '),
-            TextSpan(text: '${r.scopeEmoji} ${r.scope}'),
-            const TextSpan(text: '  •  dalle '),
+            TextSpan(text: '${r.scopeEmoji} ${s.translateScope(r.scope)}'),
+            TextSpan(text: '  •  ${s.fromTime} '),
             TextSpan(
               text: start,
               style: const TextStyle(fontWeight: FontWeight.bold),
@@ -1264,6 +1183,7 @@ class _HomePageState extends State<HomePage> {
   // DEBUG ZONE
   // -----------------------------------------------------------------------
   Widget _debugZones(ZoneLimits lim) {
+    final s = AppStrings(_isEnglish);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(10),
@@ -1284,26 +1204,18 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 4),
-          _dbRow(
-            '🟢 Verde',
-            '${NapAlgorithm.fmtMin(lim.greenStart)} → ${NapAlgorithm.fmtMin(lim.greenEnd)}',
-            Colors.green,
-          ),
-          _dbRow(
-            '🟡 Gialla',
-            '${NapAlgorithm.fmtMin(lim.greenEnd)} → ${NapAlgorithm.fmtMin(lim.yellowEnd)}',
-            Colors.amber,
-          ),
-          _dbRow(
-            '🟠 Arancione',
-            '${NapAlgorithm.fmtMin(lim.yellowEnd)} → ${NapAlgorithm.fmtMin(lim.orangeEnd)}',
-            Colors.orange.shade800,
-          ),
-          _dbRow(
-            '🔴 Rossa',
-            'oltre ${NapAlgorithm.fmtMin(lim.orangeEnd)}',
-            Colors.red,
-          ),
+          _dbRow(s.zoneGreen,
+              '${NapAlgorithm.fmtMin(lim.greenStart)} → ${NapAlgorithm.fmtMin(lim.greenEnd)}',
+              Colors.green),
+          _dbRow(s.zoneYellow,
+              '${NapAlgorithm.fmtMin(lim.greenEnd)} → ${NapAlgorithm.fmtMin(lim.yellowEnd)}',
+              Colors.amber),
+          _dbRow(s.zoneOrange,
+              '${NapAlgorithm.fmtMin(lim.yellowEnd)} → ${NapAlgorithm.fmtMin(lim.orangeEnd)}',
+              Colors.orange.shade800),
+          _dbRow(s.zoneRed,
+              '${s.zoneBeyond} ${NapAlgorithm.fmtMin(lim.orangeEnd)}',
+              Colors.red),
         ],
       ),
     );
@@ -1333,24 +1245,17 @@ class _HomePageState extends State<HomePage> {
   // SDS REWARD
   // -----------------------------------------------------------------------
   Widget _sdsReward(double sds) {
+    final s = AppStrings(_isEnglish);
     late String emoji, label;
     late Color color;
     if (sds < 0.5) {
-      emoji = '🔋';
-      label = 'Ottima forma';
-      color = Colors.green;
+      emoji = '🔋'; label = s.sdsGreat;    color = Colors.green;
     } else if (sds < 1.0) {
-      emoji = '🙂';
-      label = 'Leggero deficit';
-      color = Colors.lightGreen;
+      emoji = '🙂'; label = s.sdsLight;    color = Colors.lightGreen;
     } else if (sds < 2.0) {
-      emoji = '🥱';
-      label = 'Debito moderato';
-      color = Colors.orange.shade800;
+      emoji = '🥱'; label = s.sdsModerate; color = Colors.orange.shade800;
     } else {
-      emoji = '🚨';
-      label = 'Debito severo';
-      color = Colors.red;
+      emoji = '🚨'; label = s.sdsSevere;   color = Colors.red;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -1370,6 +1275,199 @@ class _HomePageState extends State<HomePage> {
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // TUTORIAL
+  // ---------------------------------------------------------------------------
+
+  static const List<Map<String, String>> _tutorialPages = [
+    {
+      'emoji': '👋',
+      'title': 'Benvenuto in NapApp',
+      'body':
+          'NapApp ti aiuta a pianificare il pisolino perfetto in base ai tuoi impegni e al tuo debito di sonno. Scorri per scoprire come funziona.',
+    },
+    {
+      'emoji': '🟢',
+      'title': 'Le Zone Temporali',
+      'body':
+          'La giornata è divisa in quattro zone colorate: Verde (pisolino ideale), Gialla (emergenza), Arancione (finestra limitata) e Rossa (troppo tardi). Il colore del suggerimento dipende da quando riesci a dormire.',
+    },
+    {
+      'emoji': '🔋',
+      'title': 'Debito di Sonno (SDS)',
+      'body':
+          'L\'app calcola il tuo Saldo Debito Sonno pesando le ultime 7 notti con un coefficiente esponenziale (le notti recenti contano di più). Se il debito supera 1 ora, ti viene suggerito un pisolino di recupero da 90 min.',
+    },
+    {
+      'emoji': '⏱️',
+      'title': 'Durata del Pisolino',
+      'body':
+          'Esistono tre tipologie: 10–15 min per un boost immediato dei riflessi (⚡), 20–30 min per consolidare la memoria (🧠), 60–90 min per recuperare energie (🔋). L\'app sceglie la durata giusta per te automaticamente.',
+    },
+    {
+      'emoji': '📅',
+      'title': 'Aggiungere Impegni',
+      'body':
+          'Vai nella scheda Calendario e premi il tasto "+" per aggiungere un impegno. Puoi scegliere la categoria (Lezione, Pranzo, Studio, Allenamento, Altro), l\'orario e il colore. Puoi anche impostare la ripetizione settimanale o mensile.',
+    },
+    {
+      'emoji': '🏋️',
+      'title': 'Inerzia e Allenamento',
+      'body':
+          'Dopo un pisolino il corpo ha bisogno di tempo per essere pronto all\'attività fisica (inerzia motoria). L\'app assicura sempre una distanza adeguata tra la fine del pisolino e il tuo allenamento.',
+    },
+    {
+      'emoji': '⏰',
+      'title': 'Impostare la Sveglia',
+      'body':
+          'Dalla home puoi avviare una sveglia direttamente nell\'app: scegli la durata desiderata per il pisolino e premi "Avvia". Riceverai una notifica allo scadere del tempo.',
+    },
+    {
+      'emoji': '📊',
+      'title': 'Statistiche',
+      'body':
+          'Nella scheda Statistiche trovi il riepilogo del tuo sonno settimanale e l\'andamento del debito di sonno nel tempo. Più dati inserisci, più accurate diventano le previsioni dell\'app.',
+    },
+  ];
+
+  void _showTutorial(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => _TutorialDialog(pages: _tutorialPages),
+    );
+  }
+}
+
+// =============================================================================
+// TUTORIAL DIALOG
+// =============================================================================
+
+class _TutorialDialog extends StatefulWidget {
+  final List<Map<String, String>> pages;
+  const _TutorialDialog({required this.pages});
+
+  @override
+  State<_TutorialDialog> createState() => _TutorialDialogState();
+}
+
+class _TutorialDialogState extends State<_TutorialDialog> {
+  int _current = 0;
+
+  void _prev() {
+    if (_current > 0) setState(() => _current--);
+  }
+
+  void _next() {
+    if (_current < widget.pages.length - 1) setState(() => _current++);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final page    = widget.pages[_current];
+    final total   = widget.pages.length;
+    final isFirst = _current == 0;
+    final isLast  = _current == total - 1;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+      child: Stack(
+        children: [
+          // ---- Contenuto principale ----
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 48, 24, 28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Emoji grande
+                Text(page['emoji']!, style: const TextStyle(fontSize: 56)),
+                const SizedBox(height: 16),
+
+                // Titolo
+                Text(
+                  page['title']!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Testo descrittivo
+                Text(
+                  page['body']!,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade700,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 28),
+
+                // ---- Frecce + pallini indicatori ----
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Freccia sinistra (grigia alla prima pagina)
+                    IconButton(
+                      onPressed: isFirst ? null : _prev,
+                      icon: Icon(
+                        Icons.arrow_back_ios_rounded,
+                        color: isFirst ? Colors.grey.shade300 : Colors.black87,
+                      ),
+                    ),
+
+                    // Pallini: quello attivo è più grande e scuro
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(total, (i) {
+                        final isActive = i == _current;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          width:  isActive ? 10 : 7,
+                          height: isActive ? 10 : 7,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isActive
+                                ? Colors.black87
+                                : Colors.grey.shade300,
+                          ),
+                        );
+                      }),
+                    ),
+
+                    // Freccia destra (grigia all'ultima pagina)
+                    IconButton(
+                      onPressed: isLast ? null : _next,
+                      icon: Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: isLast ? Colors.grey.shade300 : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // ---- Tasto X in alto a destra ----
+          Positioned(
+            top: 8,
+            right: 8,
+            child: IconButton(
+              icon: const Icon(Icons.close, color: Colors.grey),
+              onPressed: () => Navigator.pop(context),
             ),
           ),
         ],
