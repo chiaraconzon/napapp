@@ -41,7 +41,6 @@ dependencies:
   bottom_navy_bar: ^6.1.0
   calendar_date_picker2: ^2.0.1
   flutter_iconpicker: ^4.0.3
-  calendar_view: ^2.0.0
   fl_chart: ^1.2.0
   jwt_decoder: ^2.0.1
   shared_preferences: ^2.5.5
