@@ -3,441 +3,19 @@ import 'package:flutter/material.dart';
 import 'calendar_page.dart';
 import 'stats_page.dart';
 import 'login_page.dart';
-import 'package:napapp/widgets/time_picker.dart';
-import 'package:napapp/services/notification_service.dart';
+
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'app_strings.dart';
 
-// =============================================================================
-// MODELLO DATI SONNO
-// =============================================================================
-class SleepDay {
-  final DateTime date;
-  final double tst;
-  final List<double> naps;
-  const SleepDay({required this.date, required this.tst, this.naps = const []});
-}
-
-// =============================================================================
-// ENUM ZONA
-// =============================================================================
-enum NapZone { green, yellow, orange, red }
-
-// =============================================================================
-// RISULTATO ALGORITMO
-// =============================================================================
-class NapResult {
-  final NapZone zone;
-  final int napEffectiveMin;
-  final int totalDisplayMin;
-  final TimeOfDay? suggestedStart;
-  final TimeOfDay? suggestedEnd;
-  final String scope;
-  final String scopeEmoji;
-  final bool hasInertiaWarning;
-
-  const NapResult({
-    required this.zone,
-    required this.napEffectiveMin,
-    required this.totalDisplayMin,
-    this.suggestedStart,
-    this.suggestedEnd,
-    required this.scope,
-    required this.scopeEmoji,
-    this.hasInertiaWarning = false,
-  });
-}
-
-// =============================================================================
-// LIMITI ZONE
-// =============================================================================
-class ZoneLimits {
-  final int greenStart;
-  final int greenEnd;
-  final int yellowEnd;
-  final int orangeEnd;
-  const ZoneLimits({
-    required this.greenStart,
-    required this.greenEnd,
-    required this.yellowEnd,
-    required this.orangeEnd,
-  });
-}
-
-// =============================================================================
-// ALGORITMO NAP
-// =============================================================================
-class NapAlgorithm {
-  final double sleepTarget;
-  final int latencyMin;
-  final List<SleepDay> sleepHistory;
-  final List<MyEvent> todayEvents;
-  final TimeOfDay? wakeUpToday;
-  final TimeOfDay? averageSchoolWakeUp;
-  final DateTime today;
-
-  NapAlgorithm({
-    required this.sleepTarget,
-    required this.latencyMin,
-    required this.sleepHistory,
-    required this.todayEvents,
-    required this.wakeUpToday,
-    required this.averageSchoolWakeUp,
-    required this.today,
-  });
-
-  // ---- helpers ----
-  static int toMin(TimeOfDay t) => t.hour * 60 + t.minute;
-  static int hm(int h, int m) => h * 60 + m;
-  static TimeOfDay fromMin(int m) =>
-      TimeOfDay(hour: (m ~/ 60) % 24, minute: m % 60);
-  static String fmtMin(int m) {
-    final h = (m ~/ 60) % 24;
-    final min = m % 60;
-    return '${h.toString().padLeft(2, '0')}:${min.toString().padLeft(2, '0')}';
-  }
-
-// ---- SDS ----
-// Valore fisso temporaneo in attesa dell'integrazione con il wearable.
-// 0.0 = nessun debito (propone pisolino da 15 min)
-// 1.5 = debito moderato (propone pisolino da 90 min)
-static const double _sdsDebug = 0.8;
-
-double computeSDS() => _sdsDebug;
-
-  // ---- sveglia effettiva ----
-  TimeOfDay? get _effectiveWakeUp => wakeUpToday ?? averageSchoolWakeUp;
-
-  // ---- tipo giorno ----
-  bool get _isSaturday => today.weekday == DateTime.saturday;
-  bool get _isSunday => today.weekday == DateTime.sunday;
-
-  // ---- inizio zona verde (fine pranzo + 40 min, altrimenti 14:00) ----
-  int _zoneStartMin() {
-    final pranzi = todayEvents.where((e) => e.category == 'Pranzo').toList();
-    if (pranzi.isNotEmpty) {
-      pranzi.sort((a, b) => toMin(a.startTime).compareTo(toMin(b.startTime)));
-      return toMin(pranzi.first.endTime) + 40;
-    }
-    return hm(14, 0);
-  }
-
-  // ---- limiti zone ----
-  ZoneLimits computeZoneLimits() {
-    final zoneStart = _zoneStartMin();
-
-    if (_isSaturday) {
-      return ZoneLimits(
-        greenStart: zoneStart,
-        greenEnd: hm(15, 30),
-        yellowEnd: hm(16, 30),
-        orangeEnd: hm(18, 0),
-      );
-    }
-
-    if (_effectiveWakeUp == null) {
-      return ZoneLimits(
-        greenStart: hm(14, 0),
-        greenEnd: hm(15, 0),
-        yellowEnd: hm(16, 0),
-        orangeEnd: hm(17, 30),
-      );
-    }
-
-    // domenica: usa media scolastica lun-gio
-    final wakeUp = _isSunday
-        ? (averageSchoolWakeUp ?? _effectiveWakeUp!)
-        : _effectiveWakeUp!;
-    final bedtimeMin = (toMin(wakeUp) - 8 * 60 + 24 * 60) % (24 * 60);
-    // yellowEnd non può superare le 17:30 (se lo raggiunge la zona arancione scompare)
-    final yellowEnd = (bedtimeMin - 7 * 60).clamp(zoneStart, hm(17, 30));
-    // greenEnd non può superare yellowEnd
-    final greenEnd  = (bedtimeMin - 8 * 60).clamp(zoneStart, yellowEnd);
-
-    return ZoneLimits(
-      greenStart: zoneStart,
-      greenEnd:   greenEnd,
-      yellowEnd:  yellowEnd,
-      orangeEnd:  hm(17, 30),
-    );
-  }
-
-  NapZone _zoneOfOffset(int offsetMin, ZoneLimits lim) {
-    if (offsetMin <= lim.greenEnd) return NapZone.green;
-    if (offsetMin <= lim.yellowEnd) return NapZone.yellow;
-    if (offsetMin <= lim.orangeEnd) return NapZone.orange;
-    return NapZone.red;
-  }
-
-  // ---- durata target ----
-  // Valori ammessi: 90,85,80,75,70,65,60,30,25,20,15,10
-  static const List<int> napSteps = [
-    90,
-    85,
-    80,
-    75,
-    70,
-    65,
-    60,
-    30,
-    25,
-    20,
-    15,
-    10,
-  ];
-
-  int _idealDuration(double sds) {
-    if (sds > 1.0) return 90;
-    final hasStudy = todayEvents.any(
-      (e) => e.category == 'Studio' || e.category == 'Lezione',
-    );
-    if (hasStudy) return 30;
-    return 15;
-  }
-
-  // ---- inerzie ----
-  int _inerziaCogn(int n) {
-    if (n <= 15) return 0;
-    if (n <= 25) return 10;
-    if (n <= 30) return 15;
-    if (n <= 75) return 30;
-    return 35;
-  }
-
-  int _inerziaMotor(int n) {
-    if (n <= 15) return 30;
-    if (n <= 25) return 40;
-    if (n <= 30) return 50;
-    if (n <= 75) return 80;
-    return 100;
-  }
-
-  // ---- label scopo ----
-  String _scopeLabel(int n) {
-    if (n >= 60) return 'Energie';
-    if (n >= 20) return 'Memoria';
-    return 'Riflessi';
-  }
-
-  String _scopeEmoji(int n) {
-    if (n >= 60) return '🔋';
-    if (n >= 20) return '🧠';
-    return '⚡';
-  }
-
-  // ---- MOTORE PRINCIPALE ----
-  NapResult compute() {
-    final sds = computeSDS();
-    final lim = computeZoneLimits();
-    final now = TimeOfDay.now();
-    final nowMin = toMin(now);
-
-    if (nowMin >= lim.orangeEnd) return _noNap();
-
-    final baseStart = nowMin > lim.greenStart ? nowMin : lim.greenStart;
-    int stepIdx = napSteps.indexWhere((s) => s <= _idealDuration(sds));
-    if (stepIdx == -1) stepIdx = napSteps.length - 1;
-
-    // --- Calcola i buchi liberi tra [from, to] ---
-    // Un buco è un intervallo senza eventi (Pranzo escluso).
-    // Restituisce lista di (gapStart, gapEnd) già clippata a [from, to].
-    List<(int, int)> buildGaps(int from, int to) {
-      if (from >= to) return [];
-
-      // Prendo tutti gli intervalli degli eventi (escluso Pranzo)
-      final intervals =
-          todayEvents
-              .where((e) => e.category != 'Pranzo')
-              .map((e) => (toMin(e.startTime), toMin(e.endTime)))
-              .toList()
-            ..sort((a, b) => a.$1.compareTo(b.$1));
-
-      // Merge intervalli sovrapposti
-      final merged = <(int, int)>[];
-      for (final iv in intervals) {
-        if (merged.isEmpty || iv.$1 >= merged.last.$2) {
-          merged.add(iv);
-        } else {
-          final maxEnd = iv.$2 > merged.last.$2 ? iv.$2 : merged.last.$2;
-          merged[merged.length - 1] = (merged.last.$1, maxEnd);
-        }
-      }
-
-      // Costruisco i buchi
-      final gaps = <(int, int)>[];
-      int cursor = from;
-      for (final iv in merged) {
-        if (iv.$1 > cursor) {
-          // c'è spazio libero prima di questo evento
-          final gStart = cursor;
-          final gEnd = iv.$1 < to ? iv.$1 : to;
-          if (gStart < gEnd) gaps.add((gStart, gEnd));
-        }
-        if (iv.$2 > cursor) cursor = iv.$2;
-      }
-      if (cursor < to) gaps.add((cursor, to));
-
-      return gaps;
-    }
-
-    // --- Ciclo principale: scala napMin fino a trovare uno slot ---
-    while (stepIdx < napSteps.length) {
-      final napMin = napSteps[stepIdx];
-      final cogn = _inerziaCogn(napMin);
-      final motor = _inerziaMotor(napMin);
-      final needed = latencyMin + napMin;
-
-      // Buchi disponibili da ora fino a fine zona gialla
-      // (il pisolino deve TERMINARE entro yellowEnd)
-      final gaps = buildGaps(baseStart, lim.yellowEnd);
-
-      for (final gap in gaps) {
-        final napStart = gap.$1;
-        final napEnd = napStart + needed;
-
-        // Il pisolino deve stare dentro il buco e finire entro yellowEnd
-        if (napEnd > gap.$2) continue;
-        if (napEnd > lim.yellowEnd) continue;
-
-        // --- Verifica inerzie rispetto agli eventi SUCCESSIVI al pisolino ---
-        final othersAfter =
-            todayEvents
-                .where(
-                  (e) =>
-                      e.category != 'Pranzo' &&
-                      e.category != 'Allenamento' &&
-                      toMin(e.startTime) >= napEnd,
-                )
-                .toList()
-              ..sort(
-                (a, b) => toMin(a.startTime).compareTo(toMin(b.startTime)),
-              );
-
-        final allensAfter =
-            todayEvents
-                .where(
-                  (e) =>
-                      e.category == 'Allenamento' &&
-                      toMin(e.startTime) >= napEnd,
-                )
-                .toList()
-              ..sort(
-                (a, b) => toMin(a.startTime).compareTo(toMin(b.startTime)),
-              );
-
-        final cognGap = othersAfter.isEmpty
-            ? 9999
-            : toMin(othersAfter.first.startTime) - napEnd;
-        final motorGap = allensAfter.isEmpty
-            ? 9999
-            : toMin(allensAfter.first.startTime) - napEnd;
-
-        final cognOk = cognGap >= cogn;
-        final motorOk = motorGap >= motor;
-
-        if (cognOk && motorOk) {
-          // Slot perfetto
-          return NapResult(
-            zone: _zoneOfOffset(napStart, lim),
-            napEffectiveMin: napMin,
-            totalDisplayMin: needed,
-            suggestedStart: fromMin(napStart),
-            suggestedEnd: fromMin(napEnd),
-            scope: _scopeLabel(napMin),
-            scopeEmoji: _scopeEmoji(napMin),
-          );
-        }
-
-        // Se solo l'inerzia cognitiva è violata di ≤10 min e napMin ≥ 60:
-        // si mette comunque con warning (inerzia motoria non si tocca mai)
-        final cognViolation = cogn - cognGap;
-        if (!cognOk && motorOk && napMin >= 60 && cognViolation <= 10) {
-          return NapResult(
-            zone: _zoneOfOffset(napStart, lim),
-            napEffectiveMin: napMin,
-            totalDisplayMin: needed,
-            suggestedStart: fromMin(napStart),
-            suggestedEnd: fromMin(napEnd),
-            scope: _scopeLabel(napMin),
-            scopeEmoji: _scopeEmoji(napMin),
-            hasInertiaWarning: true,
-          );
-        }
-
-        // Buco non valido: si passa al buco successivo automaticamente
-      }
-
-      // Nessun buco valido per questa durata: si scala di 5 min (step successivo)
-      stepIdx++;
-    }
-
-    // --- Fallback zona arancione: 10 min + latenza (fisso) ---
-    // Durata fissa → inerzia_cogn(10) = 0, inerzia_motor(10) = 30 min.
-    // Regole:
-    //   1. Il pisolino non si sovrappone ad altri eventi
-    //   2. Ogni evento Allenamento successivo deve distare >= 30 min dalla fine
-    //   3. Il pisolino deve finire entro orangeEnd (17:30)
-    const orangeNap = 10;
-    const orangeMotor = 30; // _inerziaMotor(10)
-    final orangeNeeded = latencyMin + orangeNap;
-    // Inizia la ricerca arancione 19 min prima della fine zona gialla
-    // (latenza 10 + pisolino minimo 10 - 1 di margine = 19).
-    // Così non si perde nessuna finestra utile tra la fine dello spazio
-    // disponibile in giallo e l'inizio "ufficiale" della zona arancione.
-    final orangeEarlyStart = lim.yellowEnd - 19;
-    final orangeFrom = baseStart > orangeEarlyStart
-        ? baseStart
-        : orangeEarlyStart;
-
-    // Buchi liberi dentro la zona arancione
-    final orangeGaps = buildGaps(orangeFrom, lim.orangeEnd);
-
-    for (final gap in orangeGaps) {
-      final napStart = gap.$1;
-      final napEnd = napStart + orangeNeeded;
-
-      // Deve stare dentro il buco e finire entro orangeEnd
-      if (napEnd > gap.$2) continue;
-      if (napEnd > lim.orangeEnd) continue;
-
-      // Inerzia motoria: allenamenti successivi devono distare >= 30 min
-      final allensAfterOrange =
-          todayEvents
-              .where(
-                (e) =>
-                    e.category == 'Allenamento' && toMin(e.startTime) >= napEnd,
-              )
-              .toList()
-            ..sort((a, b) => toMin(a.startTime).compareTo(toMin(b.startTime)));
-
-      final motorGapOrange = allensAfterOrange.isEmpty
-          ? 9999
-          : toMin(allensAfterOrange.first.startTime) - napEnd;
-
-      if (motorGapOrange < orangeMotor) continue;
-
-      // Slot valido
-      return NapResult(
-        zone: NapZone.orange,
-        napEffectiveMin: orangeNap,
-        totalDisplayMin: orangeNeeded,
-        suggestedStart: fromMin(napStart),
-        suggestedEnd: fromMin(napEnd),
-        scope: _scopeLabel(orangeNap),
-        scopeEmoji: _scopeEmoji(orangeNap),
-      );
-    }
-
-    return _noNap();
-  }
-
-  NapResult _noNap() => const NapResult(
-    zone: NapZone.red,
-    napEffectiveMin: 0,
-    totalDisplayMin: 0,
-    scope: '',
-    scopeEmoji: '',
-  );
-}
+import '../models/nap_models.dart';
+import '../utils/time_utils.dart';
+import '../utils/event_utils.dart';
+import '../controllers/nap_controller.dart';
+import '../algorithms/nap_algorithm.dart';
+import '../services/foreground_service.dart';
+import '../widgets/time_picker.dart';
+import '../widgets/tutorial_dialog.dart';
+import '../widgets/nap_card.dart';
 
 // =============================================================================
 // ITEM LISTA (evento o pisolino)
@@ -445,9 +23,12 @@ double computeSDS() => _sdsDebug;
 class _ListItem {
   final MyEvent? event;
   final NapResult? napResult;
+
   _ListItem.event(this.event) : napResult = null;
   _ListItem.nap(this.napResult) : event = null;
+
   bool get isNap => napResult != null;
+
   int get startMin {
     if (isNap) {
       final s = napResult!.suggestedStart!;
@@ -472,6 +53,7 @@ class _HomePageState extends State<HomePage> {
   int _pageIndex = 0;
   int selectedAlarm = 1;
   bool _isEnglish = false;
+  late NapController _controller;
 
   static const double _sleepTarget = 8.0;
   static const int _latencyMin = 10;
@@ -479,63 +61,54 @@ class _HomePageState extends State<HomePage> {
   final List<SleepDay> _sleepHistory = [];
 
   Timer? _napTimer;
-  NapResult? _napResult;
-  ZoneLimits? _zoneLimits;
-  double _sds = 0.0; // calcolato una volta sola in _updateNap
+
+  List<_ListItem> _buildTimeline(List<MyEvent> eventi, NapResult? r) {
+    final items = <_ListItem>[];
+
+    for (final ev in eventi) {
+      items.add(_ListItem.event(ev));
+    }
+
+    if (r != null &&
+        r.zone != NapZone.red &&
+        r.napEffectiveMin > 0 &&
+        r.suggestedStart != null) {
+      items.add(_ListItem.nap(r));
+    }
+
+    items.sort((a, b) => a.startMin.compareTo(b.startMin));
+
+    return items;
+  }
+
+  void _refresh() {
+    final now = DateTime.now();
+    _controller.refresh(now);
+  }
 
   @override
   void initState() {
     super.initState();
-    _updateNap();
-    _napTimer = Timer.periodic(
-      const Duration(
-        minutes: 1,
-      ), // ho messo che refresha ogni minuto. In caso cambiare
-      (_) {
-        if (mounted) setState(_updateNap);
-      },
+
+    _controller = NapController(
+      sleepTarget: _sleepTarget,
+      latencyMin: _latencyMin,
+      sleepHistory: _sleepHistory,
+      globalEvents: globalEvents,
+      defaultWakeUp: _defaultWakeUp,
     );
+
+    _refresh();
+
+    _napTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(_refresh);
+    });
   }
 
   @override
   void dispose() {
     _napTimer?.cancel();
     super.dispose();
-  }
-
-  void _updateNap() {
-    final now = DateTime.now();
-    final key = DateTime(now.year, now.month, now.day);
-    final algo = NapAlgorithm(
-      sleepTarget: _sleepTarget,
-      latencyMin: _latencyMin,
-      sleepHistory: _sleepHistory,
-      todayEvents: globalEvents[key] ?? [],
-      wakeUpToday: null,
-      averageSchoolWakeUp: _defaultWakeUp,
-      today: now,
-    );
-    _zoneLimits = algo.computeZoneLimits();
-    _sds        = algo.computeSDS();
-    _napResult  = algo.compute();
-  }
-
-  String _fmtTOD(TimeOfDay t) =>
-      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
-
-  IconData _catIcon(String cat) {
-    switch (cat) {
-      case 'Pranzo':
-        return Icons.restaurant;
-      case 'Studio':
-        return Icons.menu_book;
-      case 'Allenamento':
-        return Icons.fitness_center;
-      case 'Lezione':
-        return Icons.school;
-      default:
-        return Icons.more_horiz;
-    }
   }
 
   Color _zoneColor(NapZone z) {
@@ -563,7 +136,14 @@ class _HomePageState extends State<HomePage> {
         isEnglish: _isEnglish,
         onEventsUpdated: (m) => setState(() {
           globalEvents = m;
-          _updateNap();
+          _controller = NapController(
+            sleepTarget: _sleepTarget,
+            latencyMin: _latencyMin,
+            sleepHistory: _sleepHistory,
+            globalEvents: globalEvents,
+            defaultWakeUp: _defaultWakeUp,
+          );
+          _refresh();
         }),
       ),
       StatsPage(),
@@ -598,7 +178,10 @@ class _HomePageState extends State<HomePage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         ListTile(
-                          leading: const Text('🇮🇹', style: TextStyle(fontSize: 24)),
+                          leading: const Text(
+                            '🇮🇹',
+                            style: TextStyle(fontSize: 24),
+                          ),
                           title: const Text('Italiano'),
                           selected: !_isEnglish,
                           onTap: () {
@@ -607,7 +190,10 @@ class _HomePageState extends State<HomePage> {
                           },
                         ),
                         ListTile(
-                          leading: const Text('🇬🇧', style: TextStyle(fontSize: 24)),
+                          leading: const Text(
+                            '🇬🇧',
+                            style: TextStyle(fontSize: 24),
+                          ),
                           title: const Text('English'),
                           selected: _isEnglish,
                           onTap: () {
@@ -624,7 +210,9 @@ class _HomePageState extends State<HomePage> {
             ListTile(
               title: const Text('TUTORIAL'),
               onTap: () {
-                Navigator.pop(context); // chiude il drawer prima di aprire il dialog
+                Navigator.pop(
+                  context,
+                ); // chiude il drawer prima di aprire il dialog
                 _showTutorial(context);
               },
             ),
@@ -737,18 +325,31 @@ class _HomePageState extends State<HomePage> {
                                 SizedBox(height: 50),
                                 ElevatedButton(
                                   onPressed: () async {
-                                    final s = AppStrings(_isEnglish);
                                     final totalMinutes =
                                         selectedDuration.inMinutes;
-                                    final hours = totalMinutes ~/ 60;
-                                    final minutes = totalMinutes % 60;
+                                    final message = AppStrings(_isEnglish)
+                                        .alarmSet(
+                                          totalMinutes ~/ 60,
+                                          totalMinutes % 60,
+                                        );
 
-                                    final message = s.alarmSet(hours, minutes);
+                                    print("🚀 START SERVICE");
 
-                                    await NotificationService.showNapNotification(
-                                      totalMinutes,
+                                    await FlutterForegroundTask.startService(
+                                      notificationTitle: '⏰ Sveglia attiva',
+                                      notificationText: 'In corso...',
+                                      callback: startCallback,
                                     );
 
+                                    print("📡 SENDING DATA");
+
+                                    await Future.delayed(
+                                      const Duration(milliseconds: 300),
+                                    );
+
+                                    FlutterForegroundTask.sendDataToTask(
+                                      selectedDuration.inSeconds,
+                                    );
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(content: Text(message)),
                                     );
@@ -757,7 +358,6 @@ class _HomePageState extends State<HomePage> {
                                   },
                                   child: Text(
                                     AppStrings(_isEnglish).startAlarm,
-                                    style: TextStyle(fontSize: 12),
                                   ),
                                 ),
                               ],
@@ -776,7 +376,10 @@ class _HomePageState extends State<HomePage> {
         currentIndex: _pageIndex,
         onTap: (i) => setState(() => _pageIndex = i),
         items: [
-          BottomNavigationBarItem(icon: const Icon(Icons.home), label: s.navHome),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home),
+            label: s.navHome,
+          ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.calendar_month),
             label: s.navCalendar,
@@ -805,16 +408,7 @@ class _HomePageState extends State<HomePage> {
       });
 
     // Lista cronologica eventi + pisolino
-    final items = <_ListItem>[];
-    for (final ev in eventiOggi) items.add(_ListItem.event(ev));
-    final r = _napResult;
-    if (r != null &&
-        r.zone != NapZone.red &&
-        r.napEffectiveMin > 0 &&
-        r.suggestedStart != null) {
-      items.add(_ListItem.nap(r));
-      items.sort((a, b) => a.startMin.compareTo(b.startMin));
-    }
+    final items = _buildTimeline(eventiOggi, _controller.napResult);
 
     return SafeArea(
       child: Column(
@@ -828,9 +422,12 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Text(
                   s.todaySchedule,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                _sdsReward(_sds),
+                _sdsReward(_controller.sds),
               ],
             ),
           ),
@@ -844,10 +441,10 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 8),
 
           // debug zone
-          if (_zoneLimits != null)
+          if (_controller.zoneLimits != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _debugZones(_zoneLimits!),
+              child: _debugZones(_controller.zoneLimits!),
             ),
           const SizedBox(height: 8),
 
@@ -875,7 +472,12 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.only(bottom: 20),
                     itemCount: items.length,
                     itemBuilder: (ctx, i) => items[i].isNap
-                        ? _napCard(items[i].napResult!)
+                        ? NapCard(
+                            r: items[i].napResult!,
+                            isEnglish: _isEnglish,
+                            fmtTOD: TimeUtils.fmtTOD,
+                            zoneColor: _zoneColor,
+                          )
                         : _eventCard(items[i].event!),
                   ),
           ),
@@ -958,7 +560,11 @@ class _HomePageState extends State<HomePage> {
             color: ev.color.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(_catIcon(ev.category), color: ev.color, size: 28),
+          child: Icon(
+            EventUtils.iconFromCategory(ev.category),
+            color: ev.color,
+            size: 28,
+          ),
         ),
         title: Text(
           ev.title,
@@ -971,7 +577,7 @@ class _HomePageState extends State<HomePage> {
               const Icon(Icons.access_time, size: 16, color: Colors.grey),
               const SizedBox(width: 5),
               Text(
-                '${_fmtTOD(ev.startTime)} - ${_fmtTOD(ev.endTime)}',
+                '${TimeUtils.fmtTOD(ev.startTime)} - ${TimeUtils.fmtTOD(ev.endTime)}',
                 style: const TextStyle(fontSize: 15, color: Colors.black87),
               ),
             ],
@@ -986,111 +592,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   // -----------------------------------------------------------------------
-  // CARD PISOLINO
-  // -----------------------------------------------------------------------
-  Widget _napCard(NapResult r) {
-    final s = AppStrings(_isEnglish);
-    final color = _zoneColor(r.zone);
-    final label = r.zone == NapZone.orange
-        ? s.napEmergencyLabel
-        : s.napLabel;
-    final start = _fmtTOD(r.suggestedStart!);
-    final end = _fmtTOD(r.suggestedEnd!);
-
-    return Card(
-      elevation: 3,
-      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: BorderSide(color: color.withOpacity(0.7), width: 2),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.07),
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 10,
-          ),
-          leading: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.bedtime, color: color, size: 28),
-          ),
-          title: Text(
-            '${r.scopeEmoji} $label',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 17,
-              color: color,
-            ),
-          ),
-          subtitle: Padding(
-            padding: const EdgeInsets.only(top: 5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.access_time, size: 16, color: color),
-                    const SizedBox(width: 5),
-                    Text(
-                      '$start - $end',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: Colors.black87,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  s.napDetails( r.totalDisplayMin,
-                      s.translateScope(r.scope)),
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                ),
-                if (r.hasInertiaWarning) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        size: 13,
-                        color: Colors.orange.shade700,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          s.inertiaWarning,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.orange.shade700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // -----------------------------------------------------------------------
   // STRINGA PREDIZIONE
   // -----------------------------------------------------------------------
   Widget _predictionString() {
     final s = AppStrings(_isEnglish);
-    final r = _napResult;
+    final r = _controller.napResult;
 
     if (r == null || r.zone == NapZone.red || r.napEffectiveMin == 0) {
       return Container(
@@ -1141,7 +647,7 @@ class _HomePageState extends State<HomePage> {
     final isGreen = r.zone == NapZone.green;
     final color = isGreen ? Colors.green : Colors.amber;
     final label = isGreen ? s.idealNap : s.emergencyNapPrediction;
-    final start = _fmtTOD(r.suggestedStart!);
+    final start = TimeUtils.fmtTOD(r.suggestedStart!);
 
     return Container(
       width: double.infinity,
@@ -1204,18 +710,26 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(height: 4),
-          _dbRow(s.zoneGreen,
-              '${NapAlgorithm.fmtMin(lim.greenStart)} → ${NapAlgorithm.fmtMin(lim.greenEnd)}',
-              Colors.green),
-          _dbRow(s.zoneYellow,
-              '${NapAlgorithm.fmtMin(lim.greenEnd)} → ${NapAlgorithm.fmtMin(lim.yellowEnd)}',
-              Colors.amber),
-          _dbRow(s.zoneOrange,
-              '${NapAlgorithm.fmtMin(lim.yellowEnd)} → ${NapAlgorithm.fmtMin(lim.orangeEnd)}',
-              Colors.orange.shade800),
-          _dbRow(s.zoneRed,
-              '${s.zoneBeyond} ${NapAlgorithm.fmtMin(lim.orangeEnd)}',
-              Colors.red),
+          _dbRow(
+            s.zoneGreen,
+            '${NapAlgorithm.fmtMin(lim.greenStart)} → ${NapAlgorithm.fmtMin(lim.greenEnd)}',
+            Colors.green,
+          ),
+          _dbRow(
+            s.zoneYellow,
+            '${NapAlgorithm.fmtMin(lim.greenEnd)} → ${NapAlgorithm.fmtMin(lim.yellowEnd)}',
+            Colors.amber,
+          ),
+          _dbRow(
+            s.zoneOrange,
+            '${NapAlgorithm.fmtMin(lim.yellowEnd)} → ${NapAlgorithm.fmtMin(lim.orangeEnd)}',
+            Colors.orange.shade800,
+          ),
+          _dbRow(
+            s.zoneRed,
+            '${s.zoneBeyond} ${NapAlgorithm.fmtMin(lim.orangeEnd)}',
+            Colors.red,
+          ),
         ],
       ),
     );
@@ -1249,13 +763,21 @@ class _HomePageState extends State<HomePage> {
     late String emoji, label;
     late Color color;
     if (sds < 0.5) {
-      emoji = '🔋'; label = s.sdsGreat;    color = Colors.green;
+      emoji = '🔋';
+      label = s.sdsGreat;
+      color = Colors.green;
     } else if (sds < 1.0) {
-      emoji = '🙂'; label = s.sdsLight;    color = Colors.lightGreen;
+      emoji = '🙂';
+      label = s.sdsLight;
+      color = Colors.lightGreen;
     } else if (sds < 2.0) {
-      emoji = '🥱'; label = s.sdsModerate; color = Colors.orange.shade800;
+      emoji = '🥱';
+      label = s.sdsModerate;
+      color = Colors.orange.shade800;
     } else {
-      emoji = '🚨'; label = s.sdsSevere;   color = Colors.red;
+      emoji = '🚨';
+      label = s.sdsSevere;
+      color = Colors.red;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -1341,137 +863,7 @@ class _HomePageState extends State<HomePage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => _TutorialDialog(pages: _tutorialPages),
-    );
-  }
-}
-
-// =============================================================================
-// TUTORIAL DIALOG
-// =============================================================================
-
-class _TutorialDialog extends StatefulWidget {
-  final List<Map<String, String>> pages;
-  const _TutorialDialog({required this.pages});
-
-  @override
-  State<_TutorialDialog> createState() => _TutorialDialogState();
-}
-
-class _TutorialDialogState extends State<_TutorialDialog> {
-  int _current = 0;
-
-  void _prev() {
-    if (_current > 0) setState(() => _current--);
-  }
-
-  void _next() {
-    if (_current < widget.pages.length - 1) setState(() => _current++);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final page    = widget.pages[_current];
-    final total   = widget.pages.length;
-    final isFirst = _current == 0;
-    final isLast  = _current == total - 1;
-
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-      child: Stack(
-        children: [
-          // ---- Contenuto principale ----
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 48, 24, 28),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Emoji grande
-                Text(page['emoji']!, style: const TextStyle(fontSize: 56)),
-                const SizedBox(height: 16),
-
-                // Titolo
-                Text(
-                  page['title']!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Testo descrittivo
-                Text(
-                  page['body']!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade700,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 28),
-
-                // ---- Frecce + pallini indicatori ----
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Freccia sinistra (grigia alla prima pagina)
-                    IconButton(
-                      onPressed: isFirst ? null : _prev,
-                      icon: Icon(
-                        Icons.arrow_back_ios_rounded,
-                        color: isFirst ? Colors.grey.shade300 : Colors.black87,
-                      ),
-                    ),
-
-                    // Pallini: quello attivo è più grande e scuro
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(total, (i) {
-                        final isActive = i == _current;
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width:  isActive ? 10 : 7,
-                          height: isActive ? 10 : 7,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isActive
-                                ? Colors.black87
-                                : Colors.grey.shade300,
-                          ),
-                        );
-                      }),
-                    ),
-
-                    // Freccia destra (grigia all'ultima pagina)
-                    IconButton(
-                      onPressed: isLast ? null : _next,
-                      icon: Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        color: isLast ? Colors.grey.shade300 : Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // ---- Tasto X in alto a destra ----
-          Positioned(
-            top: 8,
-            right: 8,
-            child: IconButton(
-              icon: const Icon(Icons.close, color: Colors.grey),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-        ],
-      ),
+      builder: (ctx) => TutorialDialog(pages: _tutorialPages),
     );
   }
 }
