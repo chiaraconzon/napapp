@@ -9,34 +9,17 @@ import 'app_strings.dart';
 
 import '../models/nap_models.dart';
 import '../utils/time_utils.dart';
-import '../utils/event_utils.dart';
+import '../utils/timeline_utils.dart';
 import '../controllers/nap_controller.dart';
-import '../algorithms/nap_algorithm.dart';
 import '../services/foreground_service.dart';
 import '../widgets/time_picker.dart';
 import '../widgets/tutorial_dialog.dart';
 import '../widgets/nap_card.dart';
-
-// =============================================================================
-// ITEM LISTA (evento o pisolino)
-// =============================================================================
-class _ListItem {
-  final MyEvent? event;
-  final NapResult? napResult;
-
-  _ListItem.event(this.event) : napResult = null;
-  _ListItem.nap(this.napResult) : event = null;
-
-  bool get isNap => napResult != null;
-
-  int get startMin {
-    if (isNap) {
-      final s = napResult!.suggestedStart!;
-      return s.hour * 60 + s.minute;
-    }
-    return event!.startTime.hour * 60 + event!.startTime.minute;
-  }
-}
+import '../widgets/sds_reward.dart';
+import '../widgets/debug_zones.dart';
+import '../widgets/event_card.dart';
+import '../widgets/alarm_choice_button.dart';
+import '../widgets/prediction_box.dart';
 
 // =============================================================================
 // HOME PAGE
@@ -48,38 +31,19 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late NapController _controller;
+
   Map<DateTime, List<MyEvent>> globalEvents = {};
   Duration selectedDuration = const Duration(minutes: 10);
   int _pageIndex = 0;
   int selectedAlarm = 1;
   bool _isEnglish = false;
-  late NapController _controller;
+  Timer? _napTimer;
+  final List<SleepDay> _sleepHistory = [];
 
   static const double _sleepTarget = 8.0;
   static const int _latencyMin = 10;
   static const TimeOfDay _defaultWakeUp = TimeOfDay(hour: 6, minute: 30);
-  final List<SleepDay> _sleepHistory = [];
-
-  Timer? _napTimer;
-
-  List<_ListItem> _buildTimeline(List<MyEvent> eventi, NapResult? r) {
-    final items = <_ListItem>[];
-
-    for (final ev in eventi) {
-      items.add(_ListItem.event(ev));
-    }
-
-    if (r != null &&
-        r.zone != NapZone.red &&
-        r.napEffectiveMin > 0 &&
-        r.suggestedStart != null) {
-      items.add(_ListItem.nap(r));
-    }
-
-    items.sort((a, b) => a.startMin.compareTo(b.startMin));
-
-    return items;
-  }
 
   void _refresh() {
     final now = DateTime.now();
@@ -276,13 +240,12 @@ class _HomePageState extends State<HomePage> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    _chooseAlarmButton(
-                                      context,
-                                      1,
-                                      10,
-                                      selectedAlarm,
-                                      (index) {
-                                        setDialogState(() {
+                                    AlarmChoiceButton(
+                                      index: 1,
+                                      minutes: 10,
+                                      selectedIndex: selectedAlarm,
+                                      onSelected: (index) {
+                                        setState(() {
                                           selectedAlarm = index;
                                           selectedDuration = const Duration(
                                             minutes: 10,
@@ -290,14 +253,12 @@ class _HomePageState extends State<HomePage> {
                                         });
                                       },
                                     ),
-
-                                    _chooseAlarmButton(
-                                      context,
-                                      2,
-                                      30,
-                                      selectedAlarm,
-                                      (index) {
-                                        setDialogState(() {
+                                    AlarmChoiceButton(
+                                      index: 2,
+                                      minutes: 30,
+                                      selectedIndex: selectedAlarm,
+                                      onSelected: (index) {
+                                        setState(() {
                                           selectedAlarm = index;
                                           selectedDuration = const Duration(
                                             minutes: 30,
@@ -305,14 +266,12 @@ class _HomePageState extends State<HomePage> {
                                         });
                                       },
                                     ),
-
-                                    _chooseAlarmButton(
-                                      context,
-                                      3,
-                                      90,
-                                      selectedAlarm,
-                                      (index) {
-                                        setDialogState(() {
+                                    AlarmChoiceButton(
+                                      index: 3,
+                                      minutes: 90,
+                                      selectedIndex: selectedAlarm,
+                                      onSelected: (index) {
+                                        setState(() {
                                           selectedAlarm = index;
                                           selectedDuration = const Duration(
                                             minutes: 90,
@@ -408,8 +367,7 @@ class _HomePageState extends State<HomePage> {
       });
 
     // Lista cronologica eventi + pisolino
-    final items = _buildTimeline(eventiOggi, _controller.napResult);
-
+    final items = buildTimeline(eventiOggi, _controller.napResult);
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -427,7 +385,7 @@ class _HomePageState extends State<HomePage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                _sdsReward(_controller.sds),
+                SdsReward(sds: _controller.sds, isEnglish: _isEnglish),
               ],
             ),
           ),
@@ -436,7 +394,10 @@ class _HomePageState extends State<HomePage> {
           // stringa predizione
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _predictionString(),
+            child: PredictionBox(
+              r: _controller.napResult,
+              isEnglish: _isEnglish,
+            ),
           ),
           const SizedBox(height: 8),
 
@@ -444,7 +405,10 @@ class _HomePageState extends State<HomePage> {
           if (_controller.zoneLimits != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _debugZones(_controller.zoneLimits!),
+              child: DebugZonesBox(
+                lim: _controller.zoneLimits!,
+                isEnglish: _isEnglish,
+              ),
             ),
           const SizedBox(height: 8),
 
@@ -478,326 +442,8 @@ class _HomePageState extends State<HomePage> {
                             fmtTOD: TimeUtils.fmtTOD,
                             zoneColor: _zoneColor,
                           )
-                        : _eventCard(items[i].event!),
+                        : EventCard(ev: items[i].event!),
                   ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _chooseAlarmButton(
-    BuildContext context,
-    int index,
-    int minutes,
-    int selectedIndex,
-    Function(int) onSelected,
-  ) {
-    final isSelected = index == selectedIndex;
-    String label =
-        '${minutes ~/ 60}'.padLeft(2, '0') +
-        ':' +
-        '${minutes % 60}'.padLeft(2, '0');
-
-    return SizedBox(
-      child: OutlinedButton(
-        onPressed: () {
-          onSelected(index);
-        },
-
-        style: OutlinedButton.styleFrom(
-          shape: const CircleBorder(),
-
-          side: BorderSide(
-            color: isSelected
-                ? const Color.fromARGB(255, 241, 127, 5) // selezionato
-                : Theme.of(context).colorScheme.primary,
-            width: isSelected ? 3 : 2,
-          ),
-
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          padding: const EdgeInsets.all(25),
-        ),
-
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 18,
-                color: isSelected
-                    ? const Color.fromARGB(255, 241, 127, 5)
-                    : Theme.of(context).colorScheme.primary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // -----------------------------------------------------------------------
-  // CARD EVENTO
-  // -----------------------------------------------------------------------
-  Widget _eventCard(MyEvent ev) {
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: BorderSide(color: ev.color.withOpacity(0.5), width: 1.5),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 10,
-        ),
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: ev.color.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            EventUtils.iconFromCategory(ev.category),
-            color: ev.color,
-            size: 28,
-          ),
-        ),
-        title: Text(
-          ev.title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 5),
-          child: Row(
-            children: [
-              const Icon(Icons.access_time, size: 16, color: Colors.grey),
-              const SizedBox(width: 5),
-              Text(
-                '${TimeUtils.fmtTOD(ev.startTime)} - ${TimeUtils.fmtTOD(ev.endTime)}',
-                style: const TextStyle(fontSize: 15, color: Colors.black87),
-              ),
-            ],
-          ),
-        ),
-        trailing: Text(
-          ev.category,
-          style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-        ),
-      ),
-    );
-  }
-
-  // -----------------------------------------------------------------------
-  // STRINGA PREDIZIONE
-  // -----------------------------------------------------------------------
-  Widget _predictionString() {
-    final s = AppStrings(_isEnglish);
-    final r = _controller.napResult;
-
-    if (r == null || r.zone == NapZone.red || r.napEffectiveMin == 0) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.red.shade50,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.red.shade200),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.block, color: Colors.red.shade400, size: 20),
-            const SizedBox(width: 10),
-            Text(
-              s.redZoneMsg,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-                color: Colors.red,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (r.zone == NapZone.orange) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.orange.shade50,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.orange.shade800),
-        ),
-        child: Text(
-          s.orangeMsg,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: Colors.orange.shade800,
-          ),
-        ),
-      );
-    }
-
-    final isGreen = r.zone == NapZone.green;
-    final color = isGreen ? Colors.green : Colors.amber;
-    final label = isGreen ? s.idealNap : s.emergencyNapPrediction;
-    final start = TimeUtils.fmtTOD(r.suggestedStart!);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.4)),
-      ),
-      child: RichText(
-        text: TextSpan(
-          style: const TextStyle(fontSize: 13, color: Colors.black87),
-          children: [
-            TextSpan(
-              text: '$label: ',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: isGreen ? Colors.green.shade700 : Colors.amber.shade600,
-              ),
-            ),
-            TextSpan(
-              text: '${r.totalDisplayMin} min',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const TextSpan(text: '  •  '),
-            TextSpan(text: '${r.scopeEmoji} ${s.translateScope(r.scope)}'),
-            TextSpan(text: '  •  ${s.fromTime} '),
-            TextSpan(
-              text: start,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // -----------------------------------------------------------------------
-  // DEBUG ZONE
-  // -----------------------------------------------------------------------
-  Widget _debugZones(ZoneLimits lim) {
-    final s = AppStrings(_isEnglish);
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            '🔧 DEBUG ZONE',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
-            ),
-          ),
-          const SizedBox(height: 4),
-          _dbRow(
-            s.zoneGreen,
-            '${NapAlgorithm.fmtMin(lim.greenStart)} → ${NapAlgorithm.fmtMin(lim.greenEnd)}',
-            Colors.green,
-          ),
-          _dbRow(
-            s.zoneYellow,
-            '${NapAlgorithm.fmtMin(lim.greenEnd)} → ${NapAlgorithm.fmtMin(lim.yellowEnd)}',
-            Colors.amber,
-          ),
-          _dbRow(
-            s.zoneOrange,
-            '${NapAlgorithm.fmtMin(lim.yellowEnd)} → ${NapAlgorithm.fmtMin(lim.orangeEnd)}',
-            Colors.orange.shade800,
-          ),
-          _dbRow(
-            s.zoneRed,
-            '${s.zoneBeyond} ${NapAlgorithm.fmtMin(lim.orangeEnd)}',
-            Colors.red,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _dbRow(String label, String val, Color color) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 1),
-    child: Row(
-      children: [
-        SizedBox(
-          width: 95,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
-        ),
-        Text(val, style: const TextStyle(fontSize: 11, color: Colors.black87)),
-      ],
-    ),
-  );
-
-  // -----------------------------------------------------------------------
-  // SDS REWARD
-  // -----------------------------------------------------------------------
-  Widget _sdsReward(double sds) {
-    final s = AppStrings(_isEnglish);
-    late String emoji, label;
-    late Color color;
-    if (sds < 0.5) {
-      emoji = '🔋';
-      label = s.sdsGreat;
-      color = Colors.green;
-    } else if (sds < 1.0) {
-      emoji = '🙂';
-      label = s.sdsLight;
-      color = Colors.lightGreen;
-    } else if (sds < 2.0) {
-      emoji = '🥱';
-      label = s.sdsModerate;
-      color = Colors.orange.shade800;
-    } else {
-      emoji = '🚨';
-      label = s.sdsSevere;
-      color = Colors.red;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.4)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(emoji, style: const TextStyle(fontSize: 16)),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
           ),
         ],
       ),
