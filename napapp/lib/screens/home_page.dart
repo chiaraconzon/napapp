@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../providers/theme_provider.dart';
+import 'package:flutter_alarm_clock/flutter_alarm_clock.dart';
 import 'package:provider/provider.dart';
+
 import 'calendar_page.dart';
 import 'stats_page.dart';
 import 'login_page.dart';
-
 import 'app_strings.dart';
 
 import '../models/nap_models.dart';
@@ -18,6 +18,8 @@ import '../widgets/sds_reward.dart';
 import '../widgets/debug_zones.dart';
 import '../widgets/event_card.dart';
 import '../widgets/prediction_box.dart';
+import '../widgets/time_picker.dart';
+import '../providers/theme_provider.dart';
 
 // =============================================================================
 // HOME PAGE
@@ -261,141 +263,89 @@ class _HomePageState extends State<HomePage> {
       body: pages[_pageIndex],
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          context.read<ThemeProvider>().toggleTheme();
-          /*setState(() {
-                  selectedAlarm = 0;
-                });
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return StatefulBuilder(
-                      builder: (context, setDialogState) {
-                        return Dialog(
-                          child: Padding(
-                            padding: EdgeInsets.all(10),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      AppStrings(_isEnglish).chooseNapTime,
-                                      style: TextStyle(fontSize: 18),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.close),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 50),
-                                TimerPicker(
-                                  key: ValueKey(selectedDuration),
-                                  duration: selectedDuration,
-                                  onDurationChanged: (d) {
-                                    setState(() => selectedDuration = d);
-                                  },
-                                ),
-                                SizedBox(height: 50),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    AlarmChoiceButton(
-                                      index: 1,
-                                      minutes: 10,
-                                      selectedIndex: selectedAlarm,
-                                      onSelected: (index) {
-                                        setState(() {
-                                          selectedAlarm = index;
-                                          selectedDuration = const Duration(
-                                            minutes: 10,
-                                          );
-                                        });
-                                      },
-                                    ),
-                                    AlarmChoiceButton(
-                                      index: 2,
-                                      minutes: 30,
-                                      selectedIndex: selectedAlarm,
-                                      onSelected: (index) {
-                                        setState(() {
-                                          selectedAlarm = index;
-                                          selectedDuration = const Duration(
-                                            minutes: 30,
-                                          );
-                                        });
-                                      },
-                                    ),
-                                    AlarmChoiceButton(
-                                      index: 3,
-                                      minutes: 90,
-                                      selectedIndex: selectedAlarm,
-                                      onSelected: (index) {
-                                        setState(() {
-                                          selectedAlarm = index;
-                                          selectedDuration = const Duration(
-                                            minutes: 90,
-                                          );
-                                        });
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 50),
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    final totalMinutes =
-                                        selectedDuration.inMinutes;
-                                    final message = AppStrings(_isEnglish)
-                                        .alarmSet(
-                                          totalMinutes ~/ 60,
-                                          totalMinutes % 60,
-                                        );
+          setState(() => selectedAlarm = 0);
 
-                                    print("🚀 START SERVICE");
+          showDialog(
+            context: context,
+            builder: (_) => Dialog(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // HEADER
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          AppStrings(_isEnglish).chooseNapTime,
+                          style: const TextStyle(fontSize: 18),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
 
-                                    await FlutterForegroundTask.startService(
-                                      notificationTitle: '⏰ Sveglia attiva',
-                                      notificationText: 'In corso...',
-                                      callback: startCallback,
-                                      notificationIcon: const NotificationIcon(
-                                        metaDataName: 'ic_launcher',
-                                      ),
-                                    );
+                    const SizedBox(height: 24),
 
-                                    print("📡 SENDING DATA");
-
-                                    await Future.delayed(
-                                      const Duration(milliseconds: 300),
-                                    );
-
-                                    FlutterForegroundTask.sendDataToTask(
-                                      selectedDuration.inSeconds,
-                                    );
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(message)),
-                                    );
-
-                                    Navigator.pop(context);
-                                  },
-                                  child: Text(
-                                    AppStrings(_isEnglish).startAlarm,
-                                  ),
-                                ),
-                              ],
-                            ),
+                    // PRESETS
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AlarmCircleTimer(
+                            duration: const Duration(minutes: 10),
+                            onTap: () {
+                              setState(() {
+                                selectedDuration = const Duration(minutes: 10);
+                              });
+                            },
                           ),
-                        );
-                      },
-                    );
-                  },
-                );*/
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        Expanded(
+                          child: AlarmCircleTimer(
+                            duration: const Duration(minutes: 30),
+                            onTap: () {
+                              setState(() {
+                                selectedDuration = const Duration(minutes: 30);
+                              });
+                            },
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        Expanded(
+                          child: AlarmCircleTimer(
+                            duration: const Duration(minutes: 90),
+                            onTap: () {
+                              setState(() {
+                                selectedDuration = const Duration(minutes: 90);
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ACTION
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(AppStrings(_isEnglish).startAlarm),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
         },
-        child: Icon(Icons.alarm),
+        child: const Icon(Icons.alarm),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _pageIndex,

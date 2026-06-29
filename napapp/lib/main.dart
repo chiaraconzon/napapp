@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'theme/util.dart';
 import 'theme/theme.dart';
 import 'screens/home_page.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 void main() {
   runApp(
@@ -27,6 +26,7 @@ class MyApp extends StatelessWidget {
     final theme = MaterialTheme(textTheme);
 
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: theme.light(),
       darkTheme: theme.dark(),
       themeMode: themeProvider.themeMode,
