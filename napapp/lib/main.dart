@@ -1,32 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:napapp/screens/login_page.dart';
+import '../providers/theme_provider.dart';
+import 'package:provider/provider.dart';
 import 'theme/util.dart';
 import 'theme/theme.dart';
 import 'screens/home_page.dart';
-import 'services/notification_service.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await NotificationService.init();
-
-  FlutterForegroundTask.init(
-    androidNotificationOptions: AndroidNotificationOptions(
-      channelId: 'foreground_channel',
-      channelName: 'Nap Timer',
-      channelDescription: 'Countdown pisolino',
-      channelImportance: NotificationChannelImportance.LOW,
-      priority: NotificationPriority.LOW,
-    ),
-    iosNotificationOptions: const IOSNotificationOptions(),
-    foregroundTaskOptions: ForegroundTaskOptions(
-      eventAction: ForegroundTaskEventAction.repeat(1000),
-      autoRunOnBoot: false,
-      allowWifiLock: false,
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
     ),
   );
-
-  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -34,15 +21,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     final textTheme = createTextTheme(context, "Noto Sans", "Noto Sans");
     final theme = MaterialTheme(textTheme);
+
     return MaterialApp(
-      title: "Nap App",
-      debugShowCheckedModeBanner: false,
       theme: theme.light(),
       darkTheme: theme.dark(),
-      themeMode: ThemeMode.light,
-      home: const HomePage(),
+      themeMode: themeProvider.themeMode,
+
+      home: LoginPage(),
+
       routes: {'/homepage': (context) => const HomePage()},
     );
   }

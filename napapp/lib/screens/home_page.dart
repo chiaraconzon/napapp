@@ -1,31 +1,30 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../providers/theme_provider.dart';
+import 'package:provider/provider.dart';
 import 'calendar_page.dart';
 import 'stats_page.dart';
 import 'login_page.dart';
 
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'app_strings.dart';
 
 import '../models/nap_models.dart';
 import '../utils/time_utils.dart';
 import '../utils/timeline_utils.dart';
 import '../controllers/nap_controller.dart';
-import '../services/foreground_service.dart';
-import '../widgets/time_picker.dart';
 import '../widgets/tutorial_dialog.dart';
 import '../widgets/nap_card.dart';
 import '../widgets/sds_reward.dart';
 import '../widgets/debug_zones.dart';
 import '../widgets/event_card.dart';
-import '../widgets/alarm_choice_button.dart';
 import '../widgets/prediction_box.dart';
 
 // =============================================================================
 // HOME PAGE
 // =============================================================================
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final String? name;
+  const HomePage({super.key, this.name});
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -130,7 +129,72 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             DrawerHeader(child: Center(child: Text(s.hello(name)))),
-            ListTile(title: const Text('TEMA'), onTap: () {}),
+            ListTile(
+              title: const Text('TEMA'),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) {
+                    return AlertDialog(
+                      title: const Text("Seleziona tema"),
+                      content: StatefulBuilder(
+                        builder: (context, setStateDialog) {
+                          final themeProvider = context.watch<ThemeProvider>();
+                          final selected = themeProvider.themeMode;
+
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              RadioListTile<ThemeMode>(
+                                value: ThemeMode.system,
+                                groupValue: selected,
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    context.read<ThemeProvider>().setTheme(
+                                      value,
+                                    );
+                                    Navigator.pop(ctx);
+                                  }
+                                },
+                                title: const Text("Sistema"),
+                              ),
+
+                              RadioListTile<ThemeMode>(
+                                value: ThemeMode.light,
+                                groupValue: selected,
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    context.read<ThemeProvider>().setTheme(
+                                      value,
+                                    );
+                                    Navigator.pop(ctx);
+                                  }
+                                },
+                                title: const Text("Chiaro"),
+                              ),
+
+                              RadioListTile<ThemeMode>(
+                                value: ThemeMode.dark,
+                                groupValue: selected,
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    context.read<ThemeProvider>().setTheme(
+                                      value,
+                                    );
+                                    Navigator.pop(ctx);
+                                  }
+                                },
+                                title: const Text("Scuro"),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
             ListTile(
               title: const Text('LINGUA'),
               onTap: () {
@@ -195,10 +259,10 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       body: pages[_pageIndex],
-      floatingActionButton: _pageIndex == 0
-          ? FloatingActionButton(
-              onPressed: () {
-                setState(() {
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.read<ThemeProvider>().toggleTheme();
+          /*setState(() {
                   selectedAlarm = 0;
                 });
                 showDialog(
@@ -298,6 +362,9 @@ class _HomePageState extends State<HomePage> {
                                       notificationTitle: '⏰ Sveglia attiva',
                                       notificationText: 'In corso...',
                                       callback: startCallback,
+                                      notificationIcon: const NotificationIcon(
+                                        metaDataName: 'ic_launcher',
+                                      ),
                                     );
 
                                     print("📡 SENDING DATA");
@@ -326,11 +393,10 @@ class _HomePageState extends State<HomePage> {
                       },
                     );
                   },
-                );
-              },
-              child: Icon(Icons.alarm),
-            )
-          : null,
+                );*/
+        },
+        child: Icon(Icons.alarm),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _pageIndex,
         onTap: (i) => setState(() => _pageIndex = i),

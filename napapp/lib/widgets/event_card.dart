@@ -46,7 +46,10 @@ class EventCard extends StatelessWidget {
               const SizedBox(width: 5),
               Text(
                 '${TimeUtils.fmtTOD(ev.startTime)} - ${TimeUtils.fmtTOD(ev.endTime)}',
-                style: const TextStyle(fontSize: 15, color: Colors.black87),
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
             ],
           ),

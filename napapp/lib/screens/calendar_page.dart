@@ -132,7 +132,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
           availableCalendarFormats: {
             CalendarFormat.month: s.monthFormat,
-            CalendarFormat.week:  s.weekFormat,
+            CalendarFormat.week: s.weekFormat,
           },
 
           headerStyle: HeaderStyle(
@@ -347,7 +347,10 @@ class _CalendarPageState extends State<CalendarPage> {
                   // In modifica i chip sono disabilitati: la categoria non può cambiare
                   Text(
                     strings.category,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   Wrap(
@@ -372,7 +375,10 @@ class _CalendarPageState extends State<CalendarPage> {
                   // Se lasciato vuoto, al salvataggio viene usato il nome della categoria
                   Text(
                     strings.titleOpt,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   TextField(
@@ -453,17 +459,16 @@ class _CalendarPageState extends State<CalendarPage> {
                     DropdownButton<String>(
                       value: repetition,
                       isExpanded: true,
-                      items:
-                          ['Singola', 'Giornaliera', 'Settimanale', 'Mensile']
-                              .map(
-                                // value resta la chiave italiana (usata da _save),
-                                // il testo mostrato è tradotto
-                                (key) => DropdownMenuItem(
-                                  value: key,
-                                  child: Text(strings.repetitionDisplay(key)),
-                                ),
-                              )
-                              .toList(),
+                      items: ['Singola', 'Giornaliera', 'Settimanale', 'Mensile']
+                          .map(
+                            // value resta la chiave italiana (usata da _save),
+                            // il testo mostrato è tradotto
+                            (key) => DropdownMenuItem(
+                              value: key,
+                              child: Text(strings.repetitionDisplay(key)),
+                            ),
+                          )
+                          .toList(),
                       onChanged: (v) => setSt(() => repetition = v!),
                     ),
                   ],
@@ -473,7 +478,10 @@ class _CalendarPageState extends State<CalendarPage> {
                   // Il pallino selezionato ha un bordo nero
                   Text(
                     strings.colorLabel,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
@@ -521,10 +529,7 @@ class _CalendarPageState extends State<CalendarPage> {
                       final startMin = startTime.hour * 60 + startTime.minute;
                       final endMin = endTime.hour * 60 + endTime.minute;
                       if (endMin <= startMin) {
-                        _showErrorDialog(
-                          ctx,
-                          strings.endBeforeStart,
-                        );
+                        _showErrorDialog(ctx, strings.endBeforeStart);
                         return;
                       }
 
@@ -565,10 +570,7 @@ class _CalendarPageState extends State<CalendarPage> {
                         }
 
                         if (conflictFound) {
-                          _showErrorDialog(
-                            ctx,
-                            strings.lunchDuplicate,
-                          );
+                          _showErrorDialog(ctx, strings.lunchDuplicate);
                           return;
                         }
                       }
@@ -610,7 +612,9 @@ class _CalendarPageState extends State<CalendarPage> {
                         Navigator.pop(context);
                       }
                     },
-                    child: Text(isEditing ? strings.updateBtn : strings.saveActivity),
+                    child: Text(
+                      isEditing ? strings.updateBtn : strings.saveActivity,
+                    ),
                   ),
                   const SizedBox(height: 20),
                 ],
@@ -706,9 +710,7 @@ class _CalendarPageState extends State<CalendarPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(s.deleteActivity),
-        content: Text(
-          ev.isRecurring ? s.isRecurringMsg : s.deleteConfirm,
-        ),
+        content: Text(ev.isRecurring ? s.isRecurringMsg : s.deleteConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -744,7 +746,10 @@ class _CalendarPageState extends State<CalendarPage> {
                 widget.onEventsUpdated(widget.eventsMap);
                 Navigator.pop(ctx);
               },
-              child: Text(s.allOccurrences, style: const TextStyle(color: Colors.red)),
+              child: Text(
+                s.allOccurrences,
+                style: const TextStyle(color: Colors.red),
+              ),
             ),
         ],
       ),
@@ -797,25 +802,42 @@ class _CalendarPageState extends State<CalendarPage> {
     widget.onEventsUpdated(widget.eventsMap);
   }
 
-  /// Box orario (Inizio / Fine) usato nel foglio di inserimento.
-  /// Mostra l'etichetta in grigio e l'orario in grassetto.
   Widget _timeBox(String label, TimeOfDay time) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Column(
-        children: [
-          Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-          Text(
-            _formatTime24h(time),
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    return Builder(
+      builder: (context) {
+        final theme = Theme.of(context);
+
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: theme.colorScheme.outline.withOpacity(0.4),
+            ),
           ),
-        ],
-      ),
+          child: Column(
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _formatTime24h(time),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -869,4 +891,3 @@ class _CalendarPageState extends State<CalendarPage> {
     widget.onEventsUpdated(widget.eventsMap);
   }
 }
-

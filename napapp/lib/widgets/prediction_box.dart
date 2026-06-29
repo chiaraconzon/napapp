@@ -17,35 +17,52 @@ class PredictionBox extends StatelessWidget {
     if (result == null ||
         result.zone == NapZone.red ||
         result.napEffectiveMin == 0) {
-      return _redBox(s);
+      return _redBox(context, s);
     }
 
     if (result.zone == NapZone.orange) {
-      return _orangeBox(s);
+      return _orangeBox(context, s);
     }
 
-    return _greenYellowBox(s, result);
+    return _greenYellowBox(context, s, result);
   }
 
-  Widget _redBox(AppStrings s) {
+  // ------------------------------------------------------------------
+  Widget _redBox(BuildContext context, AppStrings s) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
+        color: isDark
+            ? Theme.of(context).colorScheme.errorContainer
+            : Colors.red.shade50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.shade200),
+        border: Border.all(
+          color: isDark
+              ? Theme.of(context).colorScheme.error.withOpacity(0.4)
+              : Colors.red.shade200,
+        ),
       ),
       child: Row(
         children: [
-          Icon(Icons.block, color: Colors.red.shade400, size: 20),
+          Icon(
+            Icons.block,
+            size: 20,
+            color: isDark ? Theme.of(context).colorScheme.error : Colors.red,
+          ),
           const SizedBox(width: 10),
-          Text(
-            s.redZoneMsg,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-              color: Colors.red,
+          Expanded(
+            child: Text(
+              s.redZoneMsg,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                color: isDark
+                    ? Theme.of(context).colorScheme.onErrorContainer
+                    : Colors.red,
+              ),
             ),
           ),
         ],
@@ -53,57 +70,70 @@ class PredictionBox extends StatelessWidget {
     );
   }
 
-  Widget _orangeBox(AppStrings s) {
+  // ------------------------------------------------------------------
+  Widget _orangeBox(BuildContext context, AppStrings s) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.orange.shade50,
+        color: isDark ? Colors.orange.withOpacity(0.15) : Colors.orange.shade50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange),
+        border: Border.all(color: Colors.orange.withOpacity(0.4)),
       ),
       child: Text(
         s.orangeMsg,
         style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w500,
-          color: Colors.orange.shade800,
+          color: isDark
+              ? Theme.of(context).colorScheme.onSurface
+              : Colors.orange.shade800,
         ),
       ),
     );
   }
 
-  Widget _greenYellowBox(AppStrings s, NapResult result) {
-    final isGreen = r!.zone == NapZone.green;
+  // ------------------------------------------------------------------
+  Widget _greenYellowBox(BuildContext context, AppStrings s, NapResult result) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final isGreen = result.zone == NapZone.green;
     final color = isGreen ? Colors.green : Colors.amber;
+
     final label = isGreen ? s.idealNap : s.emergencyNapPrediction;
-    final start = TimeUtils.fmtTOD(r!.suggestedStart!);
+    final start = TimeUtils.fmtTOD(result.suggestedStart!);
+
+    final bg = isDark ? color.withOpacity(0.15) : color.withOpacity(0.08);
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: bg,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.4)),
       ),
       child: RichText(
         text: TextSpan(
-          style: const TextStyle(fontSize: 13, color: Colors.black87),
+          style: TextStyle(
+            fontSize: 13,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           children: [
             TextSpan(
               text: '$label: ',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: isGreen ? Colors.green : Colors.amber,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, color: color),
             ),
             TextSpan(
-              text: '${r!.totalDisplayMin} min',
+              text: '${result.totalDisplayMin} min',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const TextSpan(text: '  •  '),
-            TextSpan(text: '${r!.scopeEmoji} ${s.translateScope(r!.scope)}'),
+            TextSpan(
+              text: '${result.scopeEmoji} ${s.translateScope(result.scope)}',
+            ),
             TextSpan(text: '  •  ${s.fromTime} '),
             TextSpan(
               text: start,

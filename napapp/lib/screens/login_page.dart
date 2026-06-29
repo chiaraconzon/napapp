@@ -2,87 +2,97 @@ import 'package:flutter/material.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({Key? key}) : super(key: key);
-  // routename che utilizzo per poi passare i vari valori
+
   static const routename = 'LoginPage';
-  // controller per nome utente e psw
+
   final _nameController = TextEditingController();
   final _pswController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      // ingleChildScrollView per evitare errori di pixel se la tastiera copre i campi
       body: Center(
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // icona dell'app
               Icon(
                 Icons.calendar_today_rounded,
                 size: 80,
-                color: Theme.of(context).primaryColor,
+                color: theme.colorScheme.primary,
               ),
-              SizedBox(height: 20),
-              // nome app
+
+              const SizedBox(height: 20),
+
               Text(
                 "Nap App",
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
+                  color: theme.colorScheme.primary,
                 ),
               ),
-              SizedBox(height: 10),
+
+              const SizedBox(height: 10),
+
               Text(
                 "Don't give up, take a nap!",
                 style: TextStyle(
                   fontSize: 15,
                   fontStyle: FontStyle.italic,
-                  color: Theme.of(context).primaryColor,
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
                 ),
               ),
-              SizedBox(height: 50),
 
-              // textbox - username
+              const SizedBox(height: 50),
+
+              // USERNAME
               SizedBox(
                 width: 280,
                 child: TextField(
                   controller: _nameController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: theme.colorScheme.onSurface),
+                  decoration: InputDecoration(
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                      borderRadius: BorderRadius.circular(15),
                     ),
                     labelText: "Username",
-                    prefixIcon: Icon(Icons.person),
+                    prefixIcon: const Icon(Icons.person),
                   ),
                 ),
               ),
+
               const SizedBox(height: 25),
 
-              // textbox - password
+              // PASSWORD
               SizedBox(
                 width: 280,
                 child: TextField(
                   controller: _pswController,
                   obscureText: true,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: theme.colorScheme.onSurface),
+                  decoration: InputDecoration(
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(15)),
+                      borderRadius: BorderRadius.circular(15),
                     ),
                     labelText: "Password",
-                    prefixIcon: Icon(Icons.lock),
+                    prefixIcon: const Icon(Icons.lock),
                   ),
                 ),
               ),
-              SizedBox(height: 50),
 
-              // login button
+              const SizedBox(height: 50),
+
+              // LOGIN BUTTON
               SizedBox(
                 width: 200,
                 height: 50,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
@@ -92,38 +102,36 @@ class LoginPage extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   onPressed: () {
-                    // controllo nome utente e psw
                     if (_nameController.text == "admin" &&
                         _pswController.text == "123") {
-                      // navigazione tramite route nominata
                       Navigator.pushReplacementNamed(
                         context,
                         '/homepage',
-                        // passaggio del controller "name" alla homepages
                         arguments: _nameController.text,
                       );
                     } else {
-                      // mostra un errore se i dati sono sbagliati
                       showModalBottomSheet(
                         context: context,
-                        backgroundColor: Theme.of(context).canvasColor,
+                        backgroundColor: theme.colorScheme.surface,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(20),
+                          ),
+                        ),
                         builder: (context) => SafeArea(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 20.0,
-                              vertical: 20.0,
+                              horizontal: 20,
+                              vertical: 20,
                             ),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
                                   child: Text(
                                     "Username o password errati.",
                                     style: TextStyle(
                                       fontSize: 18,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.error,
+                                      color: theme.colorScheme.error,
                                     ),
                                   ),
                                 ),
@@ -133,9 +141,7 @@ class LoginPage extends StatelessWidget {
                                     "OK",
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.error,
+                                      color: theme.colorScheme.error,
                                     ),
                                   ),
                                 ),
