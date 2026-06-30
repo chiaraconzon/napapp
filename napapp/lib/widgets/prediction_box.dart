@@ -58,7 +58,7 @@ class PredictionBox extends StatelessWidget {
               s.redZoneMsg,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                fontSize: 13,
+                fontSize: 13.5,
                 color: isDark
                     ? Theme.of(context).colorScheme.onErrorContainer
                     : Colors.red,
@@ -85,7 +85,7 @@ class PredictionBox extends StatelessWidget {
       child: Text(
         s.orangeMsg,
         style: TextStyle(
-          fontSize: 13,
+          fontSize: 13.5,
           fontWeight: FontWeight.w500,
           color: isDark
               ? Theme.of(context).colorScheme.onSurface
@@ -118,7 +118,7 @@ class PredictionBox extends StatelessWidget {
       child: RichText(
         text: TextSpan(
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 13.5,
             color: Theme.of(context).colorScheme.onSurface,
           ),
           children: [
