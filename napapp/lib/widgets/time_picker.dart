@@ -3,8 +3,14 @@ import 'package:flutter/material.dart';
 class AlarmCircleTimer extends StatelessWidget {
   final Duration duration;
   final VoidCallback? onTap;
+  final bool selected;
 
-  const AlarmCircleTimer({super.key, required this.duration, this.onTap});
+  const AlarmCircleTimer({
+    super.key,
+    required this.duration,
+    this.onTap,
+    this.selected = false,
+  });
 
   String _format(Duration d) {
     final h = d.inHours;
@@ -23,19 +29,23 @@ class AlarmCircleTimer extends StatelessWidget {
         height: 160,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: theme.colorScheme.primary.withOpacity(0.12),
+          color: selected
+              ? theme.colorScheme.primary.withOpacity(0.15)
+              : theme.colorScheme.surface,
           border: Border.all(
-            color: theme.colorScheme.primary.withOpacity(0.4),
-            width: 2,
+            color: selected ? theme.colorScheme.primary : theme.dividerColor,
+            width: selected ? 3 : 1.5,
           ),
         ),
         child: Center(
           child: Text(
             _format(duration),
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onSurface,
+              color: selected
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.onSurface,
             ),
           ),
         ),

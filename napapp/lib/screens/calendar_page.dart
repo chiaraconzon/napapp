@@ -120,7 +120,7 @@ class _CalendarPageState extends State<CalendarPage> {
     final s = AppStrings(widget.isEnglish);
     return Column(
       children: [
-        SizedBox(height: 20),
+        SizedBox(height: 50),
         // --- Calendario (TableCalendar) ---
         TableCalendar<MyEvent>(
           firstDay: DateTime.utc(2025, 1, 1),
@@ -141,8 +141,8 @@ class _CalendarPageState extends State<CalendarPage> {
               color: Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(20.0),
             ),
-            formatButtonTextStyle: const TextStyle(
-              color: Colors.white,
+            formatButtonTextStyle: TextStyle(
+              color: Theme.of(context).colorScheme.onInverseSurface,
               fontWeight: FontWeight.bold,
             ),
             formatButtonPadding: const EdgeInsets.symmetric(
@@ -174,8 +174,8 @@ class _CalendarPageState extends State<CalendarPage> {
                     color:
                         day.weekday == DateTime.sunday ||
                             day.weekday == DateTime.saturday
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.black87,
+                        ? Theme.of(context).colorScheme.onSurface
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),

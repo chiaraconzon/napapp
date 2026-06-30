@@ -267,82 +267,107 @@ class _HomePageState extends State<HomePage> {
 
           showDialog(
             context: context,
-            builder: (_) => Dialog(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // HEADER
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          AppStrings(_isEnglish).chooseNapTime,
-                          style: const TextStyle(fontSize: 18),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // PRESETS
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AlarmCircleTimer(
-                            duration: const Duration(minutes: 10),
-                            onTap: () {
-                              setState(() {
-                                selectedDuration = const Duration(minutes: 10);
-                              });
-                            },
+            builder: (context) {
+              return StatefulBuilder(
+                builder: (context, setDialogState) {
+                  return Dialog(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  "Seleziona la sveglia:",
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () => Navigator.pop(context),
+                                icon: const Icon(Icons.close),
+                              ),
+                            ],
                           ),
-                        ),
-
-                        const SizedBox(width: 8),
-
-                        Expanded(
-                          child: AlarmCircleTimer(
-                            duration: const Duration(minutes: 30),
-                            onTap: () {
-                              setState(() {
-                                selectedDuration = const Duration(minutes: 30);
-                              });
-                            },
+                          Row(
+                            children: [
+                              Expanded(
+                                child: AlarmCircleTimer(
+                                  duration: const Duration(minutes: 10),
+                                  selected:
+                                      selectedDuration ==
+                                      const Duration(minutes: 10),
+                                  onTap: () {
+                                    setDialogState(() {
+                                      selectedDuration = const Duration(
+                                        minutes: 10,
+                                      );
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: AlarmCircleTimer(
+                                  duration: const Duration(minutes: 30),
+                                  selected:
+                                      selectedDuration ==
+                                      const Duration(minutes: 30),
+                                  onTap: () {
+                                    setDialogState(() {
+                                      selectedDuration = const Duration(
+                                        minutes: 30,
+                                      );
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: AlarmCircleTimer(
+                                  duration: const Duration(minutes: 90),
+                                  selected:
+                                      selectedDuration ==
+                                      const Duration(minutes: 90),
+                                  onTap: () {
+                                    setDialogState(() {
+                                      selectedDuration = const Duration(
+                                        minutes: 90,
+                                      );
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                          SizedBox(height: 10),
+                          ElevatedButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "Timer di $selectedDuration minuti avviato",
+                                  ),
+                                  duration: Duration(seconds: 3),
+                                ),
+                              );
+                              FlutterAlarmClock.createTimer(
+                                length: selectedDuration.inSeconds,
+                              );
 
-                        const SizedBox(width: 8),
-
-                        Expanded(
-                          child: AlarmCircleTimer(
-                            duration: const Duration(minutes: 90),
-                            onTap: () {
-                              setState(() {
-                                selectedDuration = const Duration(minutes: 90);
-                              });
+                              Navigator.pop(context);
                             },
+                            child: Text(AppStrings(_isEnglish).startAlarm),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-
-                    const SizedBox(height: 24),
-
-                    // ACTION
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(AppStrings(_isEnglish).startAlarm),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                  );
+                },
+              );
+            },
           );
         },
         child: const Icon(Icons.alarm),

@@ -29,7 +29,7 @@ class NapCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
-        side: BorderSide(color: color.withOpacity(0.7), width: 2),
+        side: BorderSide(color: color, width: 2),
       ),
       child: Container(
         decoration: BoxDecoration(
@@ -64,13 +64,17 @@ class NapCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.access_time, size: 16, color: color),
+                    Icon(
+                      Icons.access_time,
+                      size: 16,
+                      color: Colors.grey.shade600,
+                    ),
                     const SizedBox(width: 5),
                     Text(
                       '$start - $end',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
-                        color: Colors.black87,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
