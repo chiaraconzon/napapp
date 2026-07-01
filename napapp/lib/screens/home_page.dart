@@ -44,7 +44,6 @@ class _HomePageState extends State<HomePage> {
 
   static const double _sleepTarget = 8.0;
   static const int _latencyMin = 10;
-  static const TimeOfDay _defaultWakeUp = TimeOfDay(hour: 6, minute: 30);
 
   void _refresh() {
     final now = DateTime.now();
