@@ -8,7 +8,6 @@ class NapController {
   final int latencyMin;
   final List<SleepDay> sleepHistory;
   final Map<DateTime, List<MyEvent>> globalEvents;
-  final TimeOfDay defaultWakeUp;
 
   NapResult? napResult;
   ZoneLimits? zoneLimits;
@@ -19,24 +18,23 @@ class NapController {
     required this.latencyMin,
     required this.sleepHistory,
     required this.globalEvents,
-    required this.defaultWakeUp,
   });
 
   void refresh(DateTime now) {
     final key = DateTime(now.year, now.month, now.day);
 
     final algo = NapAlgorithm(
-      sleepTarget: sleepTarget,
-      latencyMin: latencyMin,
-      sleepHistory: sleepHistory,
-      todayEvents: globalEvents[key] ?? [],
-      wakeUpToday: null,
-      averageSchoolWakeUp: defaultWakeUp,
-      today: now,
+      sleepTarget:         sleepTarget,
+      latencyMin:          latencyMin,
+      sleepHistory:        sleepHistory,
+      todayEvents:         globalEvents[key] ?? [],
+      wakeUpToday:         null, // TODO: collegare al wearable
+      averageSchoolWakeUp: null, // null → usa fallback fissi 14:00/15:00/16:00
+      today:               now,
     );
 
-    napResult = algo.compute();
+    napResult  = algo.compute();
     zoneLimits = algo.computeZoneLimits();
-    sds = algo.computeSDS();
+    sds        = algo.computeSDS();
   }
 }

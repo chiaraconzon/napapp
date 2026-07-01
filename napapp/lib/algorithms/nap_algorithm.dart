@@ -99,42 +99,75 @@ class NapAlgorithm {
   }
 
   // ---- limiti zone ----
+  // Invariante garantita in tutti i rami:
+  //   zoneStart ≤ greenEnd ≤ yellowEnd ≤ orangeEnd ≤ 19:00
   ZoneLimits computeZoneLimits() {
     final zoneStart = _zoneStartMin();
 
+    // Helper: se il pranzo finisce tardi e zoneStart supera orangeEnd → zona rossa
+    ZoneLimits allRed(int orangeEnd) => ZoneLimits(
+      greenStart: orangeEnd,
+      greenEnd:   orangeEnd,
+      yellowEnd:  orangeEnd,
+      orangeEnd:  orangeEnd,
+    );
+
+    // ---- SABATO: valori fissi ----
     if (_isSaturday) {
+      const satOrangeEnd = 18 * 60; // 18:00 fisso
+      if (zoneStart >= satOrangeEnd) return allRed(satOrangeEnd);
+      final greenEnd  = zoneStart > hm(15, 30) ? zoneStart : hm(15, 30);
+      final yellowEnd = greenEnd  > hm(16, 30) ? greenEnd  : hm(16, 30);
       return ZoneLimits(
         greenStart: zoneStart,
-        greenEnd: hm(15, 30),
-        yellowEnd: hm(16, 30),
-        orangeEnd: hm(18, 0),
+        greenEnd:   greenEnd,
+        yellowEnd:  yellowEnd,
+        orangeEnd:  satOrangeEnd,
       );
     }
 
+    // ---- FALLBACK senza dati sveglia ----
     if (_effectiveWakeUp == null) {
+      const fixedYellowEnd = 16 * 60; // 16:00
+      // orangeEnd = yellowEnd + 90min, max 19:00
+      final orangeEnd = (fixedYellowEnd + 90).clamp(fixedYellowEnd, hm(19, 0));
+      if (zoneStart >= orangeEnd) return allRed(orangeEnd);
+      // greenEnd e yellowEnd non possono scendere sotto zoneStart
+      final greenEnd  = zoneStart > hm(15, 0)      ? zoneStart      : hm(15, 0);
+      final yellowEnd = greenEnd  > fixedYellowEnd  ? greenEnd       : fixedYellowEnd;
       return ZoneLimits(
-        greenStart: hm(14, 0),
-        greenEnd: hm(15, 0),
-        yellowEnd: hm(16, 0),
-        orangeEnd: hm(17, 30),
+        greenStart: zoneStart,
+        greenEnd:   greenEnd,
+        yellowEnd:  yellowEnd,
+        orangeEnd:  orangeEnd,
       );
     }
 
-    // domenica: usa media scolastica lun-gio
+    // ---- GIORNI FERIALI / DOMENICA con sveglia ----
     final wakeUp = _isSunday
         ? (averageSchoolWakeUp ?? _effectiveWakeUp!)
         : _effectiveWakeUp!;
     final bedtimeMin = (toMin(wakeUp) - 8 * 60 + 24 * 60) % (24 * 60);
-    // yellowEnd non può superare le 17:30 (se lo raggiunge la zona arancione scompare)
+
+    // yellowEnd: 7h prima del bedtime, cappato a 17:30
     final yellowEnd = (bedtimeMin - 7 * 60).clamp(zoneStart, hm(17, 30));
-    // greenEnd non può superare yellowEnd
-    final greenEnd = (bedtimeMin - 8 * 60).clamp(zoneStart, yellowEnd);
+    // greenEnd: 8h prima del bedtime, non può superare yellowEnd
+    final greenEnd  = (bedtimeMin - 8 * 60).clamp(zoneStart, yellowEnd);
+    // orangeEnd: yellowEnd + 90min, max 19:00
+    final orangeEnd = (yellowEnd + 90).clamp(yellowEnd, hm(19, 0));
+
+    if (zoneStart >= orangeEnd) return allRed(orangeEnd);
+
+    // Se non c'è pranzo → greenStart = greenEnd - 60min (1h prima della fine verde)
+    // Se c'è pranzo    → greenStart = fine pranzo + 40min (= zoneStart)
+    final hasPranzo = todayEvents.any((e) => e.category == 'Pranzo');
+    final greenStart = hasPranzo ? zoneStart : (greenEnd - 60);
 
     return ZoneLimits(
-      greenStart: zoneStart,
-      greenEnd: greenEnd,
-      yellowEnd: yellowEnd,
-      orangeEnd: hm(17, 30),
+      greenStart: greenStart,
+      greenEnd:   greenEnd,
+      yellowEnd:  yellowEnd,
+      orangeEnd:  orangeEnd,
     );
   }
 
@@ -213,48 +246,6 @@ class NapAlgorithm {
     final baseStart = nowMin > lim.greenStart ? nowMin : lim.greenStart;
     int stepIdx = napSteps.indexWhere((s) => s <= _idealDuration(sds));
     if (stepIdx == -1) stepIdx = napSteps.length - 1;
-
-    // --- Calcola i buchi liberi tra [from, to] ---
-    // Un buco è un intervallo senza eventi (Pranzo escluso).
-    // Restituisce lista di (gapStart, gapEnd) già clippata a [from, to].
-    List<(int, int)> buildGaps(int from, int to) {
-      if (from >= to) return [];
-
-      // Prendo tutti gli intervalli degli eventi (escluso Pranzo)
-      final intervals =
-          todayEvents
-              .where((e) => e.category != 'Pranzo')
-              .map((e) => (toMin(e.startTime), toMin(e.endTime)))
-              .toList()
-            ..sort((a, b) => a.$1.compareTo(b.$1));
-
-      // Merge intervalli sovrapposti
-      final merged = <(int, int)>[];
-      for (final iv in intervals) {
-        if (merged.isEmpty || iv.$1 >= merged.last.$2) {
-          merged.add(iv);
-        } else {
-          final maxEnd = iv.$2 > merged.last.$2 ? iv.$2 : merged.last.$2;
-          merged[merged.length - 1] = (merged.last.$1, maxEnd);
-        }
-      }
-
-      // Costruisco i buchi
-      final gaps = <(int, int)>[];
-      int cursor = from;
-      for (final iv in merged) {
-        if (iv.$1 > cursor) {
-          // c'è spazio libero prima di questo evento
-          final gStart = cursor;
-          final gEnd = iv.$1 < to ? iv.$1 : to;
-          if (gStart < gEnd) gaps.add((gStart, gEnd));
-        }
-        if (iv.$2 > cursor) cursor = iv.$2;
-      }
-      if (cursor < to) gaps.add((cursor, to));
-
-      return gaps;
-    }
 
     // --- Ciclo principale: scala napMin fino a trovare uno slot ---
     while (stepIdx < napSteps.length) {
@@ -365,7 +356,7 @@ class NapAlgorithm {
         : orangeEarlyStart;
 
     // Buchi liberi dentro la zona arancione
-    final orangeGaps = buildGaps(orangeFrom, lim.orangeEnd);
+    final orangeGaps = _buildGaps(orangeFrom, lim.orangeEnd);
 
     for (final gap in orangeGaps) {
       final napStart = gap.$1;

@@ -44,7 +44,6 @@ class _HomePageState extends State<HomePage> {
 
   static const double _sleepTarget = 8.0;
   static const int _latencyMin = 10;
-  static const TimeOfDay _defaultWakeUp = TimeOfDay(hour: 6, minute: 30);
 
   void _refresh() {
     final now = DateTime.now();
@@ -60,7 +59,6 @@ class _HomePageState extends State<HomePage> {
       latencyMin: _latencyMin,
       sleepHistory: _sleepHistory,
       globalEvents: globalEvents,
-      defaultWakeUp: _defaultWakeUp,
     );
 
     _refresh();
@@ -106,8 +104,7 @@ class _HomePageState extends State<HomePage> {
             latencyMin: _latencyMin,
             sleepHistory: _sleepHistory,
             globalEvents: globalEvents,
-            defaultWakeUp: _defaultWakeUp,
-          );
+            );
           _refresh();
         }),
       ),
@@ -115,23 +112,31 @@ class _HomePageState extends State<HomePage> {
     ];
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      extendBodyBehindAppBar: false,
       appBar: _pageIndex == 1
           ? null
           : AppBar(
               backgroundColor: Colors.transparent,
+              elevation: 0,
               leading: Builder(
                 builder: (context) => IconButton(
                   icon: const Icon(Icons.menu, size: 30),
                   onPressed: () => Scaffold.of(context).openDrawer(),
                 ),
               ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: SdsReward(sds: _controller.sds, isEnglish: _isEnglish),
+                ),
+              ],
             ),
       drawer: Drawer(
         child: Column(
           children: [
             DrawerHeader(child: Center(child: Text(s.hello(name)))),
             ListTile(
+              leading: const Icon(Icons.palette_outlined),
               title: const Text('TEMA'),
               onTap: () {
                 showDialog(
@@ -152,37 +157,29 @@ class _HomePageState extends State<HomePage> {
                                 groupValue: selected,
                                 onChanged: (value) {
                                   if (value != null) {
-                                    context.read<ThemeProvider>().setTheme(
-                                      value,
-                                    );
+                                    context.read<ThemeProvider>().setTheme(value);
                                     Navigator.pop(ctx);
                                   }
                                 },
                                 title: const Text("Sistema"),
                               ),
-
                               RadioListTile<ThemeMode>(
                                 value: ThemeMode.light,
                                 groupValue: selected,
                                 onChanged: (value) {
                                   if (value != null) {
-                                    context.read<ThemeProvider>().setTheme(
-                                      value,
-                                    );
+                                    context.read<ThemeProvider>().setTheme(value);
                                     Navigator.pop(ctx);
                                   }
                                 },
                                 title: const Text("Chiaro"),
                               ),
-
                               RadioListTile<ThemeMode>(
                                 value: ThemeMode.dark,
                                 groupValue: selected,
                                 onChanged: (value) {
                                   if (value != null) {
-                                    context.read<ThemeProvider>().setTheme(
-                                      value,
-                                    );
+                                    context.read<ThemeProvider>().setTheme(value);
                                     Navigator.pop(ctx);
                                   }
                                 },
@@ -198,55 +195,57 @@ class _HomePageState extends State<HomePage> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.language_outlined),
               title: const Text('LINGUA'),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (ctx) => AlertDialog(
                     title: Text(s.selectLanguage),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ListTile(
-                          leading: const Text(
-                            '🇮🇹',
-                            style: TextStyle(fontSize: 24),
-                          ),
-                          title: const Text('Italiano'),
-                          selected: !_isEnglish,
-                          onTap: () {
-                            setState(() => _isEnglish = false);
-                            Navigator.pop(ctx);
-                          },
-                        ),
-                        ListTile(
-                          leading: const Text(
-                            '🇬🇧',
-                            style: TextStyle(fontSize: 24),
-                          ),
-                          title: const Text('English'),
-                          selected: _isEnglish,
-                          onTap: () {
-                            setState(() => _isEnglish = true);
-                            Navigator.pop(ctx);
-                          },
-                        ),
-                      ],
+                    content: StatefulBuilder(
+                      builder: (context, setStateDialog) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            RadioListTile<bool>(
+                              value: false,
+                              groupValue: _isEnglish,
+                              onChanged: (_) {
+                                setState(() => _isEnglish = false);
+                                Navigator.pop(ctx);
+                              },
+                              title: const Text('Italiano'),
+                            ),
+                            RadioListTile<bool>(
+                              value: true,
+                              groupValue: _isEnglish,
+                              onChanged: (_) {
+                                setState(() => _isEnglish = true);
+                                Navigator.pop(ctx);
+                              },
+                              title: const Text('English'),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 );
               },
             ),
             ListTile(
+              leading: const Icon(Icons.help_outline),
               title: const Text('TUTORIAL'),
               onTap: () {
-                Navigator.pop(
-                  context,
-                ); // chiude il drawer prima di aprire il dialog
+                Navigator.pop(context);
                 _showTutorial(context);
               },
             ),
-            ListTile(title: const Text('CREDITS'), onTap: () {}),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('CREDITS'),
+              onTap: () {},
+            ),
             const Spacer(),
             const Divider(),
             ListTile(
@@ -342,7 +341,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ],
                           ),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           ElevatedButton(
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -350,7 +349,7 @@ class _HomePageState extends State<HomePage> {
                                   content: Text(
                                     "Timer di $selectedDuration minuti avviato",
                                   ),
-                                  duration: Duration(seconds: 3),
+                                  duration: const Duration(seconds: 3),
                                 ),
                               );
                               FlutterAlarmClock.createTimer(
@@ -375,7 +374,9 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _pageIndex,
         onTap: (i) => setState(() => _pageIndex = i),
-        items: [
+        selectedItemColor: Theme.of(context).colorScheme.primary, // Colore dell'icona selezionata
+        unselectedItemColor: Colors.grey,                         // Colore delle icone NON selezionate
+          items: [
           BottomNavigationBarItem(
             icon: const Icon(Icons.home),
             label: s.navHome,
@@ -407,42 +408,35 @@ class _HomePageState extends State<HomePage> {
         return ma.compareTo(mb);
       });
 
-    // Lista cronologica eventi + pisolino
     final items = buildTimeline(eventiOggi, _controller.napResult);
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // header
+          // Stringa predizione
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  s.todaySchedule,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SdsReward(sds: _controller.sds, isEnglish: _isEnglish),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          // stringa predizione
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 4),
             child: PredictionBox(
               r: _controller.napResult,
               isEnglish: _isEnglish,
             ),
           ),
-          const SizedBox(height: 8),
+          
+          // NUOVO ELEMENTO: Righetta corta centrata divisoria
+          const SizedBox(height: 12),
+          Center(
+            child: Container(
+              width: 150, // Lunghezza della riga
+              height: 3,  // Spessore della riga
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.4), // Colore neutro semitrasparente
+                borderRadius: BorderRadius.circular(1.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
 
-          // debug zone
+          // Debug zone
           if (_controller.zoneLimits != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -451,9 +445,9 @@ class _HomePageState extends State<HomePage> {
                 isEnglish: _isEnglish,
               ),
             ),
-          const SizedBox(height: 8),
+          if (_controller.zoneLimits != null) const SizedBox(height: 8),
 
-          // lista cronologica
+          // Lista cronologica degli impegni
           Expanded(
             child: items.isEmpty
                 ? Center(
@@ -490,67 +484,15 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
+  
   // ---------------------------------------------------------------------------
   // TUTORIAL
   // ---------------------------------------------------------------------------
-
-  static const List<Map<String, String>> _tutorialPages = [
-    {
-      'emoji': '👋',
-      'title': 'Benvenuto in NapApp',
-      'body':
-          'NapApp ti aiuta a pianificare il pisolino perfetto in base ai tuoi impegni e al tuo debito di sonno. Scorri per scoprire come funziona.',
-    },
-    {
-      'emoji': '🟢',
-      'title': 'Le Zone Temporali',
-      'body':
-          'La giornata è divisa in quattro zone colorate: Verde (pisolino ideale), Gialla (emergenza), Arancione (finestra limitata) e Rossa (troppo tardi). Il colore del suggerimento dipende da quando riesci a dormire.',
-    },
-    {
-      'emoji': '🔋',
-      'title': 'Debito di Sonno (SDS)',
-      'body':
-          'L\'app calcola il tuo Saldo Debito Sonno pesando le ultime 7 notti con un coefficiente esponenziale (le notti recenti contano di più). Se il debito supera 1 ora, ti viene suggerito un pisolino di recupero da 90 min.',
-    },
-    {
-      'emoji': '⏱️',
-      'title': 'Durata del Pisolino',
-      'body':
-          'Esistono tre tipologie: 10–15 min per un boost immediato dei riflessi (⚡), 20–30 min per consolidare la memoria (🧠), 60–90 min per recuperare energie (🔋). L\'app sceglie la durata giusta per te automaticamente.',
-    },
-    {
-      'emoji': '📅',
-      'title': 'Aggiungere Impegni',
-      'body':
-          'Vai nella scheda Calendario e premi il tasto "+" per aggiungere un impegno. Puoi scegliere la categoria (Lezione, Pranzo, Studio, Allenamento, Altro), l\'orario e il colore. Puoi anche impostare la ripetizione settimanale o mensile.',
-    },
-    {
-      'emoji': '🏋️',
-      'title': 'Inerzia e Allenamento',
-      'body':
-          'Dopo un pisolino il corpo ha bisogno di tempo per essere pronto all\'attività fisica (inerzia motoria). L\'app assicura sempre una distanza adeguata tra la fine del pisolino e il tuo allenamento.',
-    },
-    {
-      'emoji': '⏰',
-      'title': 'Impostare la Sveglia',
-      'body':
-          'Dalla home puoi avviare una sveglia direttamente nell\'app: scegli la durata desiderata per il pisolino e premi "Avvia". Riceverai una notifica allo scadere del tempo.',
-    },
-    {
-      'emoji': '📊',
-      'title': 'Statistiche',
-      'body':
-          'Nella scheda Statistiche trovi il riepilogo del tuo sonno settimanale e l\'andamento del debito di sonno nel tempo. Più dati inserisci, più accurate diventano le previsioni dell\'app.',
-    },
-  ];
-
   void _showTutorial(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => TutorialDialog(pages: _tutorialPages),
+      builder: (ctx) => TutorialDialog(pages: tutorialPages), 
     );
   }
 }

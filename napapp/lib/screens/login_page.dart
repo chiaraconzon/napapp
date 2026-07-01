@@ -18,11 +18,12 @@ class LoginPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.calendar_today_rounded,
-                size: 80,
-                color: theme.colorScheme.primary,
-              ),
+              Image.asset(
+                'assets/sleep_icon.png', // Assicurati di usare il percorso corretto del tuo file
+                height: 100, // Puoi regolare l'altezza come preferisci
+                fit: BoxFit.contain,
+              ), //modificare con il logo
+
 
               const SizedBox(height: 20),
 
