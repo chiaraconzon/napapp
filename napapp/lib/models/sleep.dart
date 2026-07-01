@@ -93,6 +93,7 @@ class RecentSleep {
                 altWakeUpTime = recent[i].endTime;
               }
         }
+        i++;
       }
 
       wakeUpTime = altWakeUpTime;
