@@ -99,42 +99,75 @@ class NapAlgorithm {
   }
 
   // ---- limiti zone ----
+  // Invariante garantita in tutti i rami:
+  //   zoneStart ≤ greenEnd ≤ yellowEnd ≤ orangeEnd ≤ 19:00
   ZoneLimits computeZoneLimits() {
     final zoneStart = _zoneStartMin();
 
+    // Helper: se il pranzo finisce tardi e zoneStart supera orangeEnd → zona rossa
+    ZoneLimits allRed(int orangeEnd) => ZoneLimits(
+      greenStart: orangeEnd,
+      greenEnd:   orangeEnd,
+      yellowEnd:  orangeEnd,
+      orangeEnd:  orangeEnd,
+    );
+
+    // ---- SABATO: valori fissi ----
     if (_isSaturday) {
+      const satOrangeEnd = 18 * 60; // 18:00 fisso
+      if (zoneStart >= satOrangeEnd) return allRed(satOrangeEnd);
+      final greenEnd  = zoneStart > hm(15, 30) ? zoneStart : hm(15, 30);
+      final yellowEnd = greenEnd  > hm(16, 30) ? greenEnd  : hm(16, 30);
       return ZoneLimits(
         greenStart: zoneStart,
-        greenEnd: hm(15, 30),
-        yellowEnd: hm(16, 30),
-        orangeEnd: hm(18, 0),
+        greenEnd:   greenEnd,
+        yellowEnd:  yellowEnd,
+        orangeEnd:  satOrangeEnd,
       );
     }
 
+    // ---- FALLBACK senza dati sveglia ----
     if (_effectiveWakeUp == null) {
+      const fixedYellowEnd = 16 * 60; // 16:00
+      // orangeEnd = yellowEnd + 90min, max 19:00
+      final orangeEnd = (fixedYellowEnd + 90).clamp(fixedYellowEnd, hm(19, 0));
+      if (zoneStart >= orangeEnd) return allRed(orangeEnd);
+      // greenEnd e yellowEnd non possono scendere sotto zoneStart
+      final greenEnd  = zoneStart > hm(15, 0)      ? zoneStart      : hm(15, 0);
+      final yellowEnd = greenEnd  > fixedYellowEnd  ? greenEnd       : fixedYellowEnd;
       return ZoneLimits(
-        greenStart: hm(14, 0),
-        greenEnd: hm(15, 0),
-        yellowEnd: hm(16, 0),
-        orangeEnd: hm(17, 30),
+        greenStart: zoneStart,
+        greenEnd:   greenEnd,
+        yellowEnd:  yellowEnd,
+        orangeEnd:  orangeEnd,
       );
     }
 
-    // domenica: usa media scolastica lun-gio
+    // ---- GIORNI FERIALI / DOMENICA con sveglia ----
     final wakeUp = _isSunday
         ? (averageSchoolWakeUp ?? _effectiveWakeUp!)
         : _effectiveWakeUp!;
     final bedtimeMin = (toMin(wakeUp) - 8 * 60 + 24 * 60) % (24 * 60);
-    // yellowEnd non può superare le 17:30 (se lo raggiunge la zona arancione scompare)
+
+    // yellowEnd: 7h prima del bedtime, cappato a 17:30
     final yellowEnd = (bedtimeMin - 7 * 60).clamp(zoneStart, hm(17, 30));
-    // greenEnd non può superare yellowEnd
-    final greenEnd = (bedtimeMin - 8 * 60).clamp(zoneStart, yellowEnd);
+    // greenEnd: 8h prima del bedtime, non può superare yellowEnd
+    final greenEnd  = (bedtimeMin - 8 * 60).clamp(zoneStart, yellowEnd);
+    // orangeEnd: yellowEnd + 90min, max 19:00
+    final orangeEnd = (yellowEnd + 90).clamp(yellowEnd, hm(19, 0));
+
+    if (zoneStart >= orangeEnd) return allRed(orangeEnd);
+
+    // Se non c'è pranzo → greenStart = greenEnd - 60min (1h prima della fine verde)
+    // Se c'è pranzo    → greenStart = fine pranzo + 40min (= zoneStart)
+    final hasPranzo = todayEvents.any((e) => e.category == 'Pranzo');
+    final greenStart = hasPranzo ? zoneStart : (greenEnd - 60);
 
     return ZoneLimits(
-      greenStart: zoneStart,
-      greenEnd: greenEnd,
-      yellowEnd: yellowEnd,
-      orangeEnd: hm(17, 30),
+      greenStart: greenStart,
+      greenEnd:   greenEnd,
+      yellowEnd:  yellowEnd,
+      orangeEnd:  orangeEnd,
     );
   }
 
