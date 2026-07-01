@@ -247,48 +247,6 @@ class NapAlgorithm {
     int stepIdx = napSteps.indexWhere((s) => s <= _idealDuration(sds));
     if (stepIdx == -1) stepIdx = napSteps.length - 1;
 
-    // --- Calcola i buchi liberi tra [from, to] ---
-    // Un buco è un intervallo senza eventi (Pranzo escluso).
-    // Restituisce lista di (gapStart, gapEnd) già clippata a [from, to].
-    List<(int, int)> buildGaps(int from, int to) {
-      if (from >= to) return [];
-
-      // Prendo tutti gli intervalli degli eventi (escluso Pranzo)
-      final intervals =
-          todayEvents
-              .where((e) => e.category != 'Pranzo')
-              .map((e) => (toMin(e.startTime), toMin(e.endTime)))
-              .toList()
-            ..sort((a, b) => a.$1.compareTo(b.$1));
-
-      // Merge intervalli sovrapposti
-      final merged = <(int, int)>[];
-      for (final iv in intervals) {
-        if (merged.isEmpty || iv.$1 >= merged.last.$2) {
-          merged.add(iv);
-        } else {
-          final maxEnd = iv.$2 > merged.last.$2 ? iv.$2 : merged.last.$2;
-          merged[merged.length - 1] = (merged.last.$1, maxEnd);
-        }
-      }
-
-      // Costruisco i buchi
-      final gaps = <(int, int)>[];
-      int cursor = from;
-      for (final iv in merged) {
-        if (iv.$1 > cursor) {
-          // c'è spazio libero prima di questo evento
-          final gStart = cursor;
-          final gEnd = iv.$1 < to ? iv.$1 : to;
-          if (gStart < gEnd) gaps.add((gStart, gEnd));
-        }
-        if (iv.$2 > cursor) cursor = iv.$2;
-      }
-      if (cursor < to) gaps.add((cursor, to));
-
-      return gaps;
-    }
-
     // --- Ciclo principale: scala napMin fino a trovare uno slot ---
     while (stepIdx < napSteps.length) {
       final napMin = napSteps[stepIdx];
@@ -398,7 +356,7 @@ class NapAlgorithm {
         : orangeEarlyStart;
 
     // Buchi liberi dentro la zona arancione
-    final orangeGaps = buildGaps(orangeFrom, lim.orangeEnd);
+    final orangeGaps = _buildGaps(orangeFrom, lim.orangeEnd);
 
     for (final gap in orangeGaps) {
       final napStart = gap.$1;
