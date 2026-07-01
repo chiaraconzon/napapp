@@ -60,7 +60,6 @@ class _HomePageState extends State<HomePage> {
       latencyMin: _latencyMin,
       sleepHistory: _sleepHistory,
       globalEvents: globalEvents,
-      defaultWakeUp: _defaultWakeUp,
     );
 
     _refresh();
@@ -106,8 +105,7 @@ class _HomePageState extends State<HomePage> {
             latencyMin: _latencyMin,
             sleepHistory: _sleepHistory,
             globalEvents: globalEvents,
-            defaultWakeUp: _defaultWakeUp,
-          );
+            );
           _refresh();
         }),
       ),
@@ -125,13 +123,6 @@ class _HomePageState extends State<HomePage> {
                 builder: (context) => IconButton(
                   icon: const Icon(Icons.menu, size: 30),
                   onPressed: () => Scaffold.of(context).openDrawer(),
-                ),
-              ),
-              title: Text(
-                s.todaySchedule,
-                style: const TextStyle(
-                  fontSize: 21,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
               actions: [
@@ -436,7 +427,7 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 12),
           Center(
             child: Container(
-              width: 50, // Lunghezza della riga
+              width: 150, // Lunghezza della riga
               height: 3,  // Spessore della riga
               decoration: BoxDecoration(
                 color: Colors.grey.withOpacity(0.4), // Colore neutro semitrasparente
