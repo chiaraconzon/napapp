@@ -327,10 +327,11 @@ class _CalendarPageState extends State<CalendarPage> {
                 right: 20,
                 top: 20,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   // Titolo del foglio
                   Center(
                     child: Text(
@@ -619,7 +620,8 @@ class _CalendarPageState extends State<CalendarPage> {
                   const SizedBox(height: 20),
                 ],
               ),
-            ),
+            ), // SingleChildScrollView
+          ),
 
             // Bottone X in alto a destra per chiudere il foglio senza salvare
             Positioned(
