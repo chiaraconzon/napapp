@@ -40,7 +40,6 @@ class _HomePageState extends State<HomePage> {
   int selectedAlarm = 1;
   bool _isEnglish = false;
   Timer? _napTimer;
-  final List<SleepDay> _sleepHistory = [];
 
   static const double _sleepTarget = 8.0;
   static const int _latencyMin = 10;
@@ -57,7 +56,6 @@ class _HomePageState extends State<HomePage> {
     _controller = NapController(
       sleepTarget: _sleepTarget,
       latencyMin: _latencyMin,
-      sleepHistory: _sleepHistory,
       globalEvents: globalEvents,
     );
 
@@ -102,7 +100,6 @@ class _HomePageState extends State<HomePage> {
           _controller = NapController(
             sleepTarget: _sleepTarget,
             latencyMin: _latencyMin,
-            sleepHistory: _sleepHistory,
             globalEvents: globalEvents,
           );
           _refresh();
