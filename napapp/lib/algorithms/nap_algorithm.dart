@@ -8,7 +8,6 @@ import '../screens/calendar_page.dart';
 class NapAlgorithm {
   final double sleepTarget;
   final int latencyMin;
-  final List<SleepDay> sleepHistory;
   final List<MyEvent> todayEvents;
   final TimeOfDay? wakeUpToday;
   final TimeOfDay? averageSchoolWakeUp;
@@ -17,7 +16,6 @@ class NapAlgorithm {
   NapAlgorithm({
     required this.sleepTarget,
     required this.latencyMin,
-    required this.sleepHistory,
     required this.todayEvents,
     required this.wakeUpToday,
     required this.averageSchoolWakeUp,
