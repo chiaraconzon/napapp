@@ -1,16 +1,6 @@
 import 'package:flutter/material.dart';
 
 // =============================================================================
-// MODELLO DATI SONNO
-// =============================================================================
-class SleepDay {
-  final DateTime date;
-  final double tst;
-  final List<double> naps;
-  const SleepDay({required this.date, required this.tst, this.naps = const []});
-}
-
-// =============================================================================
 // ENUM ZONA
 // =============================================================================
 enum NapZone { green, yellow, orange, red }
