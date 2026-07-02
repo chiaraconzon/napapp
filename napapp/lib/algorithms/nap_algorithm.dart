@@ -112,10 +112,10 @@ class NapAlgorithm {
 
     // ---- SABATO: valori fissi ----
     if (_isSaturday) {
-      const satOrangeEnd = 19 * 60; // 19:00 fisso
+      const satOrangeEnd = 18 * 60; // 18:00 fisso
       if (zoneStart >= satOrangeEnd) return allRed(satOrangeEnd);
       final greenEnd  = zoneStart > hm(15, 30) ? zoneStart : hm(15, 30);
-      final yellowEnd = greenEnd  > hm(16, 30) ? greenEnd  : hm(16, 30);
+      final yellowEnd = greenEnd  > hm(17, 00) ? greenEnd  : hm(17, 00);
       return ZoneLimits(
         greenStart: zoneStart,
         greenEnd:   greenEnd,
@@ -128,7 +128,7 @@ class NapAlgorithm {
     if (_effectiveWakeUp == null) {
       const fixedYellowEnd = 16 * 60; // 16:00
       // orangeEnd = yellowEnd + 90min, max 19:00
-      final orangeEnd = (fixedYellowEnd + 90).clamp(fixedYellowEnd, hm(19, 0));
+      final orangeEnd = (fixedYellowEnd + 90).clamp(fixedYellowEnd, hm(18, 00));
       if (zoneStart >= orangeEnd) return allRed(orangeEnd);
       // greenEnd e yellowEnd non possono scendere sotto zoneStart
       final greenEnd  = zoneStart > hm(15, 0)      ? zoneStart      : hm(15, 0);
@@ -147,13 +147,13 @@ class NapAlgorithm {
         : _effectiveWakeUp!;
     final bedtimeMin = (toMin(wakeUp) - 8 * 60 + 24 * 60) % (24 * 60);
 
-    //cambiato da 8 e 7 ore a 7 e 6 ore per il calcolo delle zone.
-    // yellowEnd: 6h prima del bedtime, cappato a 17:30
-    final yellowEnd = (bedtimeMin - 6 * 60).clamp(zoneStart, hm(18, 00)); 
-    // greenEnd: 7h prima del bedtime, non può superare yellowEnd
-    final greenEnd  = (bedtimeMin - 7 * 60).clamp(zoneStart, yellowEnd);
+
+    // yellowEnd: 7h prima del bedtime, cappato a 17:30
+    final yellowEnd = (bedtimeMin - 7 * 60).clamp(zoneStart, hm(17, 30)); 
+    // greenEnd: 8h prima del bedtime, non può superare yellowEnd
+    final greenEnd  = (bedtimeMin - 8 * 60).clamp(zoneStart, yellowEnd);
     // orangeEnd: yellowEnd + 90min, max 19:00
-    final orangeEnd = (yellowEnd + 90).clamp(yellowEnd, hm(19, 0));
+    final orangeEnd = (yellowEnd + 90).clamp(yellowEnd, hm(18, 0));
 
     if (zoneStart >= orangeEnd) return allRed(orangeEnd);
 
@@ -161,7 +161,7 @@ class NapAlgorithm {
     // Se c'è pranzo    → greenStart = fine pranzo + 40min (= zoneStart)
     final hasPranzo = todayEvents.any((e) => e.category == 'Pranzo');
     // Calcoliamo il minimo tra (greenEnd - 60) e le 14:00
-    final greenStartNoPranzo = (greenEnd - 60) < hm(14, 0) ? (greenEnd - 60) : hm(14, 0);
+    final greenStartNoPranzo = (greenEnd - 60) < hm(13, 30) ? (greenEnd - 60) : hm(13, 30);
     final greenStart = hasPranzo ? zoneStart : greenStartNoPranzo;
 
     return ZoneLimits(
