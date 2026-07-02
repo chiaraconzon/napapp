@@ -112,7 +112,7 @@ class NapAlgorithm {
 
     // ---- SABATO: valori fissi ----
     if (_isSaturday) {
-      const satOrangeEnd = 19 * 60; // 18:00 fisso
+      const satOrangeEnd = 19 * 60; // 19:00 fisso
       if (zoneStart >= satOrangeEnd) return allRed(satOrangeEnd);
       final greenEnd  = zoneStart > hm(15, 30) ? zoneStart : hm(15, 30);
       final yellowEnd = greenEnd  > hm(16, 30) ? greenEnd  : hm(16, 30);
@@ -149,7 +149,7 @@ class NapAlgorithm {
 
     //cambiato da 8 e 7 ore a 7 e 6 ore per il calcolo delle zone.
     // yellowEnd: 6h prima del bedtime, cappato a 17:30
-    final yellowEnd = (bedtimeMin - 6 * 60).clamp(zoneStart, hm(17, 30)); //controllare qua questo clamp (secondo me andrebbe bene anche 18)
+    final yellowEnd = (bedtimeMin - 6 * 60).clamp(zoneStart, hm(18, 00)); 
     // greenEnd: 7h prima del bedtime, non può superare yellowEnd
     final greenEnd  = (bedtimeMin - 7 * 60).clamp(zoneStart, yellowEnd);
     // orangeEnd: yellowEnd + 90min, max 19:00
