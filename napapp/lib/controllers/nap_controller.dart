@@ -5,7 +5,6 @@ import '../screens/calendar_page.dart';
 class NapController {
   final double sleepTarget;
   final int latencyMin;
-  final List<SleepDay> sleepHistory;
   final Map<DateTime, List<MyEvent>> globalEvents;
 
   NapResult? napResult;
@@ -15,7 +14,6 @@ class NapController {
   NapController({
     required this.sleepTarget,
     required this.latencyMin,
-    required this.sleepHistory,
     required this.globalEvents,
   });
 
@@ -25,7 +23,6 @@ class NapController {
     final algo = NapAlgorithm(
       sleepTarget: sleepTarget,
       latencyMin: latencyMin,
-      sleepHistory: sleepHistory,
       todayEvents: globalEvents[key] ?? [],
       wakeUpToday: null, // TODO: collegare al wearable
       averageSchoolWakeUp: null, // null → usa fallback fissi 14:00/15:00/16:00
