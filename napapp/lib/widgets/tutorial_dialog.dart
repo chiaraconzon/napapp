@@ -18,7 +18,7 @@ const List<Map<String, String>> tutorialPages = [
     'body':
         'Quattro zone indicano la qualità della fascia oraria per il pisolino:\n\n'
         '🟢 Verde — momento ideale\n'
-        '🟡 Gialla — pisolino di emergenza\n'
+        '🟡 Gialla — pisolino valido\n'
         '🟠 Arancione — finestra di emergenza ridotta\n'
         '🔴 Rossa — troppo tardi, nessun pisolino',
   },
@@ -59,7 +59,7 @@ const List<Map<String, String>> tutorialPages = [
     'emoji': '⏰',
     'title': 'Impostare la Sveglia',
     'body':
-        'Dalla home puoi avviare una sveglia direttamente nell\'app: '
+        'Dalla home puoi avviare una sveglia: '
         'scegli la durata desiderata per il pisolino e premi "Avvia". '
         'Riceverai una notifica allo scadere del tempo.',
   },
