@@ -160,7 +160,9 @@ class NapAlgorithm {
     // Se non c'è pranzo → greenStart = greenEnd - 60min (1h prima della fine verde)
     // Se c'è pranzo    → greenStart = fine pranzo + 40min (= zoneStart)
     final hasPranzo = todayEvents.any((e) => e.category == 'Pranzo');
-    final greenStart = hasPranzo ? zoneStart : (greenEnd - 60);
+    // Calcoliamo il minimo tra (greenEnd - 60) e le 14:00
+    final greenStartNoPranzo = (greenEnd - 60) < hm(14, 0) ? (greenEnd - 60) : hm(14, 0);
+    final greenStart = hasPranzo ? zoneStart : greenStartNoPranzo;
 
     return ZoneLimits(
       greenStart: greenStart,
