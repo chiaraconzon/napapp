@@ -1,7 +1,6 @@
 import '../algorithms/nap_algorithm.dart';
 import '../models/nap_models.dart';
 import '../screens/calendar_page.dart';
-import 'package:flutter/material.dart';
 
 class NapController {
   final double sleepTarget;
@@ -24,17 +23,17 @@ class NapController {
     final key = DateTime(now.year, now.month, now.day);
 
     final algo = NapAlgorithm(
-      sleepTarget:         sleepTarget,
-      latencyMin:          latencyMin,
-      sleepHistory:        sleepHistory,
-      todayEvents:         globalEvents[key] ?? [],
-      wakeUpToday:         null, // TODO: collegare al wearable
+      sleepTarget: sleepTarget,
+      latencyMin: latencyMin,
+      sleepHistory: sleepHistory,
+      todayEvents: globalEvents[key] ?? [],
+      wakeUpToday: null, // TODO: collegare al wearable
       averageSchoolWakeUp: null, // null → usa fallback fissi 14:00/15:00/16:00
-      today:               now,
+      today: now,
     );
 
-    napResult  = algo.compute();
+    napResult = algo.compute();
     zoneLimits = algo.computeZoneLimits();
-    sds        = algo.computeSDS();
+    sds = algo.computeSDS();
   }
 }

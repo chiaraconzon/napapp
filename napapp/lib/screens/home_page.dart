@@ -104,7 +104,7 @@ class _HomePageState extends State<HomePage> {
             latencyMin: _latencyMin,
             sleepHistory: _sleepHistory,
             globalEvents: globalEvents,
-            );
+          );
           _refresh();
         }),
       ),
@@ -134,7 +134,45 @@ class _HomePageState extends State<HomePage> {
       drawer: Drawer(
         child: Column(
           children: [
-            DrawerHeader(child: Center(child: Text(s.hello(name)))),
+            DrawerHeader(
+              margin: EdgeInsets.zero,
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                border: Border(
+                  bottom: BorderSide(color: Theme.of(context).dividerColor),
+                ),
+              ),
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Ciao,",
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                          ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      name.toUpperCase(),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             ListTile(
               leading: const Icon(Icons.palette_outlined),
               title: const Text('TEMA'),
@@ -143,7 +181,16 @@ class _HomePageState extends State<HomePage> {
                   context: context,
                   builder: (ctx) {
                     return AlertDialog(
-                      title: const Text("Seleziona tema"),
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text("Seleziona tema"),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
                       content: StatefulBuilder(
                         builder: (context, setStateDialog) {
                           final themeProvider = context.watch<ThemeProvider>();
@@ -157,7 +204,9 @@ class _HomePageState extends State<HomePage> {
                                 groupValue: selected,
                                 onChanged: (value) {
                                   if (value != null) {
-                                    context.read<ThemeProvider>().setTheme(value);
+                                    context.read<ThemeProvider>().setTheme(
+                                      value,
+                                    );
                                     Navigator.pop(ctx);
                                   }
                                 },
@@ -168,7 +217,9 @@ class _HomePageState extends State<HomePage> {
                                 groupValue: selected,
                                 onChanged: (value) {
                                   if (value != null) {
-                                    context.read<ThemeProvider>().setTheme(value);
+                                    context.read<ThemeProvider>().setTheme(
+                                      value,
+                                    );
                                     Navigator.pop(ctx);
                                   }
                                 },
@@ -179,7 +230,9 @@ class _HomePageState extends State<HomePage> {
                                 groupValue: selected,
                                 onChanged: (value) {
                                   if (value != null) {
-                                    context.read<ThemeProvider>().setTheme(value);
+                                    context.read<ThemeProvider>().setTheme(
+                                      value,
+                                    );
                                     Navigator.pop(ctx);
                                   }
                                 },
@@ -260,123 +313,132 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       body: pages[_pageIndex],
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() => selectedAlarm = 0);
+      floatingActionButton: _pageIndex == 0
+          ? FloatingActionButton(
+              onPressed: () {
+                setState(() => selectedAlarm = 0);
 
-          showDialog(
-            context: context,
-            builder: (context) {
-              return StatefulBuilder(
-                builder: (context, setDialogState) {
-                  return Dialog(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  "Seleziona la sveglia:",
-                                  style: Theme.of(context).textTheme.titleLarge,
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return StatefulBuilder(
+                      builder: (context, setDialogState) {
+                        return Dialog(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        "Seleziona la sveglia:",
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleLarge,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      icon: const Icon(Icons.close),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              IconButton(
-                                onPressed: () => Navigator.pop(context),
-                                icon: const Icon(Icons.close),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: AlarmCircleTimer(
-                                  duration: const Duration(minutes: 10),
-                                  selected:
-                                      selectedDuration ==
-                                      const Duration(minutes: 10),
-                                  onTap: () {
-                                    setDialogState(() {
-                                      selectedDuration = const Duration(
-                                        minutes: 10,
-                                      );
-                                    });
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: AlarmCircleTimer(
+                                        duration: const Duration(minutes: 10),
+                                        selected:
+                                            selectedDuration ==
+                                            const Duration(minutes: 10),
+                                        onTap: () {
+                                          setDialogState(() {
+                                            selectedDuration = const Duration(
+                                              minutes: 10,
+                                            );
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: AlarmCircleTimer(
+                                        duration: const Duration(minutes: 30),
+                                        selected:
+                                            selectedDuration ==
+                                            const Duration(minutes: 30),
+                                        onTap: () {
+                                          setDialogState(() {
+                                            selectedDuration = const Duration(
+                                              minutes: 30,
+                                            );
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: AlarmCircleTimer(
+                                        duration: const Duration(minutes: 90),
+                                        selected:
+                                            selectedDuration ==
+                                            const Duration(minutes: 90),
+                                        onTap: () {
+                                          setDialogState(() {
+                                            selectedDuration = const Duration(
+                                              minutes: 90,
+                                            );
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          "Timer di ${selectedDuration.inMinutes} minuti avviato",
+                                        ),
+                                        duration: const Duration(seconds: 3),
+                                      ),
+                                    );
+                                    FlutterAlarmClock.createTimer(
+                                      length: selectedDuration.inSeconds,
+                                    );
+
+                                    Navigator.pop(context);
                                   },
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: AlarmCircleTimer(
-                                  duration: const Duration(minutes: 30),
-                                  selected:
-                                      selectedDuration ==
-                                      const Duration(minutes: 30),
-                                  onTap: () {
-                                    setDialogState(() {
-                                      selectedDuration = const Duration(
-                                        minutes: 30,
-                                      );
-                                    });
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: AlarmCircleTimer(
-                                  duration: const Duration(minutes: 90),
-                                  selected:
-                                      selectedDuration ==
-                                      const Duration(minutes: 90),
-                                  onTap: () {
-                                    setDialogState(() {
-                                      selectedDuration = const Duration(
-                                        minutes: 90,
-                                      );
-                                    });
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          ElevatedButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    "Timer di $selectedDuration minuti avviato",
+                                  child: Text(
+                                    AppStrings(_isEnglish).startAlarm,
                                   ),
-                                  duration: const Duration(seconds: 3),
                                 ),
-                              );
-                              FlutterAlarmClock.createTimer(
-                                length: selectedDuration.inSeconds,
-                              );
-
-                              Navigator.pop(context);
-                            },
-                            child: Text(AppStrings(_isEnglish).startAlarm),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          );
-        },
-        child: const Icon(Icons.alarm),
-      ),
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+              child: const Icon(Icons.alarm),
+            )
+          : null,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _pageIndex,
         onTap: (i) => setState(() => _pageIndex = i),
-        selectedItemColor: Theme.of(context).colorScheme.primary, // Colore dell'icona selezionata
-        unselectedItemColor: Colors.grey,                         // Colore delle icone NON selezionate
-          items: [
+        selectedItemColor: Theme.of(
+          context,
+        ).colorScheme.primary, // Colore dell'icona selezionata
+        unselectedItemColor: Colors.grey, // Colore delle icone NON selezionate
+        items: [
           BottomNavigationBarItem(
             icon: const Icon(Icons.home),
             label: s.navHome,
@@ -421,15 +483,17 @@ class _HomePageState extends State<HomePage> {
               isEnglish: _isEnglish,
             ),
           ),
-          
+
           // NUOVO ELEMENTO: Righetta corta centrata divisoria
           const SizedBox(height: 12),
           Center(
             child: Container(
               width: 150, // Lunghezza della riga
-              height: 3,  // Spessore della riga
+              height: 3, // Spessore della riga
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.4), // Colore neutro semitrasparente
+                color: Colors.grey.withOpacity(
+                  0.4,
+                ), // Colore neutro semitrasparente
                 borderRadius: BorderRadius.circular(1.5),
               ),
             ),
@@ -484,7 +548,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   // ---------------------------------------------------------------------------
   // TUTORIAL
   // ---------------------------------------------------------------------------
@@ -492,7 +556,7 @@ class _HomePageState extends State<HomePage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => TutorialDialog(pages: tutorialPages), 
+      builder: (ctx) => TutorialDialog(pages: tutorialPages),
     );
   }
 }
