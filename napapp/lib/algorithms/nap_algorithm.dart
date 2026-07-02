@@ -77,7 +77,7 @@ class NapAlgorithm {
   // Valore fisso temporaneo in attesa dell'integrazione con il wearable.
   // 0.0 = nessun debito (propone pisolino da 15 min)
   // 1.5 = debito moderato (propone pisolino da 90 min)
-  static const double _sdsDebug = 0.8;
+  static const double _sdsDebug = 0.0;
 
   double computeSDS() => _sdsDebug;
 
@@ -114,7 +114,7 @@ class NapAlgorithm {
 
     // ---- SABATO: valori fissi ----
     if (_isSaturday) {
-      const satOrangeEnd = 18 * 60; // 18:00 fisso
+      const satOrangeEnd = 19 * 60; // 18:00 fisso
       if (zoneStart >= satOrangeEnd) return allRed(satOrangeEnd);
       final greenEnd  = zoneStart > hm(15, 30) ? zoneStart : hm(15, 30);
       final yellowEnd = greenEnd  > hm(16, 30) ? greenEnd  : hm(16, 30);
@@ -149,10 +149,11 @@ class NapAlgorithm {
         : _effectiveWakeUp!;
     final bedtimeMin = (toMin(wakeUp) - 8 * 60 + 24 * 60) % (24 * 60);
 
-    // yellowEnd: 7h prima del bedtime, cappato a 17:30
-    final yellowEnd = (bedtimeMin - 7 * 60).clamp(zoneStart, hm(17, 30));
-    // greenEnd: 8h prima del bedtime, non può superare yellowEnd
-    final greenEnd  = (bedtimeMin - 8 * 60).clamp(zoneStart, yellowEnd);
+    //cambiato da 8 e 7 ore a 7 e 6 ore per il calcolo delle zone.
+    // yellowEnd: 6h prima del bedtime, cappato a 17:30
+    final yellowEnd = (bedtimeMin - 6 * 60).clamp(zoneStart, hm(17, 30)); //controllare qua questo clamp (secondo me andrebbe bene anche 18)
+    // greenEnd: 7h prima del bedtime, non può superare yellowEnd
+    final greenEnd  = (bedtimeMin - 7 * 60).clamp(zoneStart, yellowEnd);
     // orangeEnd: yellowEnd + 90min, max 19:00
     final orangeEnd = (yellowEnd + 90).clamp(yellowEnd, hm(19, 0));
 
