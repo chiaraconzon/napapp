@@ -252,7 +252,7 @@ class AppStrings {
       'emoji': '⏰',
       'title': 'Impostare la Sveglia',
       'body':
-          'Dalla home puoi avviare una sveglia direttamente nell\'app: '
+          'Dalla home puoi avviare una sveglia: '
           'scegli la durata desiderata per il pisolino e premi "Avvia". '
           'Riceverai una notifica allo scadere del tempo.',
     },
@@ -325,7 +325,7 @@ class AppStrings {
       'emoji': '⏰',
       'title': 'Setting the Alarm',
       'body':
-          'From the home screen you can start a timer directly in the app: '
+          'From the home screen you can start a timer: '
           'choose the desired nap duration and press "Start". '
           'You\'ll receive a notification when time is up.',
     },
