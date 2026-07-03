@@ -41,8 +41,6 @@ class _HomePageState extends State<HomePage> {
   bool _isEnglish = false;
   Timer? _napTimer;
 
-  static const double _sleepTarget = 8.0;
-  static const int _latencyMin = 10;
 
   void _refresh() {
     final now = DateTime.now();
@@ -54,8 +52,6 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     _controller = NapController(
-      sleepTarget: _sleepTarget,
-      latencyMin: _latencyMin,
       globalEvents: globalEvents,
     );
 
@@ -98,8 +94,6 @@ class _HomePageState extends State<HomePage> {
         onEventsUpdated: (m) => setState(() {
           globalEvents = m;
           _controller = NapController(
-            sleepTarget: _sleepTarget,
-            latencyMin: _latencyMin,
             globalEvents: globalEvents,
           );
           _refresh();
@@ -549,11 +543,11 @@ class _HomePageState extends State<HomePage> {
   // ---------------------------------------------------------------------------
   // TUTORIAL
   // ---------------------------------------------------------------------------
-  void _showTutorial(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => TutorialDialog(pages: tutorialPages),
-    );
-  }
+void _showTutorial(BuildContext context) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) => TutorialDialog(pages: AppStrings(_isEnglish).tutorialPages),
+  );
+}
 }
