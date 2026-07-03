@@ -64,7 +64,7 @@ class AppStrings {
       ? 'Emergency window — only to reduce momentary drowsiness'
       : 'Finestra di emergenza — solo per ridurre la sonnolenza momentanea';
   String get idealNap    => isEnglish ? 'Ideal Nap'       : 'Pisolino ideale';
-  String get emergencyNapPrediction => isEnglish ? 'Valid Nap' : 'Pisolino valido';
+  String get emergencyNapPrediction => isEnglish ? 'Emergency Nap' : 'Pisolino di Emergenza';
   String get fromTime    => isEnglish ? 'from'            : 'dalle';
 
   // ---------------------------------------------------------------------------
@@ -190,4 +190,157 @@ class AppStrings {
   // DIALOG SELEZIONE LINGUA (nel drawer)
   // ---------------------------------------------------------------------------
   String get selectLanguage => isEnglish ? 'Select Language' : 'Seleziona Lingua';
+
+  // ---------------------------------------------------------------------------
+  // TUTORIAL PAGES
+  // ---------------------------------------------------------------------------
+  List<Map<String, String>> get tutorialPages => isEnglish
+      ? _tutorialPagesEn
+      : _tutorialPagesIt;
+
+  static const List<Map<String, String>> _tutorialPagesIt = [
+    {
+      'emoji': '👋',
+      'title': 'Benvenuto in NapApp',
+      'body':
+          'NapApp ti aiuta a pianificare il pisolino perfetto in base ai tuoi impegni e al tuo debito di sonno. Scorri per scoprire come funziona.',
+    },
+    {
+      'emoji': '🟢',
+      'title': 'Zone Temporali',
+      'body':
+          'Quattro zone indicano la qualità della fascia oraria per il pisolino:\n\n'
+          '🟢 Verde — momento ideale\n'
+          '🟡 Gialla — pisolino valido\n'
+          '🟠 Arancione — finestra di emergenza ridotta\n'
+          '🔴 Rossa — troppo tardi, nessun pisolino',
+    },
+    {
+      'emoji': '🔋',
+      'title': 'Debito di Sonno (SDS)',
+      'body':
+          'L\'app calcola il tuo Saldo Debito Sonno sulle ultime 7 notti e mostra uno di questi quattro stati:\n\n'
+          '🔋 Ottima forma — hai dormito a sufficienza\n'
+          '🙂 Leggero deficit — piccola carenza di sonno\n'
+          '🥱 Debito moderato — stai accumulando stanchezza\n'
+          '🚨 Debito severo — recupero urgente',
+    },
+    {
+      'emoji': '⏱️',
+      'title': 'Durata del Pisolino',
+      'body':
+          'Tre tipologie di pisolino:\n\n'
+          '⚡ 10–15 min — boost immediato dei riflessi\n'
+          '🧠 20–30 min — consolidamento memoria\n'
+          '🔋 60–90 min — recupero energetico\n\n'
+          'L\'app sceglie la durata migliore per te automaticamente in base al tuo debito di sonno e agli eventi programmati.',
+    },
+    {
+      'emoji': '💤',
+      'title': 'Collocazione del Pisolino',
+      'body':
+          'Dopo un pisolino il corpo ha bisogno di tempo per ristabilirsi. '
+          'L\'app garantisce sempre una distanza adeguata tra la fine del pisolino e le tue attività successive.',
+    },
+    {
+      'emoji': '📅',
+      'title': 'Aggiungere Impegni',
+      'body':
+          'Vai in Calendario e premi "+ Aggiungi Attività" per inserire un impegno.',
+    },
+    {
+      'emoji': '⏰',
+      'title': 'Impostare la Sveglia',
+      'body':
+          'Dalla home puoi avviare una sveglia direttamente nell\'app: '
+          'scegli la durata desiderata per il pisolino e premi "Avvia". '
+          'Riceverai una notifica allo scadere del tempo.',
+    },
+    {
+      'emoji': '📊',
+      'title': 'Statistiche',
+      'body':
+          'In Statistiche trovi il riepilogo del tuo sonno settimanale '
+          'e l\'andamento del debito di sonno nel tempo.',
+    },
+    {
+      'emoji': '🚀',
+      'title': 'Pronto a iniziare?',
+      'body':
+          'Configura i tuoi orari, monitora il tuo riposo e migliora la tua produttività quotidiana. Buon pisolino!',
+    },
+  ];
+
+  static const List<Map<String, String>> _tutorialPagesEn = [
+    {
+      'emoji': '👋',
+      'title': 'Welcome to NapApp',
+      'body':
+          'NapApp helps you plan the perfect nap based on your schedule and sleep debt. Swipe to find out how it works.',
+    },
+    {
+      'emoji': '🟢',
+      'title': 'Time Zones',
+      'body':
+          'Four zones indicate the quality of the time slot for a nap:\n\n'
+          '🟢 Green — ideal moment\n'
+          '🟡 Yellow — valid nap\n'
+          '🟠 Orange — reduced emergency window\n'
+          '🔴 Red — too late, no nap',
+    },
+    {
+      'emoji': '🔋',
+      'title': 'Sleep Debt (SDS)',
+      'body':
+          'The app calculates your Sleep Debt Score over the last 7 nights and shows one of these four states:\n\n'
+          '🔋 Great shape — you\'ve slept enough\n'
+          '🙂 Slight deficit — small sleep shortage\n'
+          '🥱 Moderate debt — fatigue is building up\n'
+          '🚨 Severe debt — urgent recovery needed',
+    },
+    {
+      'emoji': '⏱️',
+      'title': 'Nap Duration',
+      'body':
+          'Three types of nap:\n\n'
+          '⚡ 10–15 min — immediate reflex boost\n'
+          '🧠 20–30 min — memory consolidation\n'
+          '🔋 60–90 min — energy recovery\n\n'
+          'The app automatically picks the best duration based on your sleep debt and scheduled events.',
+    },
+    {
+      'emoji': '💤',
+      'title': 'Nap Placement',
+      'body':
+          'After a nap, your body needs time to recover. '
+          'The app always ensures adequate distance between the end of your nap and your upcoming activities.',
+    },
+    {
+      'emoji': '📅',
+      'title': 'Adding Activities',
+      'body':
+          'Go to Calendar and press "+ Add Activity" to add an event.',
+    },
+    {
+      'emoji': '⏰',
+      'title': 'Setting the Alarm',
+      'body':
+          'From the home screen you can start a timer directly in the app: '
+          'choose the desired nap duration and press "Start". '
+          'You\'ll receive a notification when time is up.',
+    },
+    {
+      'emoji': '📊',
+      'title': 'Statistics',
+      'body':
+          'In Statistics you\'ll find a summary of your weekly sleep '
+          'and the trend of your sleep debt over time.',
+    },
+    {
+      'emoji': '🚀',
+      'title': 'Ready to start?',
+      'body':
+          'Set up your schedule, monitor your rest and improve your daily productivity. Happy napping!',
+    },
+  ];
 }
