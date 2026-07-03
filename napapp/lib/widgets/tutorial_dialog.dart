@@ -3,80 +3,8 @@ import 'package:flutter/material.dart';
 // =============================================================================
 // TUTORIAL DIALOG
 // =============================================================================
-
-// Pagine del tutorial. Il testo SDS elenca i quattro stati possibili.
-const List<Map<String, String>> tutorialPages = [
-  {
-    'emoji': '👋',
-    'title': 'Benvenuto in NapApp',
-    'body':
-        'NapApp ti aiuta a pianificare il pisolino perfetto in base ai tuoi impegni e al tuo debito di sonno. Scorri per scoprire come funziona.',
-  },
-  {
-    'emoji': '🟢',
-    'title': 'Zone Temporali',
-    'body':
-        'Quattro zone indicano la qualità della fascia oraria per il pisolino:\n\n'
-        '🟢 Verde — momento ideale\n'
-        '🟡 Gialla — pisolino valido\n'
-        '🟠 Arancione — finestra di emergenza ridotta\n'
-        '🔴 Rossa — troppo tardi, nessun pisolino',
-  },
-  {
-    'emoji': '🔋',
-    'title': 'Debito di Sonno (SDS)',
-    'body':
-        'L\'app calcola il tuo Saldo Debito Sonno sulle ultime 7 notti e mostra uno di questi quattro stati:\n\n'
-        '🔋 Ottima forma — hai dormito a sufficienza\n'
-        '🙂 Leggero deficit — piccola carenza di sonno\n'
-        '🥱 Debito moderato — stai accumulando stanchezza\n'
-        '🚨 Debito severo — recupero urgente',
-  },
-  {
-    'emoji': '⏱️',
-    'title': 'Durata del Pisolino',
-    'body':
-        'Tre tipologie di pisolino:\n\n'
-        '⚡ 10–15 min — boost immediato dei riflessi\n'
-        '🧠 20–30 min — consolidamento memoria\n'
-        '🔋 60–90 min — recupero energetico\n\n'
-        'L\'app sceglie la durata migliore per te automaticamente in base al tuo debito di sonno e agli eventi programmati.',
-  },
-  {
-    'emoji': '💤',
-    'title': 'Collocazione del Pisolino',
-    'body':
-        'Dopo un pisolino il corpo ha bisogno di tempo per ristabilirsi. '
-        'L\'app garantisce sempre una distanza adeguata tra la fine del pisolino e le tue attività successive.',
-  },
-  {
-    'emoji': '📅',
-    'title': 'Aggiungere Impegni',
-    'body':
-        'Vai in Calendario e premi "+ Aggiungi Attività" per inserire un impegno. ',
-  },
-  {
-    'emoji': '⏰',
-    'title': 'Impostare la Sveglia',
-    'body':
-        'Dalla home puoi avviare una sveglia: '
-        'scegli la durata desiderata per il pisolino e premi "Avvia". '
-        'Riceverai una notifica allo scadere del tempo.',
-  },
-  {
-    'emoji': '📊',
-    'title': 'Statistiche',
-    'body':
-        'In Statistiche trovi il riepilogo del tuo sonno settimanale '
-        'e l\'andamento del debito di sonno nel tempo. ',
-  },
-  {
-    'emoji': '🚀',
-    'title': 'Pronto a iniziare?',
-    'body':
-        'Configura i tuoi orari, monitora il tuo riposo e migliora la tua produttività quotidiana. Buon pisolino!',
-  },
-];
+// Le pagine del tutorial sono ora in AppStrings (app_strings.dart)
+// e vengono passate come parametro da home_page tramite AppStrings(_isEnglish).tutorialPages
 
 class TutorialDialog extends StatefulWidget {
   final List<Map<String, String>> pages;
