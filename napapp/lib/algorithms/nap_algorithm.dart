@@ -6,21 +6,19 @@ import '../screens/calendar_page.dart';
 // ALGORITMO NAP
 // =============================================================================
 class NapAlgorithm {
-  final double sleepTarget;
-  final int latencyMin;
   final List<MyEvent> todayEvents;
   final TimeOfDay? wakeUpToday;
   final TimeOfDay? averageSchoolWakeUp;
   final DateTime today;
 
   NapAlgorithm({
-    required this.sleepTarget,
-    required this.latencyMin,
     required this.todayEvents,
     required this.wakeUpToday,
     required this.averageSchoolWakeUp,
     required this.today,
   });
+
+  static const latencyMin=10;
 
   List<(int, int)> _buildGaps(int from, int to) {
     if (from >= to) return [];
@@ -128,7 +126,7 @@ class NapAlgorithm {
     if (_effectiveWakeUp == null) {
       const fixedYellowEnd = 16 * 60; // 16:00
       // orangeEnd = yellowEnd + 90min, max 19:00
-      final orangeEnd = (fixedYellowEnd + 90).clamp(fixedYellowEnd, hm(18, 00));
+      final orangeEnd = 18 * 60;
       if (zoneStart >= orangeEnd) return allRed(orangeEnd);
       // greenEnd e yellowEnd non possono scendere sotto zoneStart
       final greenEnd  = zoneStart > hm(15, 0)      ? zoneStart      : hm(15, 0);
@@ -145,16 +143,23 @@ class NapAlgorithm {
     final wakeUp = _isSunday
         ? (averageSchoolWakeUp ?? _effectiveWakeUp!)
         : _effectiveWakeUp!;
-    final bedtimeMin = (toMin(wakeUp) - 8 * 60 + 24 * 60) % (24 * 60);
+      
+      final wakeUpMin = toMin(wakeUp);
 
+    // greenEnd: equivalente a 8h prima del bedtime -> 8h DOPO la sveglia
+    int rawGreenEnd = wakeUpMin + 8 * 60;
 
-    // yellowEnd: 7h prima del bedtime, cappato a 17:30
-    final yellowEnd = (bedtimeMin - 7 * 60).clamp(zoneStart, hm(17, 30)); 
-    // greenEnd: 8h prima del bedtime, non può superare yellowEnd
-    final greenEnd  = (bedtimeMin - 8 * 60).clamp(zoneStart, yellowEnd);
+    // yellowEnd: equivalente a 7h prima del bedtime -> 9h DOPO la sveglia
+    int rawYellowEnd = wakeUpMin + 9 * 60;
+    
+    // yellowEnd: cappato a 17:30
+    final yellowEnd = rawYellowEnd.clamp(zoneStart, hm(17, 30));
+    
+    // greenEnd: non può superare yellowEnd
+    final greenEnd  = rawGreenEnd.clamp(zoneStart, yellowEnd);
+    
     // orangeEnd: yellowEnd + 90min, max 19:00
     final orangeEnd = (yellowEnd + 90).clamp(yellowEnd, hm(18, 0));
-
     if (zoneStart >= orangeEnd) return allRed(orangeEnd);
 
     // Se non c'è pranzo → greenStart = greenEnd - 60min (1h prima della fine verde)
