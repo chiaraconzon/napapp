@@ -64,7 +64,7 @@ class AppStrings {
       ? 'Emergency window — only to reduce momentary drowsiness'
       : 'Finestra di emergenza — solo per ridurre la sonnolenza momentanea';
   String get idealNap    => isEnglish ? 'Ideal Nap'       : 'Pisolino ideale';
-  String get emergencyNapPrediction => isEnglish ? 'Emergency Nap' : 'Pisolino di Emergenza';
+  String get emergencyNapPrediction => isEnglish ? 'Valid Nap' : 'Pisolino Valido';
   String get fromTime    => isEnglish ? 'from'            : 'dalle';
 
   // ---------------------------------------------------------------------------
