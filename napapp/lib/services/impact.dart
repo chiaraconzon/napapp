@@ -15,12 +15,17 @@ class Impact {
 
   static String sleepEndpoint = 'data/v1/sleep/patients/';
 
-  static final username = "USER";
-  static final password = "PASSWORD";
+  static String username = "He3oIbpv0H";
+  static String password = "12345678!";
   static final patient = "Jpefaq6m58";
-  // not a good idea security-wise everyone has access to them
-  // write credentials in login
-  // once token is saved in SP you can navigate
+  // Le credenziali di default sopra sono solo placeholder.
+  // La login page deve chiamare Impact.setCredentials(user, pass)
+  // con le credenziali reali PRIMA di chiamare Impact.authorize().
+
+  static void setCredentials(String user, String pass) {
+    Impact.username = user;
+    Impact.password = pass;
+  }
 
   //This method allows to obtain the JWT token pair from IMPACT and store it in SharedPreferences
   static Future<int?> authorize() async {
@@ -31,6 +36,8 @@ class Impact {
     //Get the response
     print('Calling: $url');
     final response = await http.post(Uri.parse(url), body: body);
+    print('authorize() status: ${response.statusCode}');
+    print('authorize() body: ${response.body}');
 
     //If 200, set the token
     if (response.statusCode == 200) {
@@ -57,9 +64,27 @@ class Impact {
     //If access token is expired, refresh it
     if (access == null) {
       await authorize();
+      access = sp.getString('access'); // BUGFIX: prima non veniva riletto -> header "Bearer null"
     } else if (isExpired(access)) {
-      await _refreshTokens();
+      final refreshStatus = await _refreshTokens();
+      if (refreshStatus != 200) {
+        // BUGFIX: il refresh token stesso è scaduto/non valido (succede più
+        // facilmente su mobile, dove l'app resta installata più a lungo
+        // senza essere riaperta rispetto a una sessione Chrome appena
+        // testata). _refreshTokens() in questo caso NON scrive nulla in
+        // shared_preferences: se rileggessimo comunque 'access' otterremmo
+        // lo stesso vecchio token scaduto di prima, causando un secondo 401
+        // ("token invalid or expired") anche dopo il tentativo di refresh.
+        // Serve quindi un login completo da zero con username/password.
+        await authorize();
+      }
       access = sp.getString('access');
+    }
+
+    // Se dopo l'autenticazione il token è ancora nullo (es. credenziali errate),
+    // fallisci subito con un errore chiaro invece di mandare "Bearer null" al server.
+    if (access == null) {
+      throw Exception("Error: unable to authenticate with IMPACT (check credentials).");
     }
 
     //Create the (representative) request
@@ -71,6 +96,8 @@ class Impact {
     //Get the response
     print('Calling: $url');
     final response = await http.get(Uri.parse(url), headers: headers);
+    print('requestSleepData($day) status: ${response.statusCode}');
+    print('requestSleepData($day) body: ${response.body}');
 
     //if OK parse the response, otherwise return null
     if (response.statusCode == 200) {
