@@ -6,12 +6,24 @@ import '../screens/app_strings.dart';
 class DebugZonesBox extends StatelessWidget {
   final ZoneLimits lim;
   final bool isEnglish;
+  final TimeOfDay? wakeUpTime;
+  final double? sds;
 
-  const DebugZonesBox({super.key, required this.lim, required this.isEnglish});
+  const DebugZonesBox({
+    super.key,
+    required this.lim,
+    required this.isEnglish,
+    this.wakeUpTime,
+    this.sds,
+  });
 
   @override
   Widget build(BuildContext context) {
     final s = AppStrings(isEnglish);
+
+    // Formatta TimeOfDay come HH:MM
+    String fmtTOD(TimeOfDay t) =>
+        '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
     return Container(
       width: double.infinity,
@@ -34,6 +46,21 @@ class DebugZonesBox extends StatelessWidget {
           ),
           const SizedBox(height: 4),
 
+          // Sveglia e SDS
+          _row(
+            '⏰ Sveglia',
+            wakeUpTime != null ? fmtTOD(wakeUpTime!) : 'n/d',
+            Colors.blueGrey,
+          ),
+          _row(
+            '💤 SDS',
+            sds != null ? '${sds!.toStringAsFixed(2)} h' : 'n/d',
+            Colors.blueGrey,
+          ),
+
+          const Divider(height: 8, thickness: 0.5),
+
+          // Zone
           _row(
             s.zoneGreen,
             '${NapAlgorithm.fmtMin(lim.greenStart)} → ${NapAlgorithm.fmtMin(lim.greenEnd)}',

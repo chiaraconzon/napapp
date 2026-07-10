@@ -10,16 +10,18 @@ class NapAlgorithm {
   final TimeOfDay? wakeUpToday;
   final TimeOfDay? averageSchoolWakeUp;
   final DateTime today;
+  // SDS reale proveniente dal wearable; se null si usa il valore debug
+  final double? sdsOverride;
 
   NapAlgorithm({
     required this.todayEvents,
     required this.wakeUpToday,
     required this.averageSchoolWakeUp,
     required this.today,
+    this.sdsOverride,
   });
 
-  static const latencyMin=10;
-
+  //ricerca dei gap tra gli eventi. Se due eventi sono sovraapposti vengono uniti. 
   List<(int, int)> _buildGaps(int from, int to) {
     if (from >= to) return [];
 
@@ -70,12 +72,11 @@ class NapAlgorithm {
   }
 
   // ---- SDS ----
-  // Valore fisso temporaneo in attesa dell'integrazione con il wearable.
-  // 0.0 = nessun debito (propone pisolino da 15 min)
-  // 1.5 = debito moderato (propone pisolino da 90 min)
-  static const double _sdsDebug = 0.0;
+  // Se sdsOverride è fornito (dati reali dal wearable) lo usa direttamente.
+  // Altrimenti usa il valore fisso di debug.
+  static const double _sdsDebug = 0;
 
-  double computeSDS() => _sdsDebug;
+  double computeSDS() => sdsOverride ?? _sdsDebug;
 
   // ---- sveglia effettiva ----
   TimeOfDay? get _effectiveWakeUp => wakeUpToday ?? averageSchoolWakeUp;
@@ -96,7 +97,8 @@ class NapAlgorithm {
 
   // ---- limiti zone ----
   // Invariante garantita in tutti i rami:
-  //   zoneStart ≤ greenEnd ≤ yellowEnd ≤ orangeEnd ≤ 19:00
+  // greenStart ≤ greenEnd ≤ yellowEnd ≤ orangeEnd
+  // Nel ramo feriale/domenica con sveglia, yellowEnd e orangeEnd dipendono dalla sveglia. 
   ZoneLimits computeZoneLimits() {
     final zoneStart = _zoneStartMin();
 
@@ -108,12 +110,12 @@ class NapAlgorithm {
       orangeEnd:  orangeEnd,
     );
 
-    // ---- SABATO: valori fissi ----
+    // ---- SABATO: valori fissi ---- (considerato rispetto a l'una)
     if (_isSaturday) {
-      const satOrangeEnd = 18 * 60; // 18:00 fisso
+      const satOrangeEnd = 19 * 60; // 19:00 fisso
       if (zoneStart >= satOrangeEnd) return allRed(satOrangeEnd);
-      final greenEnd  = zoneStart > hm(15, 30) ? zoneStart : hm(15, 30);
-      final yellowEnd = greenEnd  > hm(17, 00) ? greenEnd  : hm(17, 00);
+      final greenEnd  = zoneStart > hm(17, 00) ? zoneStart : hm(17, 00);
+      final yellowEnd = greenEnd  > hm(18, 00) ? greenEnd  : hm(18, 00);
       return ZoneLimits(
         greenStart: zoneStart,
         greenEnd:   greenEnd,
@@ -122,11 +124,11 @@ class NapAlgorithm {
       );
     }
 
-    // ---- FALLBACK senza dati sveglia ----
+    // ---- FALLBACK senza dati sveglia ---- (considerando una sveglia media alle 7)
     if (_effectiveWakeUp == null) {
       const fixedYellowEnd = 16 * 60; // 16:00
       // orangeEnd = yellowEnd + 90min, max 19:00
-      final orangeEnd = 18 * 60;
+      final orangeEnd = (fixedYellowEnd + 90).clamp(fixedYellowEnd, hm(19, 0)); //17:30
       if (zoneStart >= orangeEnd) return allRed(orangeEnd);
       // greenEnd e yellowEnd non possono scendere sotto zoneStart
       final greenEnd  = zoneStart > hm(15, 0)      ? zoneStart      : hm(15, 0);
@@ -143,31 +145,65 @@ class NapAlgorithm {
     final wakeUp = _isSunday
         ? (averageSchoolWakeUp ?? _effectiveWakeUp!)
         : _effectiveWakeUp!;
-      
-      final wakeUpMin = toMin(wakeUp);
 
-    // greenEnd: equivalente a 8h prima del bedtime -> 8h DOPO la sveglia
-    int rawGreenEnd = wakeUpMin + 8 * 60;
-
-    // yellowEnd: equivalente a 7h prima del bedtime -> 9h DOPO la sveglia
-    int rawYellowEnd = wakeUpMin + 9 * 60;
-    
-    // yellowEnd: cappato a 17:30
-    final yellowEnd = rawYellowEnd.clamp(zoneStart, hm(17, 30));
-    
-    // greenEnd: non può superare yellowEnd
-    final greenEnd  = rawGreenEnd.clamp(zoneStart, yellowEnd);
-    
-    // orangeEnd: yellowEnd + 90min, max 19:00
-    final orangeEnd = (yellowEnd + 90).clamp(yellowEnd, hm(18, 0));
-    if (zoneStart >= orangeEnd) return allRed(orangeEnd);
-
-    // Se non c'è pranzo → greenStart = greenEnd - 60min (1h prima della fine verde)
-    // Se c'è pranzo    → greenStart = fine pranzo + 40min (= zoneStart)
+    final wakeUpMin = toMin(wakeUp);
     final hasPranzo = todayEvents.any((e) => e.category == 'Pranzo');
-    // Calcoliamo il minimo tra (greenEnd - 60) e le 14:00
-    final greenStartNoPranzo = (greenEnd - 60) < hm(13, 30) ? (greenEnd - 60) : hm(13, 30);
-    final greenStart = hasPranzo ? zoneStart : greenStartNoPranzo;
+
+
+    final yellowEnd = wakeUpMin + 9 * 60; //distanza 7 ore rispetto a quando va a dormire
+    final orangeEnd = yellowEnd + 90;
+
+    // greenEnd "naturale": 8h dopo la sveglia, mai oltre yellowEnd.
+    final rawGreenEnd = wakeUpMin + 8 * 60; //distanza 8 ore rispetto a quando va a dormire
+    final greenEndNatural = rawGreenEnd < yellowEnd ? rawGreenEnd : yellowEnd;
+
+    // Quanto serve almeno per un pisolino (10 latenza + 10 pisolino minimo,
+    // il gradino più basso di napSteps), per il controllo di zona rossa.
+    final minSlotNeeded = 10 + napSteps.last;
+
+    if (hasPranzo) {
+      // zoneStart = fine pranzo + 40min (da _zoneStartMin()).
+
+      // Zona rossa: non c'è nemmeno spazio per il pisolino minimo prima
+      // di orangeEnd (basato solo sulla sveglia, il pranzo non lo tocca).
+      if (zoneStart + minSlotNeeded > orangeEnd) return allRed(orangeEnd);
+
+      if (zoneStart >= yellowEnd) {
+        // Il pranzo supera anche la fine della zona gialla: verde e
+        // gialla collassano insieme a zoneStart. orangeEnd resta quello
+        // basato sulla sveglia — il pranzo non lo estende mai.
+        return ZoneLimits(
+          greenStart: zoneStart,
+          greenEnd:   zoneStart,
+          yellowEnd:  zoneStart,
+          orangeEnd:  orangeEnd,
+        );
+      }
+
+      
+      final greenEnd = zoneStart > greenEndNatural ? zoneStart : greenEndNatural;
+      return ZoneLimits(
+        greenStart: zoneStart,
+        greenEnd:   greenEnd,
+        yellowEnd:  yellowEnd,
+        orangeEnd:  orangeEnd,
+      );
+    }
+
+    // ---- Nessun pranzo: zoneStart effettivo basato sulla sveglia reale
+    // (minimo tra wakeup+7h e le 13:30) di _zoneStartMin().
+    final rawEffectiveStart = wakeUpMin + 7 * 60;
+    final effectiveZoneStart =
+        rawEffectiveStart < hm(14, 00) ? rawEffectiveStart : hm(14, 00);
+
+    if (effectiveZoneStart + minSlotNeeded > orangeEnd) {
+      return allRed(orangeEnd);
+    }
+
+    final greenEnd =
+        effectiveZoneStart > greenEndNatural ? effectiveZoneStart : greenEndNatural;
+    final greenStart =
+        (greenEnd - 60) < hm(14, 00) ? (greenEnd - 60) : hm(14, 00);
 
     return ZoneLimits(
       greenStart: greenStart,
@@ -184,8 +220,8 @@ class NapAlgorithm {
     return NapZone.red;
   }
 
-  // ---- durata target ----
-  // Valori ammessi: 90,85,80,75,70,65,60,30,25,20,15,10
+  
+  // Valori ammessi di nap: 90,85,80,75,70,65,60,30,25,20,15,10
   static const List<int> napSteps = [
     90,
     85,
@@ -201,6 +237,7 @@ class NapAlgorithm {
     10,
   ];
 
+  //vado a indicare la lunghezza perfetta del pisolino in base a sds ed eventi
   int _idealDuration(double sds) {
     if (sds > 1.0) return 90;
     final hasStudy = todayEvents.any(
@@ -221,16 +258,14 @@ class NapAlgorithm {
 
   int _inerziaMotor(int n) {
     if (n <= 15) return 30;
-    if (n <= 25) return 40;
-    if (n <= 30) return 50;
-    if (n <= 75) return 80;
+    if (n <= 30) return 70;
     return 100;
   }
 
   // ---- label scopo ----
   String _scopeLabel(int n) {
     if (n >= 60) return 'Energie';
-    if (n >= 20) return 'Memoria';
+    if (n >= 20) return 'Focus';
     return 'Riflessi';
   }
 
@@ -258,7 +293,7 @@ class NapAlgorithm {
       final napMin = napSteps[stepIdx];
       final cogn = _inerziaCogn(napMin);
       final motor = _inerziaMotor(napMin);
-      final needed = latencyMin + napMin;
+      final needed = 10 + napMin;
 
       // Buchi disponibili da ora fino a fine zona gialla
       // (il pisolino deve TERMINARE entro yellowEnd)
@@ -339,7 +374,7 @@ class NapAlgorithm {
         // Buco non valido: si passa al buco successivo automaticamente
       }
 
-      // Nessun buco valido per questa durata: si scala di 5 min (step successivo)
+      // Nessun buco valido per questa durata: si scala la durata del pisolino (step successivo)
       stepIdx++;
     }
 
@@ -348,10 +383,10 @@ class NapAlgorithm {
     // Regole:
     //   1. Il pisolino non si sovrappone ad altri eventi
     //   2. Ogni evento Allenamento successivo deve distare >= 30 min dalla fine
-    //   3. Il pisolino deve finire entro orangeEnd (17:30)
+    //   3. Il pisolino deve finire entro orangeEnd
     const orangeNap = 10;
     const orangeMotor = 30; // _inerziaMotor(10)
-    final orangeNeeded = latencyMin + orangeNap;
+    final orangeNeeded = 10 + orangeNap;
     // Inizia la ricerca arancione 19 min prima della fine zona gialla
     // (latenza 10 + pisolino minimo 10 - 1 di margine = 19).
     // Così non si perde nessuna finestra utile tra la fine dello spazio

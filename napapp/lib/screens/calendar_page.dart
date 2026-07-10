@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'app_strings.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 // =============================================================================
 // MODELLO DATI
@@ -29,6 +30,39 @@ class MyEvent {
     required this.color,
     this.isRecurring = false,
   });
+
+  /// Serializza l'evento in una mappa JSON-compatibile, usata da
+  /// [EventsStorageService] per salvare gli eventi in SharedPreferences.
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'groupId': groupId,
+        'title': title,
+        'category': category,
+        'startHour': startTime.hour,
+        'startMinute': startTime.minute,
+        'endHour': endTime.hour,
+        'endMinute': endTime.minute,
+        'color': color.value,
+        'isRecurring': isRecurring,
+      };
+
+  /// Ricostruisce un [MyEvent] a partire dalla mappa prodotta da [toJson].
+  factory MyEvent.fromJson(Map<String, dynamic> json) => MyEvent(
+        id: json['id'] as String,
+        groupId: json['groupId'] as String,
+        title: json['title'] as String,
+        category: json['category'] as String,
+        startTime: TimeOfDay(
+          hour: json['startHour'] as int,
+          minute: json['startMinute'] as int,
+        ),
+        endTime: TimeOfDay(
+          hour: json['endHour'] as int,
+          minute: json['endMinute'] as int,
+        ),
+        color: Color(json['color'] as int),
+        isRecurring: json['isRecurring'] as bool? ?? false,
+      );
 }
 
 // =============================================================================
@@ -63,12 +97,11 @@ class _CalendarPageState extends State<CalendarPage> {
   /// Palette colori assegnabili agli eventi
   final List<Color> _colors = [
     Colors.blue,
-    Colors.brown,
     Colors.pinkAccent,
     Colors.greenAccent,
     Colors.purple,
     Colors.teal,
-    Colors.lime,
+    const Color.fromARGB(255, 243, 115, 222),
   ];
 
   /// Categorie disponibili per gli eventi
@@ -128,8 +161,9 @@ class _CalendarPageState extends State<CalendarPage> {
           focusedDay: _focusedDay,
           calendarFormat: _calendarFormat,
 
-          startingDayOfWeek: StartingDayOfWeek.monday,
+          startingDayOfWeek: StartingDayOfWeek.monday, //vogliamo che il calendario inizi da lunedì
 
+          //due possibili formati (settimanale e mensile)
           availableCalendarFormats: {
             CalendarFormat.month: s.monthFormat,
             CalendarFormat.week: s.weekFormat,
@@ -193,6 +227,7 @@ class _CalendarPageState extends State<CalendarPage> {
               );
             },
 
+            //visualizzare i puntini evento sotto al giorno corrispondente (ne visualizza al massimo 4)
             markerBuilder: (context, date, events) {
               if (events.isEmpty) return null;
               return Row(
@@ -258,7 +293,8 @@ class _CalendarPageState extends State<CalendarPage> {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Apre il foglio di modifica pre-compilato con i dati dell'evento
+              // Apre il foglio di modifica pre-compilato con i dati dell'evento 
+              //(non posso variare la tipologia di evento, nè la ripetizione)
               IconButton(
                 icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
                 onPressed: () => _showAddSheet(eventToEdit: ev),
@@ -305,6 +341,13 @@ class _CalendarPageState extends State<CalendarPage> {
         : TimeOfDay(hour: (startTime.hour + 1) % 24, minute: startTime.minute);
     Color selCol = isEditing ? eventToEdit.color : _colors[0];
     String repetition = 'Singola'; // chiave interna, sempre in italiano
+
+    // --- NUOVO: Lista colori temporanea per questa singola apertura del foglio ---
+    List<Color> localColors = List.from(_colors);
+    // Se stiamo modificando un evento con un colore custom, lo aggiungiamo temporaneamente
+    if (isEditing && !localColors.contains(selCol)) {
+      localColors.add(selCol);
+    }
 
     showModalBottomSheet(
       context: context,
@@ -489,32 +532,92 @@ class _CalendarPageState extends State<CalendarPage> {
                     height: 40,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
-                      children: _colors
-                          .map(
-                            (c) => GestureDetector(
+                      children: [
+                        // 1. Usa localColors invece di _colors
+                        ...localColors.map((c) => GestureDetector(
                               onTap: () => setSt(() => selCol = c),
                               child: Container(
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 5,
-                                ),
+                                margin: const EdgeInsets.symmetric(horizontal: 5),
                                 width: 30,
                                 decoration: BoxDecoration(
                                   color: c,
                                   shape: BoxShape.circle,
-                                  // Bordo nero solo sul colore attualmente selezionato
                                   border: selCol == c
-                                      ? Border.all(
-                                          color: Colors.black,
-                                          width: 2,
-                                        )
+                                      ? Border.all(color: Colors.black, width: 2)
                                       : null,
                                 ),
                               ),
+                            )),
+                        
+                        // 2. Cerchio arcobaleno per il Color Picker
+                        GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: ctx, 
+                              builder: (BuildContext dialogContext) {
+                                Color tempColor = selCol; 
+                                return AlertDialog(
+                                  title: Text(strings.colorLabel), 
+                                  content: SingleChildScrollView(
+                                    child: ColorPicker(
+                                      pickerColor: selCol,
+                                      onColorChanged: (Color color) {
+                                        tempColor = color;
+                                      },
+                                      pickerAreaHeightPercent: 0.8,
+                                      enableAlpha: false,
+                                    ),
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      child: Text(strings.cancel), 
+                                      onPressed: () => Navigator.of(dialogContext).pop(),
+                                    ),
+                                    TextButton(
+                                      child: const Text('OK'),
+                                      onPressed: () {
+                                        setSt(() {
+                                          selCol = tempColor;
+                                          // Aggiungiamo il colore alla lista LOCALE, non a quella globale
+                                          if (!localColors.contains(tempColor)) {
+                                            localColors.add(tempColor);
+                                          }
+                                        });
+                                        Navigator.of(dialogContext).pop();
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 5),
+                            width: 30,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: const SweepGradient(
+                                colors: [
+                                  Colors.red, Colors.yellow, Colors.green,
+                                  Colors.cyan, Colors.blue,  Colors.red,
+                                ],
+                              ),
+                              border: Border.all(
+                                color: Colors.grey.shade400,
+                                width: 1,
+                              ),
                             ),
-                          )
-                          .toList(),
+                            child: const Icon(
+                              Icons.add,
+                              size: 18,
+                              color: Colors.white,
+                              shadows: [Shadow(color: Colors.black45, blurRadius: 2)],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                  ), //parte rifatta
                   const SizedBox(height: 25),
 
                   // --- Bottone SALVA / AGGIORNA ---

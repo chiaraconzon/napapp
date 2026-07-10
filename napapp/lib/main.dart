@@ -6,10 +6,20 @@ import 'theme/util.dart';
 import 'theme/theme.dart';
 import 'screens/home_page.dart';
 
-void main() {
+void main() async {
+  // Necessario perché SharedPreferences (usato da loadSavedTheme) fa
+  // chiamate a piattaforma prima che runApp() abbia inizializzato i binding.
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Carica il tema salvato nella sessione precedente PRIMA di disegnare la
+  // UI, così l'app parte già con il tema giusto invece di lampeggiare
+  // prima su ThemeMode.system e poi passare al tema corretto.
+  final themeProvider = ThemeProvider();
+  await themeProvider.loadSavedTheme();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
+    ChangeNotifierProvider.value(
+      value: themeProvider,
       child: const MyApp(),
     ),
   );
