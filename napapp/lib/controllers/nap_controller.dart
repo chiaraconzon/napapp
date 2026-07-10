@@ -17,8 +17,7 @@ class NapController {
     required this.globalEvents,
   });
 
-  /// Recupera i dati reali dal wearable via Impact e aggiorna napResult,
-  /// zoneLimits e sds.
+  /// Recupera i dati reali dal wearable via Impact e aggiorna napResult, zoneLimits e sds.
   ///
   /// I dati SDS / orario sveglia vengono recuperati al massimo una volta al
   /// giorno: se già presenti in cache (shared_preferences — persistente
@@ -32,7 +31,7 @@ class NapController {
   /// ricalcolato ad ogni chiamata, perché dipende dall'ora corrente e
   /// dagli eventi del calendario.
   Future<void> refresh(DateTime now) async {
-    final key = DateTime(now.year, now.month, now.day);
+    final key = DateTime(now.year, now.month, now.day); //uso come key il giorno
 
     TimeOfDay? wakeUpToday;
     TimeOfDay? averageSchoolWakeUp;
