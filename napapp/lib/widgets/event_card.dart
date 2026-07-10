@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import '../utils/time_utils.dart';
 import '../utils/event_utils.dart';
 import '../screens/calendar_page.dart';
+import '../screens/app_strings.dart';
 
 class EventCard extends StatelessWidget {
   final MyEvent ev;
+  final bool isEnglish;
 
-  const EventCard({super.key, required this.ev});
+  const EventCard({super.key, required this.ev, this.isEnglish = false});
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings(isEnglish);
+
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
@@ -55,7 +59,7 @@ class EventCard extends StatelessWidget {
           ),
         ),
         trailing: Text(
-          ev.category,
+          s.categoryDisplay(ev.category),
           style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
         ),
       ),
