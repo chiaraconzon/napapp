@@ -91,7 +91,7 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay =
-      DateTime.now(); // giorno visibile al centro del calendario
+      DateTime.now().subtract(Duration(days: 1)); // giorno visibile al centro del calendario
   DateTime? _selectedDay; // giorno selezionato dall'utente
 
   /// Palette colori assegnabili agli eventi
@@ -961,7 +961,7 @@ class _CalendarPageState extends State<CalendarPage> {
     Color c,
     String r,
   ) {
-    final gid = DateTime.now()
+    final gid = DateTime.now().subtract(Duration(days: 1))
         .toString(); // groupId univoco basato sul timestamp
     int count = 1;
     if (r == 'Giornaliera') count = 30;

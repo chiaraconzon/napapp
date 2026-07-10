@@ -79,23 +79,9 @@ class RecentSleep {
     DateTime recentDay = recent[0].date;
     DateTime? wakeUpTime = recent[0].endTime;
 
-    // check recent days, set wakeUpTime to wake up time of most recent available day among following: 
-    // monday, tuesday, wednesday, thursday
-    if (wakeUpTime == null) {
-      DateTime? altWakeUpTime = null;
-      int i = 1;
-
-      while (altWakeUpTime == null && i < 7) {
-        if (recent[i].endTime != null) {
-          if (recent[i].date.weekday == 1 || recent[i].date.weekday == 2 ||
-              recent[i].date.weekday == 3 || recent[i].date.weekday == 4) {
-            altWakeUpTime = recent[i].endTime;
-          }
-        }
-        i++; 
-      }
-
-      wakeUpTime = altWakeUpTime;
+    // in the case of the current day being either: missing or sunday, calculates an alternative 
+    if (wakeUpTime == null || recentDay.weekday == 7) {
+      wakeUpTime = getAltWakeUpTime(recent);
     }
 
     List<int?> sleepDuration = [];
@@ -144,9 +130,31 @@ wake up time : $wakeUpTime
     return sleepDebt;
   }
 
+  // FIX: era sbagliato il return, dava true se era lo stesso giorno e false altrimenti
   bool isWakeUpTimeAlternative() {
     if (wakeUpTime == null) return false;
-    return (recentDay.day == wakeUpTime!.day && 
-            recentDay.month == wakeUpTime!.month);
+    return (recentDay.day != wakeUpTime!.day || 
+            recentDay.month != wakeUpTime!.month);
+  }
+
+  // Calculates the alternative Wake Up time in the 2 scenarios:
+  // 1. Current day data is missing
+  // 2. Current day is sunday
+  // It picks the wake up time of the most recent available day among following: 
+  // monday, tuesday, wednesday, thursday
+  static DateTime? getAltWakeUpTime(List<SleepData> recent) {
+    DateTime? altWakeUpTime = null;
+    int i = 1;
+    
+    while (altWakeUpTime == null && i < 7) {
+      if (recent[i].endTime != null) {
+        if (recent[i].date.weekday == 1 || recent[i].date.weekday == 2 ||
+            recent[i].date.weekday == 3 || recent[i].date.weekday == 4) {
+            altWakeUpTime = recent[i].endTime;
+        }
+      }
+      i++; 
+    }
+    return altWakeUpTime;
   }
 }
