@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_alarm_clock/flutter_alarm_clock.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'calendar_page.dart';
 import 'stats_page.dart';
@@ -61,6 +60,7 @@ class _HomePageState extends State<HomePage> {
 
     _refresh(); // fire-and-forget: aggiorna appena i dati arrivano
     _loadPersistedEvents(); // fire-and-forget: ricarica gli eventi salvati
+    _loadPersistedLanguage(); // fire-and-forget: ricarica la lingua salvata
 
     _napTimer = Timer.periodic(const Duration(minutes: 1), (_) async {
       if (mounted) await _refresh();
@@ -87,6 +87,15 @@ class _HomePageState extends State<HomePage> {
     });
 
     await _refresh();
+  }
+
+  /// Ricarica dal disco (SharedPreferences) la lingua scelta nella sessione
+  /// precedente, così l'app riparte già nella lingua giusta invece di
+  /// tornare sempre all'italiano di default.
+  Future<void> _loadPersistedLanguage() async {
+    final saved = await PreferencesService.loadIsEnglish();
+    if (!mounted) return;
+    setState(() => _isEnglish = saved);
   }
 
   @override
@@ -159,13 +168,13 @@ class _HomePageState extends State<HomePage> {
             DrawerHeader(child: Center(child: Text(s.hello(name)))),
             ListTile(
               leading: const Icon(Icons.palette_outlined),
-              title: const Text('TEMA'),
+              title: Text(s.themeLabel),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (ctx) {
                     return AlertDialog(
-                      title: const Text("Seleziona tema"),
+                      title: Text(s.selectTheme),
                       content: StatefulBuilder(
                         builder: (context, setStateDialog) {
                           final themeProvider = context.watch<ThemeProvider>();
@@ -183,7 +192,7 @@ class _HomePageState extends State<HomePage> {
                                     Navigator.pop(ctx);
                                   }
                                 },
-                                title: const Text("Sistema"),
+                                title: Text(s.themeSystem),
                               ),
                               RadioListTile<ThemeMode>(
                                 value: ThemeMode.light,
@@ -194,7 +203,7 @@ class _HomePageState extends State<HomePage> {
                                     Navigator.pop(ctx);
                                   }
                                 },
-                                title: const Text("Chiaro"),
+                                title: Text(s.themeLight),
                               ),
                               RadioListTile<ThemeMode>(
                                 value: ThemeMode.dark,
@@ -205,7 +214,7 @@ class _HomePageState extends State<HomePage> {
                                     Navigator.pop(ctx);
                                   }
                                 },
-                                title: const Text("Scuro"),
+                                title: Text(s.themeDark),
                               ),
                             ],
                           );
@@ -218,7 +227,7 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               leading: const Icon(Icons.language_outlined),
-              title: const Text('LINGUA'),
+              title: Text(s.languageLabel),
               onTap: () {
                 showDialog(
                   context: context,
@@ -234,6 +243,7 @@ class _HomePageState extends State<HomePage> {
                               groupValue: _isEnglish,
                               onChanged: (_) {
                                 setState(() => _isEnglish = false);
+                                PreferencesService.saveIsEnglish(false);
                                 Navigator.pop(ctx);
                               },
                               title: const Text('Italiano'),
@@ -243,6 +253,7 @@ class _HomePageState extends State<HomePage> {
                               groupValue: _isEnglish,
                               onChanged: (_) {
                                 setState(() => _isEnglish = true);
+                                PreferencesService.saveIsEnglish(true);
                                 Navigator.pop(ctx);
                               },
                               title: const Text('English'),
@@ -257,7 +268,7 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               leading: const Icon(Icons.help_outline),
-              title: const Text('TUTORIAL'),
+              title: Text(s.tutorialLabel),
               onTap: () {
                 Navigator.pop(context);
                 _showTutorial(context);
@@ -265,7 +276,7 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: const Text('CREDITS'),
+              title: Text(s.creditsLabel),
               onTap: () {},
             ),
             const Spacer(),
@@ -302,7 +313,7 @@ class _HomePageState extends State<HomePage> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  "Seleziona la sveglia:",
+                                  s.selectAlarmTitle,
                                   style: Theme.of(context).textTheme.titleLarge,
                                 ),
                               ),
@@ -369,7 +380,7 @@ class _HomePageState extends State<HomePage> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    "Timer di $selectedDuration minuti avviato",
+                                    s.alarmTimerStarted(selectedDuration.inMinutes),
                                   ),
                                   duration: const Duration(seconds: 3),
                                 ),
@@ -501,7 +512,7 @@ class _HomePageState extends State<HomePage> {
                             fmtTOD: TimeUtils.fmtTOD,
                             zoneColor: _zoneColor,
                           )
-                        : EventCard(ev: items[i].event!),
+                        : EventCard(ev: items[i].event!, isEnglish: _isEnglish),
                   ),
           ),
         ],
