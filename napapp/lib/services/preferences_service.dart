@@ -163,4 +163,46 @@ class PreferencesService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyCalendarEvents);
   }
+
+  // ---------------------------------------------------------------------
+  // PREFERENZE UI (tema e lingua)
+  // ---------------------------------------------------------------------
+  //
+  // A differenza della sleep cache (valida solo per un giorno), tema e
+  // lingua sono scelte esplicite dell'utente e vanno mantenute per sempre,
+  // finché l'utente non le cambia di nuovo.
+
+  static const _keyThemeMode = 'pref_theme_mode';
+  static const _keyIsEnglish = 'pref_is_english';
+
+  /// Salva la modalità tema scelta dall'utente (system/light/dark).
+  static Future<void> saveThemeMode(ThemeMode mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyThemeMode, mode.name);
+  }
+
+  /// Ricarica la modalità tema salvata in precedenza (tipicamente
+  /// all'avvio dell'app). Se non c'è ancora nulla di salvato (prima
+  /// apertura) o il valore è corrotto, torna a ThemeMode.system.
+  static Future<ThemeMode> loadThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_keyThemeMode);
+    return ThemeMode.values.firstWhere(
+      (m) => m.name == saved,
+      orElse: () => ThemeMode.system,
+    );
+  }
+
+  /// Salva la lingua scelta dall'utente (true = inglese, false = italiano).
+  static Future<void> saveIsEnglish(bool isEnglish) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyIsEnglish, isEnglish);
+  }
+
+  /// Ricarica la lingua salvata in precedenza. Se non c'è ancora nulla di
+  /// salvato (prima apertura), torna al default italiano (false).
+  static Future<bool> loadIsEnglish() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyIsEnglish) ?? false;
+  }
 }
