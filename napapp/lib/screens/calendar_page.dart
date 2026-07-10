@@ -161,8 +161,9 @@ class _CalendarPageState extends State<CalendarPage> {
           focusedDay: _focusedDay,
           calendarFormat: _calendarFormat,
 
-          startingDayOfWeek: StartingDayOfWeek.monday,
+          startingDayOfWeek: StartingDayOfWeek.monday, //vogliamo che il calendario inizi da lunedì
 
+          //due possibili formati (settimanale e mensile)
           availableCalendarFormats: {
             CalendarFormat.month: s.monthFormat,
             CalendarFormat.week: s.weekFormat,
@@ -226,6 +227,7 @@ class _CalendarPageState extends State<CalendarPage> {
               );
             },
 
+            //visualizzare i puntini evento sotto al giorno corrispondente (ne visualizza al massimo 4)
             markerBuilder: (context, date, events) {
               if (events.isEmpty) return null;
               return Row(
@@ -291,7 +293,8 @@ class _CalendarPageState extends State<CalendarPage> {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Apre il foglio di modifica pre-compilato con i dati dell'evento
+              // Apre il foglio di modifica pre-compilato con i dati dell'evento 
+              //(non posso variare la tipologia di evento, nè la ripetizione)
               IconButton(
                 icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
                 onPressed: () => _showAddSheet(eventToEdit: ev),
