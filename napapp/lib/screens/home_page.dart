@@ -403,109 +403,257 @@ class _HomePageState extends State<HomePage> {
                     return StatefulBuilder(
                       builder: (context, setDialogState) {
                         return Dialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(28),
+                          ),
+
                           child: Padding(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(20),
+
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
+
                               children: [
+                                // TITOLO
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
+
                                   children: [
-                                    Expanded(
-                                      child: Text(
-                                        s.selectAlarmTitle,
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleLarge,
-                                      ),
+                                    Text(
+                                      s.selectAlarmTitle,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleLarge,
                                     ),
+
                                     IconButton(
                                       onPressed: () => Navigator.pop(context),
+
                                       icon: const Icon(Icons.close),
                                     ),
                                   ],
                                 ),
+
+                                const SizedBox(height: 8),
+
+                                // CONSIGLIO ALGORITMO
+                                Container(
+                                  width: double.infinity,
+
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                    horizontal: 12,
+                                  ),
+
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.12),
+
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+
+                                  child: Column(
+                                    children: [
+                                      const Text(
+                                        "Pisolino consigliato",
+
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+
+                                      const SizedBox(height: 4),
+
+                                      Text(
+                                        "${idealDuration.inMinutes} minuti",
+
+                                        style: TextStyle(
+                                          fontSize: 20,
+
+                                          fontWeight: FontWeight.bold,
+
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                const SizedBox(height: 12),
+
+                                // ROTELLE
                                 ChooseTime(
                                   duration: selectedDuration,
+
                                   onChanged: (duration) {
                                     setDialogState(() {
                                       selectedDuration = duration;
                                     });
                                   },
                                 ),
+
+                                const SizedBox(height: 6),
+
+                                // PRESET
                                 Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+
                                   children: [
-                                    Expanded(
-                                      child: AlarmCircleTimer(
-                                        duration: const Duration(minutes: 10),
-                                        selected:
-                                            selectedDuration ==
-                                            const Duration(minutes: 10),
-                                        onTap: () {
-                                          setDialogState(() {
-                                            selectedDuration = const Duration(
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+
+                                      children: [
+                                        SizedBox(
+                                          width: 78,
+                                          height: 78,
+
+                                          child: AlarmCircleTimer(
+                                            duration: const Duration(
                                               minutes: 10,
-                                            );
-                                          });
-                                        },
-                                      ),
+                                            ),
+
+                                            selected:
+                                                selectedDuration ==
+                                                const Duration(minutes: 10),
+
+                                            onTap: () {
+                                              setDialogState(() {
+                                                selectedDuration =
+                                                    const Duration(minutes: 10);
+                                              });
+                                            },
+                                          ),
+                                        ),
+
+                                        const SizedBox(height: 5),
+
+                                        const Text(
+                                          "Boost",
+
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: AlarmCircleTimer(
-                                        duration: const Duration(minutes: 30),
-                                        selected:
-                                            selectedDuration ==
-                                            const Duration(minutes: 30),
-                                        onTap: () {
-                                          setDialogState(() {
-                                            selectedDuration = const Duration(
+
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+
+                                      children: [
+                                        SizedBox(
+                                          width: 78,
+                                          height: 78,
+
+                                          child: AlarmCircleTimer(
+                                            duration: const Duration(
                                               minutes: 30,
-                                            );
-                                          });
-                                        },
-                                      ),
+                                            ),
+
+                                            selected:
+                                                selectedDuration ==
+                                                const Duration(minutes: 30),
+
+                                            onTap: () {
+                                              setDialogState(() {
+                                                selectedDuration =
+                                                    const Duration(minutes: 30);
+                                              });
+                                            },
+                                          ),
+                                        ),
+
+                                        const SizedBox(height: 5),
+
+                                        const Text(
+                                          "Memoria",
+
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: AlarmCircleTimer(
-                                        duration: const Duration(minutes: 90),
-                                        selected:
-                                            selectedDuration ==
-                                            const Duration(minutes: 90),
-                                        onTap: () {
-                                          setDialogState(() {
-                                            selectedDuration = const Duration(
+
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+
+                                      children: [
+                                        SizedBox(
+                                          width: 78,
+                                          height: 78,
+
+                                          child: AlarmCircleTimer(
+                                            duration: const Duration(
                                               minutes: 90,
-                                            );
-                                          });
-                                        },
-                                      ),
+                                            ),
+
+                                            selected:
+                                                selectedDuration ==
+                                                const Duration(minutes: 90),
+
+                                            onTap: () {
+                                              setDialogState(() {
+                                                selectedDuration =
+                                                    const Duration(minutes: 90);
+                                              });
+                                            },
+                                          ),
+                                        ),
+
+                                        const SizedBox(height: 5),
+
+                                        const Text(
+                                          "Recupero",
+
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 10),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          s.alarmTimerStarted(
-                                            selectedDuration.inMinutes,
+
+                                const SizedBox(height: 20),
+
+                                // BOTTONE
+                                SizedBox(
+                                  width: double.infinity,
+
+                                  height: 52,
+
+                                  child: ElevatedButton.icon(
+                                    icon: const Icon(Icons.alarm),
+
+                                    onPressed: () {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            s.alarmTimerStarted(
+                                              selectedDuration.inMinutes,
+                                            ),
                                           ),
                                         ),
-                                        duration: const Duration(seconds: 3),
-                                      ),
-                                    );
-                                    FlutterAlarmClock.createTimer(
-                                      length: selectedDuration.inSeconds,
-                                    );
+                                      );
 
-                                    Navigator.pop(context);
-                                  },
-                                  child: Text(
-                                    AppStrings(_isEnglish).startAlarm,
+                                      FlutterAlarmClock.createTimer(
+                                        length: selectedDuration.inSeconds,
+                                      );
+
+                                      Navigator.pop(context);
+                                    },
+
+                                    label: const Text(
+                                      "Avvia pisolino",
+
+                                      style: TextStyle(
+                                        fontSize: 18,
+
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],

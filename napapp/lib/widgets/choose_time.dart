@@ -48,7 +48,7 @@ class _ChooseTimeState extends State<ChooseTime> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 180,
+      height: 150,
 
       child: Row(
         children: [

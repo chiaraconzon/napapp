@@ -25,13 +25,13 @@ class AlarmCircleTimer extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 80,
-        height: 80,
+        width: 90,
+        height: 90,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: selected
               ? theme.colorScheme.primary.withOpacity(0.15)
-              : theme.colorScheme.surface,
+              : Colors.transparent,
           border: Border.all(
             color: selected ? theme.colorScheme.primary : theme.dividerColor,
             width: selected ? 3 : 1.5,
