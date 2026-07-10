@@ -20,7 +20,9 @@ import '../widgets/debug_zones.dart';
 import '../widgets/event_card.dart';
 import '../widgets/prediction_box.dart';
 import '../widgets/time_picker.dart';
+import '../widgets/choose_time.dart';
 import '../providers/theme_provider.dart';
+import '../constrains/bibliography.dart';
 
 // =============================================================================
 // HOME PAGE
@@ -42,7 +44,6 @@ class _HomePageState extends State<HomePage> {
   bool _isEnglish = false;
   Timer? _napTimer;
 
-
   // async perché NapController.refresh() chiama il wearable via await
   Future<void> _refresh() async {
     final now = DateTime.now();
@@ -54,9 +55,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
-    _controller = NapController(
-      globalEvents: globalEvents,
-    );
+    _controller = NapController(globalEvents: globalEvents);
 
     _refresh(); // fire-and-forget: aggiorna appena i dati arrivano
     _loadPersistedEvents(); // fire-and-forget: ricarica gli eventi salvati
@@ -129,9 +128,7 @@ class _HomePageState extends State<HomePage> {
         isEnglish: _isEnglish,
         onEventsUpdated: (m) => setState(() {
           globalEvents = m;
-          _controller = NapController(
-            globalEvents: globalEvents,
-            );
+          _controller = NapController(globalEvents: globalEvents);
           _refresh();
           // Persiste su SharedPreferences ogni modifica al calendario
           // (aggiunta/modifica/eliminazione evento), così viene ricaricata
@@ -144,9 +141,8 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       extendBodyBehindAppBar: false,
-      appBar: _pageIndex == 1
-          ? null
-          : AppBar(
+      appBar: _pageIndex == 0
+          ? AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0,
               leading: Builder(
@@ -161,20 +157,68 @@ class _HomePageState extends State<HomePage> {
                   child: SdsReward(sds: _controller.sds, isEnglish: _isEnglish),
                 ),
               ],
-            ),
+            )
+          : null,
       drawer: Drawer(
         child: Column(
           children: [
-            DrawerHeader(child: Center(child: Text(s.hello(name)))),
+            DrawerHeader(
+              margin: EdgeInsets.zero,
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                border: Border(
+                  bottom: BorderSide(color: Theme.of(context).dividerColor),
+                ),
+              ),
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Ciao,",
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                          ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      name.toUpperCase(),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onPrimaryContainer,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             ListTile(
               leading: const Icon(Icons.palette_outlined),
-              title: Text(s.themeLabel),
+              title: const Text('TEMA'),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (ctx) {
                     return AlertDialog(
-                      title: Text(s.selectTheme),
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text("Seleziona tema:"),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
                       content: StatefulBuilder(
                         builder: (context, setStateDialog) {
                           final themeProvider = context.watch<ThemeProvider>();
@@ -188,33 +232,39 @@ class _HomePageState extends State<HomePage> {
                                 groupValue: selected,
                                 onChanged: (value) {
                                   if (value != null) {
-                                    context.read<ThemeProvider>().setTheme(value);
+                                    context.read<ThemeProvider>().setTheme(
+                                      value,
+                                    );
                                     Navigator.pop(ctx);
                                   }
                                 },
-                                title: Text(s.themeSystem),
+                                title: const Text("Sistema"),
                               ),
                               RadioListTile<ThemeMode>(
                                 value: ThemeMode.light,
                                 groupValue: selected,
                                 onChanged: (value) {
                                   if (value != null) {
-                                    context.read<ThemeProvider>().setTheme(value);
+                                    context.read<ThemeProvider>().setTheme(
+                                      value,
+                                    );
                                     Navigator.pop(ctx);
                                   }
                                 },
-                                title: Text(s.themeLight),
+                                title: const Text("Chiaro"),
                               ),
                               RadioListTile<ThemeMode>(
                                 value: ThemeMode.dark,
                                 groupValue: selected,
                                 onChanged: (value) {
                                   if (value != null) {
-                                    context.read<ThemeProvider>().setTheme(value);
+                                    context.read<ThemeProvider>().setTheme(
+                                      value,
+                                    );
                                     Navigator.pop(ctx);
                                   }
                                 },
-                                title: Text(s.themeDark),
+                                title: const Text("Scuro"),
                               ),
                             ],
                           );
@@ -227,12 +277,21 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               leading: const Icon(Icons.language_outlined),
-              title: Text(s.languageLabel),
+              title: const Text('LINGUA'),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: Text(s.selectLanguage),
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text("Seleziona lingua:"),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
                     content: StatefulBuilder(
                       builder: (context, setStateDialog) {
                         return Column(
@@ -243,7 +302,6 @@ class _HomePageState extends State<HomePage> {
                               groupValue: _isEnglish,
                               onChanged: (_) {
                                 setState(() => _isEnglish = false);
-                                PreferencesService.saveIsEnglish(false);
                                 Navigator.pop(ctx);
                               },
                               title: const Text('Italiano'),
@@ -253,7 +311,6 @@ class _HomePageState extends State<HomePage> {
                               groupValue: _isEnglish,
                               onChanged: (_) {
                                 setState(() => _isEnglish = true);
-                                PreferencesService.saveIsEnglish(true);
                                 Navigator.pop(ctx);
                               },
                               title: const Text('English'),
@@ -268,16 +325,50 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               leading: const Icon(Icons.help_outline),
-              title: Text(s.tutorialLabel),
+              title: const Text('TUTORIAL'),
               onTap: () {
                 Navigator.pop(context);
                 _showTutorial(context);
               },
             ),
+
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: Text(s.creditsLabel),
-              onTap: () {},
+              title: const Text('CREDITS'),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) {
+                    return AlertDialog(
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text("Credits:"),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                      content: SizedBox(
+                        width: double.maxFinite,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: bibliography.length,
+                          itemBuilder: (context, index) {
+                            final item = bibliography[index];
+
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Text(item.citation),
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
             const Spacer(),
             const Divider(),
@@ -292,124 +383,151 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+
       body: pages[_pageIndex],
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() => selectedAlarm = 0);
+      floatingActionButton: _pageIndex == 0
+          ? FloatingActionButton(
+              onPressed: () {
+                final idealDuration = Duration(
+                  minutes: _controller.napResult?.napEffectiveMin ?? 10,
+                );
 
-          showDialog(
-            context: context,
-            builder: (context) {
-              return StatefulBuilder(
-                builder: (context, setDialogState) {
-                  return Dialog(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  s.selectAlarmTitle,
-                                  style: Theme.of(context).textTheme.titleLarge,
+                setState(() {
+                  selectedAlarm = 0;
+                  selectedDuration = idealDuration;
+                });
+
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return StatefulBuilder(
+                      builder: (context, setDialogState) {
+                        return Dialog(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        s.selectAlarmTitle,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleLarge,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      icon: const Icon(Icons.close),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              IconButton(
-                                onPressed: () => Navigator.pop(context),
-                                icon: const Icon(Icons.close),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: AlarmCircleTimer(
-                                  duration: const Duration(minutes: 10),
-                                  selected:
-                                      selectedDuration ==
-                                      const Duration(minutes: 10),
-                                  onTap: () {
+                                ChooseTime(
+                                  duration: selectedDuration,
+                                  onChanged: (duration) {
                                     setDialogState(() {
-                                      selectedDuration = const Duration(
-                                        minutes: 10,
-                                      );
+                                      selectedDuration = duration;
                                     });
                                   },
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: AlarmCircleTimer(
-                                  duration: const Duration(minutes: 30),
-                                  selected:
-                                      selectedDuration ==
-                                      const Duration(minutes: 30),
-                                  onTap: () {
-                                    setDialogState(() {
-                                      selectedDuration = const Duration(
-                                        minutes: 30,
-                                      );
-                                    });
-                                  },
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: AlarmCircleTimer(
+                                        duration: const Duration(minutes: 10),
+                                        selected:
+                                            selectedDuration ==
+                                            const Duration(minutes: 10),
+                                        onTap: () {
+                                          setDialogState(() {
+                                            selectedDuration = const Duration(
+                                              minutes: 10,
+                                            );
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: AlarmCircleTimer(
+                                        duration: const Duration(minutes: 30),
+                                        selected:
+                                            selectedDuration ==
+                                            const Duration(minutes: 30),
+                                        onTap: () {
+                                          setDialogState(() {
+                                            selectedDuration = const Duration(
+                                              minutes: 30,
+                                            );
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: AlarmCircleTimer(
+                                        duration: const Duration(minutes: 90),
+                                        selected:
+                                            selectedDuration ==
+                                            const Duration(minutes: 90),
+                                        onTap: () {
+                                          setDialogState(() {
+                                            selectedDuration = const Duration(
+                                              minutes: 90,
+                                            );
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: AlarmCircleTimer(
-                                  duration: const Duration(minutes: 90),
-                                  selected:
-                                      selectedDuration ==
-                                      const Duration(minutes: 90),
-                                  onTap: () {
-                                    setDialogState(() {
-                                      selectedDuration = const Duration(
-                                        minutes: 90,
-                                      );
-                                    });
+                                const SizedBox(height: 10),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          s.alarmTimerStarted(
+                                            selectedDuration.inMinutes,
+                                          ),
+                                        ),
+                                        duration: const Duration(seconds: 3),
+                                      ),
+                                    );
+                                    FlutterAlarmClock.createTimer(
+                                      length: selectedDuration.inSeconds,
+                                    );
+
+                                    Navigator.pop(context);
                                   },
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          ElevatedButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    s.alarmTimerStarted(selectedDuration.inMinutes),
+                                  child: Text(
+                                    AppStrings(_isEnglish).startAlarm,
                                   ),
-                                  duration: const Duration(seconds: 3),
                                 ),
-                              );
-                              FlutterAlarmClock.createTimer(
-                                length: selectedDuration.inSeconds,
-                              );
-
-                              Navigator.pop(context);
-                            },
-                            child: Text(AppStrings(_isEnglish).startAlarm),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
-          );
-        },
-        child: const Icon(Icons.alarm),
-      ),
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+              child: const Icon(Icons.alarm),
+            )
+          : null,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _pageIndex,
         onTap: (i) => setState(() => _pageIndex = i),
-        selectedItemColor: Theme.of(context).colorScheme.primary, // Colore dell'icona selezionata
-        unselectedItemColor: Colors.grey,                         // Colore delle icone NON selezionate
-          items: [
+        selectedItemColor: Theme.of(
+          context,
+        ).colorScheme.primary, // Colore dell'icona selezionata
+        unselectedItemColor: Colors.grey, // Colore delle icone NON selezionate
+        items: [
           BottomNavigationBarItem(
             icon: const Icon(Icons.home),
             label: s.navHome,
@@ -454,15 +572,17 @@ class _HomePageState extends State<HomePage> {
               isEnglish: _isEnglish,
             ),
           ),
-          
+
           // NUOVO ELEMENTO: Righetta corta centrata divisoria
           const SizedBox(height: 12),
           Center(
             child: Container(
               width: 150, // Lunghezza della riga
-              height: 3,  // Spessore della riga
+              height: 3, // Spessore della riga
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.4), // Colore neutro semitrasparente
+                color: Colors.grey.withOpacity(
+                  0.4,
+                ), // Colore neutro semitrasparente
                 borderRadius: BorderRadius.circular(1.5),
               ),
             ),
@@ -476,7 +596,8 @@ class _HomePageState extends State<HomePage> {
               child: DebugZonesBox(
                 lim: _controller.zoneLimits!,
                 isEnglish: _isEnglish,
-                wakeUpTime: _controller.wakeUpTime, // ← da aggiungere in NapController
+                wakeUpTime:
+                    _controller.wakeUpTime, // ← da aggiungere in NapController
                 sds: _controller.sds,
               ),
             ),
@@ -519,15 +640,16 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   // ---------------------------------------------------------------------------
   // TUTORIAL
   // ---------------------------------------------------------------------------
-void _showTutorial(BuildContext context) {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (ctx) => TutorialDialog(pages: AppStrings(_isEnglish).tutorialPages),
-  );
-}
+  void _showTutorial(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) =>
+          TutorialDialog(pages: AppStrings(_isEnglish).tutorialPages),
+    );
+  }
 }

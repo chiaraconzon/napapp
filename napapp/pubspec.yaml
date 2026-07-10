@@ -27,6 +27,7 @@ dependencies:
   intl:
   http:
   flutter_alarm_clock: ^0.1.2
+  duration_picker: ^1.2.0
 
 dev_dependencies:
   flutter_test:

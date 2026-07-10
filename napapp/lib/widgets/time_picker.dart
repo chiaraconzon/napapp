@@ -25,8 +25,8 @@ class AlarmCircleTimer extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 160,
-        height: 160,
+        width: 80,
+        height: 80,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: selected
@@ -53,6 +53,3 @@ class AlarmCircleTimer extends StatelessWidget {
     );
   }
 }
-
-//                     FlutterAlarmClock.createTimer(length: 10);
-// i still have to add it
