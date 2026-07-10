@@ -92,7 +92,7 @@ class RecentSleep {
             altWakeUpTime = recent[i].endTime;
           }
         }
-        i++; // ← fix: incremento mancante causava loop infinito
+        i++; 
       }
 
       wakeUpTime = altWakeUpTime;
