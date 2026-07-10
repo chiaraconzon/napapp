@@ -10,6 +10,10 @@ class AppStrings {
   // ---------------------------------------------------------------------------
   String hello(String name) => isEnglish ? 'Hello $name' : 'Ciao $name';
   String get logout        => isEnglish ? 'Logout'    : 'Logout';
+  String get themeLabel    => isEnglish ? 'THEME'     : 'TEMA';
+  String get languageLabel => isEnglish ? 'LANGUAGE'  : 'LINGUA';
+  String get tutorialLabel => isEnglish ? 'TUTORIAL'  : 'TUTORIAL';
+  String get creditsLabel  => isEnglish ? 'CREDITS'   : 'CREDITS';
 
   // ---------------------------------------------------------------------------
   // BOTTOM NAV
@@ -39,7 +43,7 @@ class AppStrings {
     if (!isEnglish) return key;
     switch (key) {
       case 'Energie':  return 'Energy';
-      case 'Memoria':  return 'Memory';
+      case 'Focus':  return 'Focus';
       case 'Riflessi': return 'Reflexes';
       default:         return key;
     }
@@ -86,6 +90,11 @@ class AppStrings {
   // ---------------------------------------------------------------------------
   String get chooseNapTime => isEnglish ? 'Choose nap time:' : 'Scegli tempo pisolino:';
   String get startAlarm    => isEnglish ? 'Start'            : 'Avvia';
+  String get selectAlarmTitle => isEnglish ? 'Select the timer:' : 'Seleziona la sveglia:';
+
+  String alarmTimerStarted(int minutes) => isEnglish
+      ? '$minutes-minute timer started'
+      : 'Timer di $minutes minuti avviato';
 
   String alarmSet(int hours, int minutes) {
     if (isEnglish) {
@@ -131,8 +140,8 @@ class AppStrings {
   String get saveActivity => isEnglish ? 'SAVE ACTIVITY'   : 'SALVA ATTIVITÀ';
   String get updateBtn    => isEnglish ? 'UPDATE'          : 'AGGIORNA';
 
-  // Categorie: le chiavi interne restano in italiano (usate dall'algoritmo).
-  // Questa funzione traduce solo la label visualizzata.
+  
+  // Questa traduce la label visualizzata della tipologia di evento (chiave interna resta in italiano).
   String categoryDisplay(String key) {
     if (!isEnglish) return key;
     switch (key) {
@@ -145,8 +154,7 @@ class AppStrings {
     }
   }
 
-  // Ripetizione: la chiave interna resta in italiano (usata da _save()).
-  // La label mostrata nel dropdown è tradotta.
+  // Ripetizione: la chiave interna resta in italiano.
   String repetitionDisplay(String key) {
     if (!isEnglish) return key;
     switch (key) {
@@ -187,6 +195,14 @@ class AppStrings {
   String get allOccurrences => isEnglish ? 'ALL'           : 'TUTTE';
 
   // ---------------------------------------------------------------------------
+  // DIALOG SELEZIONE TEMA (nel drawer)
+  // ---------------------------------------------------------------------------
+  String get selectTheme => isEnglish ? 'Select Theme' : 'Seleziona tema';
+  String get themeSystem => isEnglish ? 'System'       : 'Sistema';
+  String get themeLight  => isEnglish ? 'Light'        : 'Chiaro';
+  String get themeDark   => isEnglish ? 'Dark'         : 'Scuro';
+
+  // ---------------------------------------------------------------------------
   // DIALOG SELEZIONE LINGUA (nel drawer)
   // ---------------------------------------------------------------------------
   String get selectLanguage => isEnglish ? 'Select Language' : 'Seleziona Lingua';
@@ -222,7 +238,7 @@ class AppStrings {
           'L\'app calcola il tuo Saldo Debito Sonno sulle ultime 7 notti e mostra uno di questi quattro stati:\n\n'
           '🔋 Ottima forma — hai dormito a sufficienza\n'
           '🙂 Leggero deficit — piccola carenza di sonno\n'
-          '🥱 Debito moderato — stai accumulando stanchezza\n'
+          '🥱 Debito moderato — accumulo stanchezza\n'
           '🚨 Debito severo — recupero urgente',
     },
     {
@@ -231,7 +247,7 @@ class AppStrings {
       'body':
           'Tre tipologie di pisolino:\n\n'
           '⚡ 10–15 min — boost immediato dei riflessi\n'
-          '🧠 20–30 min — consolidamento memoria\n'
+          '🧠 20–30 min — migliora concentrazione\n'
           '🔋 60–90 min — recupero energetico\n\n'
           'L\'app sceglie la durata migliore per te automaticamente in base al tuo debito di sonno e agli eventi programmati.',
     },
@@ -304,7 +320,7 @@ class AppStrings {
       'body':
           'Three types of nap:\n\n'
           '⚡ 10–15 min — immediate reflex boost\n'
-          '🧠 20–30 min — memory consolidation\n'
+          '🧠 20–30 min — improve concentration\n'
           '🔋 60–90 min — energy recovery\n\n'
           'The app automatically picks the best duration based on your sleep debt and scheduled events.',
     },
