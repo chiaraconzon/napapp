@@ -15,14 +15,6 @@ class StatsPage extends StatefulWidget {
 
   StatsPage({super.key, required this.sleepData, required this.sds});
 
-  /*final List<FlSpot> sampleData = [
-    const FlSpot(1, 3), // Lunedì: 3 attività
-    const FlSpot(2, 5), // Martedì: 5 attività
-    const FlSpot(3, 2), // Mercoledì: 2 attività
-    const FlSpot(4, 8), // Giovedì: 8 attività
-    const FlSpot(5, 4), // Venerdì: 4 attività
-  ];*/
-
   @override
   State<StatsPage> createState() => _StatsPageState();
 }

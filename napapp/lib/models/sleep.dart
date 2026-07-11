@@ -30,7 +30,7 @@ class SleepData {
       endTime = null,
       minutesAsleep = null;
 
-  // Adds year to the DateTime object, needed for the StartTime and EndTime
+  // Adds year to the DateTime object, needed for StartTime and EndTime that lack it
   static DateTime _timeWithYear(String date, String dateTimeWithoutYear) {
     String year = date.substring(0, 4);
     // controllo per il caso 1 gennaio, nel quale startTime sarà nell'anno precedente
@@ -51,11 +51,14 @@ minutesAsleep : $minutesAsleep
 """;
   }
 
+  // Returns string for query, for future developments
   String queryString() {
     return date.toString().substring(0, 10);
   }
 }
 
+// The class RecentSleep defines the essential data needed for the app's algorithm
+// Which are: current day, list of the minutes of sleep of the past 7 days, wake up time
 class RecentSleep {
   final DateTime recentDay;
   final List<int?> sleepDuration;
@@ -67,6 +70,8 @@ class RecentSleep {
     required this.wakeUpTime,
   });
 
+  // Unused constructor that builds a RecentSleep object from a list of SleepData
+  // For future developments
   // RecentSleep.fromSleepData(List<SleepData> sleepList) {
   //   if (sleepList.length < 7) throw Exception("Can't create recent sleep data with less than 7 days of data.");
   //   List<SleepData> recent = sleepList.sublist(0,7);
@@ -83,8 +88,8 @@ class RecentSleep {
   // }
 
   // Create object from 7 most recent days.
-  // wakeUpTime is set to the most recent available day if current day's data is missing.
-
+  // wakeUpTime is set to an alternative if current day's data is either missing or it's sunday.
+  // Alternative is the wake up time of the most recent day among following: Monday to Thursday
   static Future<RecentSleep> create() async {
     List<SleepData> recent = await Impact.getN_DaysFromMostRecent(7);
     DateTime recentDay = recent[0].date;
@@ -138,10 +143,6 @@ wake up time : $wakeUpTime
       }
     }
 
-    // BUGFIX: se nessuno dei 7 giorni ha dati (wSum == 0), deficitSum/wSum
-    // era 0/0 = NaN, e NaN.round() lancia un'eccezione che veniva
-    // silenziosamente ingoiata dal try/catch in NapController.refresh(),
-    // impedendo anche l'aggiornamento del wakeUpTime nello stesso ciclo.
     if (wSum == 0) return 0;
 
     int sleepDebt = (deficitSum / wSum).round();
@@ -149,7 +150,7 @@ wake up time : $wakeUpTime
     return sleepDebt;
   }
 
-  // FIX: era sbagliato il return, dava true se era lo stesso giorno e false altrimenti
+  // Returns true if the wake up time is an alternative
   bool isWakeUpTimeAlternative() {
     if (wakeUpTime == null) return false;
     return (recentDay.day != wakeUpTime!.day ||

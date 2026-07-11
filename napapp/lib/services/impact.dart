@@ -6,6 +6,10 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
+// The Impact class manages:
+//    1. The connection with the Impact server
+//    2. The construction of data structures containing data from the server
+
 class Impact {
   static String baseUrl = "https://impact.dei.unipd.it/bwthw/";
 
@@ -18,9 +22,6 @@ class Impact {
   static String username = "He3oIbpv0H";
   static String password = "12345678!";
   static final patient = "Jpefaq6m58";
-  // Le credenziali di default sopra sono solo placeholder.
-  // La login page deve chiamare Impact.setCredentials(user, pass)
-  // con le credenziali reali PRIMA di chiamare Impact.authorize().
 
   static void setCredentials(String user, String pass) {
     Impact.username = user;
@@ -34,6 +35,7 @@ class Impact {
     final body = {'username': Impact.username, 'password': Impact.password};
 
     //Get the response
+    // NOTE: all the commentes print() commands were used for debugging
     //print('Calling: $url');
     final response = await http.post(Uri.parse(url), body: body);
     //print('authorize() status: ${response.statusCode}');
@@ -47,11 +49,11 @@ class Impact {
       sp.setString('refresh', decodedResponse['refresh']);
     } //if
 
-    //Just return the status code
+    //Return the status code
     return response.statusCode;
-  } //_authorize
+  } 
 
-  //This method requests data from the IMPACT server
+  //This method requests data from the IMPACT server from a specific day
   static Future<SleepData> requestSleepData(String day) async {
     //Initialize the result
     SleepData result;
@@ -83,8 +85,7 @@ class Impact {
       access = sp.getString('access');
     }
 
-    // Se dopo l'autenticazione il token è ancora nullo (es. credenziali errate),
-    // fallisci subito con un errore chiaro invece di mandare "Bearer null" al server.
+    // Throws exception for failure of authentication
     if (access == null) {
       throw Exception(
         "Error: unable to authenticate with IMPACT (check credentials).",
@@ -92,7 +93,6 @@ class Impact {
     }
 
     //Create the (representative) request
-    //final day = '2024-05-04';
     final url =
         Impact.baseUrl + Impact.sleepEndpoint + Impact.patient + '/day/$day/';
     final headers = {HttpHeaders.authorizationHeader: 'Bearer $access'};
@@ -143,16 +143,18 @@ class Impact {
       final sp = await SharedPreferences.getInstance();
       sp.setString('access', decodedResponse['access']);
       sp.setString('refresh', decodedResponse['refresh']);
-    } //if
+    }
 
     //Return just the status code
     return response.statusCode;
-  } //_refreshTokens
+  } 
 
+  // Checks if access token is expired, returns true if it is
   static bool isExpired(String accessToken) {
     return JwtDecoder.isExpired(accessToken);
   }
 
+  // Get sleep data of the current day
   static Future<SleepData?> getMostRecentData() async {
     DateTime now = DateTime.now();
     DateTime yesterday = now.subtract(Duration(days: 1));
@@ -161,11 +163,13 @@ class Impact {
     return await requestSleepData(recent);
   }
 
+  // Converts DateTime date to a string to query the server
   static String queryString(DateTime date) {
     return date.toString().substring(0, 10);
   }
 
-  // the function returns a list of the most recent n days of data, starting from the most recent (yesterday)
+  // The function returns a list of the most recent n days of data
+  // starting from the most recent (yesterday)
   static Future<List<SleepData>> getN_DaysFromMostRecent(int n) async {
     if (n < 0) throw Exception("n non può essere negativo");
     DateTime now = DateTime.now();
