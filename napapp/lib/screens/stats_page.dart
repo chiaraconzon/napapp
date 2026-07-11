@@ -77,65 +77,34 @@ class _StatsPageState extends State<StatsPage>{
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header
               SizedBox(height: 10),
               const StatsHeader(),
-              
+
+              // Plot showing the amount of hours of sleep in the past 7 days
               const SizedBox(height: 28),
               SleepChart(
                 sleepData: _data1week,
               ),
-              // SizedBox(height: 10),
-              // SleepScoreCard(),
+
+              // Grid that shows: average sleep time in the past week, number of naps taken this week (latter is a mock value)
               const SizedBox(height: 10),
               StatsGrid(
                 sleepData: _data1week,
               ),
 
+              // Shows the amount of hours of sleep debt of the day, as calculated by the app's algorithm
               const SizedBox(height: 28),
               SleepDebtCard(
                 sds: widget.sds
               ),
 
+              // Shows the change in average sleep time compared to the previous week
               const SizedBox(height: 24),
               WeeklyInsightCard(
                 sleepData2weeks: _data2week,
               ),
             ],
-
-            /*
-              SizedBox(
-                height: 200, // Imposta un'altezza fissa
-                child: LineChart(
-                  LineChartData(
-                    gridData: FlGridData(
-                      show: false,
-                    ), // Nasconde la griglia di sfondo
-                    titlesData: FlTitlesData(
-                      show: true,
-                    ), // Mostra i numeri sugli assi
-                    borderData: FlBorderData(
-                      show: true,
-                    ), // Mostra il bordo del grafico
-                    lineBarsData: [
-                      LineChartBarData(
-                        spots: sampleData, // Carica i dati definiti sopra
-                        isCurved: true, // Rende la linea curva e morbida
-                        color: Colors.blue, // Colore della linea
-                        barWidth: 4, // Spessore della linea
-                        belowBarData: BarAreaData(
-                          show: true,
-                          color: const Color.fromARGB(
-                            124,
-                            33,
-                            149,
-                            243,
-                          ), // Colore della linea
-                        ), // Ombra sotto la linea
-                      ),
-                    ],
-                  ),
-                ),
-              ),*/
           ),
         ),
       ),

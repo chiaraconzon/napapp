@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+// Utility class that provides icons based on event categories
 class EventUtils {
+  // Returns the appropriate icon for each event type
   static IconData iconFromCategory(String cat) {
     switch (cat) {
       case 'Pranzo':

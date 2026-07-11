@@ -4,9 +4,10 @@ import '../../utils/event_utils.dart';
 import '../../screens/calendar_page.dart';
 import '../../screens/app_strings.dart';
 
+// Widget that displays an event card
 class EventCard extends StatelessWidget {
   final MyEvent ev;
-  final bool isEnglish;
+  final bool isEnglish;//italiano/english
 
   const EventCard({super.key, required this.ev, this.isEnglish = false});
 
@@ -15,6 +16,7 @@ class EventCard extends StatelessWidget {
     final s = AppStrings(isEnglish);
 
     return Card(
+      // Card style and event color customization
       elevation: 2,
       margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
       shape: RoundedRectangleBorder(
@@ -26,6 +28,7 @@ class EventCard extends StatelessWidget {
           horizontal: 20,
           vertical: 10,
         ),
+        // Displays category icon with event color
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -38,10 +41,12 @@ class EventCard extends StatelessWidget {
             size: 28,
           ),
         ),
+        // Displays event title
         title: Text(
           ev.title,
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
+        // Displays event time range
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 5),
           child: Row(
@@ -58,6 +63,7 @@ class EventCard extends StatelessWidget {
             ],
           ),
         ),
+        // Displays event category
         trailing: Text(
           s.categoryDisplay(ev.category),
           style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
