@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+// Defines properties of cards containing certain statistics
 class StatCard extends StatelessWidget {
   final IconData icon;
   final String title;
