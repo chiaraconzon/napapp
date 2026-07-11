@@ -16,7 +16,7 @@ class WeeklyInsightCard extends StatelessWidget {
     int sumLastWeek = 0;
     int countLastWeek = 0;
 
-    for(int i = 0; i < 8; i++) {
+    for(int i = 0; i < 7; i++) {
       int? mins = sleepData2weeks[i].minutesAsleep;
       if (mins != null) {
         sumLastWeek += mins;
@@ -24,7 +24,7 @@ class WeeklyInsightCard extends StatelessWidget {
       }
     }
 
-    for(int i = 8; i < 14; i++) {
+    for(int i = 7; i < 13; i++) {
       int? mins = sleepData2weeks[i].minutesAsleep;
       if (mins != null) {
         sumThisWeek += mins;

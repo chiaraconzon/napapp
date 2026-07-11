@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../widgets/stats/stats_header.dart';
-import '../widgets/stats/sleep_score_card.dart';
 import '../widgets/stats/stats_grid.dart';
 import '../widgets/stats/sleep_chart.dart';
 import '../widgets/stats/sleep_debt_card.dart';
 import '../widgets/stats/weekly_insight_card.dart';
 import '../models/sleep.dart';
 
+// ignore: must_be_immutable
 class StatsPage extends StatefulWidget {
   final List<SleepData> sleepData;
   double sds;
@@ -79,13 +79,15 @@ class _StatsPageState extends State<StatsPage>{
             children: [
               SizedBox(height: 10),
               const StatsHeader(),
-              SizedBox(height: 10),
-              SleepScoreCard(),
-              const SizedBox(height: 10),
-              const StatsGrid(),
-
+              
               const SizedBox(height: 28),
               SleepChart(
+                sleepData: _data1week,
+              ),
+              // SizedBox(height: 10),
+              // SleepScoreCard(),
+              const SizedBox(height: 10),
+              StatsGrid(
                 sleepData: _data1week,
               ),
 
