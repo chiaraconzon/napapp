@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
+// Login page that handles user authentication
 class LoginPage extends StatelessWidget {
   LoginPage({Key? key}) : super(key: key);
 
   static const routename = 'LoginPage';
 
+  // Controllers used to read user input
   final _nameController = TextEditingController();
   final _pswController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    //acess current app theme color
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -18,15 +21,17 @@ class LoginPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // App logo
               Image.asset(
-                'assets/sleep_icon.png', // Assicurati di usare il percorso corretto del tuo file
-                height: 100, // Puoi regolare l'altezza come preferisci
+                'assets/sleep_icon.png', 
+                height: 100, 
                 fit: BoxFit.contain,
-              ), //modificare con il logo
+              ), 
 
 
               const SizedBox(height: 20),
 
+              // App title
               Text(
                 "Nap App",
                 style: TextStyle(
@@ -38,6 +43,7 @@ class LoginPage extends StatelessWidget {
 
               const SizedBox(height: 10),
 
+              // App slogan
               Text(
                 "Don't give up, take a nap!",
                 style: TextStyle(
@@ -49,7 +55,7 @@ class LoginPage extends StatelessWidget {
 
               const SizedBox(height: 50),
 
-              // USERNAME
+              // Username input field
               SizedBox(
                 width: 280,
                 child: TextField(
@@ -67,7 +73,7 @@ class LoginPage extends StatelessWidget {
 
               const SizedBox(height: 25),
 
-              // PASSWORD
+              // Password input field
               SizedBox(
                 width: 280,
                 child: TextField(
@@ -86,7 +92,7 @@ class LoginPage extends StatelessWidget {
 
               const SizedBox(height: 50),
 
-              // LOGIN BUTTON
+              // Login button and authentication logic
               SizedBox(
                 width: 200,
                 height: 50,
@@ -103,14 +109,17 @@ class LoginPage extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   onPressed: () {
+                    // Check user credentials
                     if (_nameController.text == "admin" &&
                         _pswController.text == "123") {
+                      // Navigate to homepage after successful login
                       Navigator.pushReplacementNamed(
                         context,
                         '/homepage',
                         arguments: _nameController.text,
                       );
                     } else {
+                      // Show error message for invalid credentials
                       showModalBottomSheet(
                         context: context,
                         backgroundColor: theme.colorScheme.surface,
@@ -119,6 +128,7 @@ class LoginPage extends StatelessWidget {
                             top: Radius.circular(20),
                           ),
                         ),
+                        // Error message bottom sheet
                         builder: (context) => SafeArea(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -127,6 +137,7 @@ class LoginPage extends StatelessWidget {
                             ),
                             child: Row(
                               children: [
+                                // Error text
                                 Expanded(
                                   child: Text(
                                     "Username o password errati.",
@@ -136,6 +147,7 @@ class LoginPage extends StatelessWidget {
                                     ),
                                   ),
                                 ),
+                                // Close error message
                                 TextButton(
                                   onPressed: () => Navigator.pop(context),
                                   child: Text(
