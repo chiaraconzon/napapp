@@ -9,18 +9,19 @@ import '../models/sleep.dart';
 
 // ignore: must_be_immutable
 class StatsPage extends StatefulWidget {
+  // Data for the stat widgets
   final List<SleepData> sleepData;
   double sds;
 
   StatsPage({super.key, required this.sleepData, required this.sds});
 
-  final List<FlSpot> sampleData = [
+  /*final List<FlSpot> sampleData = [
     const FlSpot(1, 3), // Lunedì: 3 attività
     const FlSpot(2, 5), // Martedì: 5 attività
     const FlSpot(3, 2), // Mercoledì: 2 attività
     const FlSpot(4, 8), // Giovedì: 8 attività
     const FlSpot(5, 4), // Venerdì: 4 attività
-  ];
+  ];*/
 
   @override
   State<StatsPage> createState() => _StatsPageState();
@@ -39,6 +40,7 @@ class _StatsPageState extends State<StatsPage> {
     _data2week = getNDays(_sleepDataList, 14);
   }
 
+  // Converts the list into a map: not used but could be useful for future developments
   Map<DateTime, SleepData> ListToMap(List<SleepData> sleepDataList) {
     Map<DateTime, SleepData> mapData = {
       for (var elem in sleepDataList) elem.date: elem,
@@ -47,6 +49,7 @@ class _StatsPageState extends State<StatsPage> {
     return mapData;
   }
 
+  // Get the most recent 7 days of sleep data and sorts them in cronological order
   List<SleepData> get7Days(List<SleepData> sleepDataList) {
     List<SleepData> data7days = sleepDataList.sublist(0, 7);
     data7days.sort((a, b) => a.date.compareTo(b.date));
@@ -54,6 +57,7 @@ class _StatsPageState extends State<StatsPage> {
     return data7days;
   }
 
+  // Get the most recent N days of sleep data and sorts them in cronological order
   List<SleepData> getNDays(List<SleepData> sleepDataList, int n) {
     if (n < 1) return [];
 
