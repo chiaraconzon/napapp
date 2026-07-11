@@ -10,6 +10,7 @@ class SleepChart extends StatelessWidget {
     required this.sleepData
   });
 
+  // Get a list of the hours of sleep of each day, 0 if the data is missing
   List<double> getHoursOfSleep(List<SleepData> sleepData) {
     List<double> hoursOfSleep = [];
 
@@ -22,6 +23,7 @@ class SleepChart extends StatelessWidget {
     return hoursOfSleep;
   }
 
+  // Create labels for the plot, the labels being the date in form DD.MM
   List<String> getLabels(List<SleepData> sleepData) {
     List<String> labels = [];
 
@@ -37,6 +39,7 @@ class SleepChart extends StatelessWidget {
     return labels;
   }
 
+  // Create a list of spots for the plot, x label is 1:6, y label are the hours of sleep
   List<FlSpot> getSpots(List<double> hrs) {
     List<FlSpot> spots = [];
 
