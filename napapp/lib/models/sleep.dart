@@ -1,4 +1,4 @@
-import 'package:napapp/services/impact.dart';
+import 'package:http_test/impact.dart';
 import 'package:intl/intl.dart';
 
 class SleepData {
@@ -87,12 +87,12 @@ class RecentSleep {
 
       while (altWakeUpTime == null && i < 7) {
         if (recent[i].endTime != null) {
+          // note: checking weekday of date or endTime is equivalent.
           if (recent[i].date.weekday == 1 || recent[i].date.weekday == 2 ||
               recent[i].date.weekday == 3 || recent[i].date.weekday == 4) {
-            altWakeUpTime = recent[i].endTime;
-          }
+                altWakeUpTime = recent[i].endTime;
+              }
         }
-        i++; 
       }
 
       wakeUpTime = altWakeUpTime;
@@ -133,19 +133,12 @@ wake up time : $wakeUpTime
       }
     }
 
-    // BUGFIX: se nessuno dei 7 giorni ha dati (wSum == 0), deficitSum/wSum
-    // era 0/0 = NaN, e NaN.round() lancia un'eccezione che veniva
-    // silenziosamente ingoiata dal try/catch in NapController.refresh(),
-    // impedendo anche l'aggiornamento del wakeUpTime nello stesso ciclo.
-    if (wSum == 0) return 0;
-
     int sleepDebt = (deficitSum / wSum).round();
 
     return sleepDebt;
   }
 
   bool isWakeUpTimeAlternative() {
-    if (wakeUpTime == null) return false;
     return (recentDay.day == wakeUpTime!.day && 
             recentDay.month == wakeUpTime!.month);
   }
