@@ -19,10 +19,12 @@ class Impact {
 
   static String sleepEndpoint = 'data/v1/sleep/patients/';
 
+  // User credentials and patient identifier
   static String username = "He3oIbpv0H";
   static String password = "12345678!";
   static final patient = "Jpefaq6m58";
 
+  // Updates user credentials before authentication
   static void setCredentials(String user, String pass) {
     Impact.username = user;
     Impact.password = pass;
@@ -68,18 +70,12 @@ class Impact {
       await authorize();
       access = sp.getString(
         'access',
-      ); // BUGFIX: prima non veniva riletto -> header "Bearer null"
+      ); 
     } else if (isExpired(access)) {
       final refreshStatus = await _refreshTokens();
+
+      // If refresh fails, perform full authentication
       if (refreshStatus != 200) {
-        // BUGFIX: il refresh token stesso è scaduto/non valido (succede più
-        // facilmente su mobile, dove l'app resta installata più a lungo
-        // senza essere riaperta rispetto a una sessione Chrome appena
-        // testata). _refreshTokens() in questo caso NON scrive nulla in
-        // shared_preferences: se rileggessimo comunque 'access' otterremmo
-        // lo stesso vecchio token scaduto di prima, causando un secondo 401
-        // ("token invalid or expired") anche dopo il tentativo di refresh.
-        // Serve quindi un login completo da zero con username/password.
         await authorize();
       }
       access = sp.getString('access');
@@ -116,10 +112,10 @@ class Impact {
         print("Error: missing data for day $day.");
         result = SleepData.missingData(day);
       }
-    } //if
+    } 
     else {
       throw Exception("Error: failed to obtain data.");
-    } //else
+    } 
 
     //Return the result
     return result;
@@ -177,6 +173,7 @@ class Impact {
 
     List<SleepData> result = [];
 
+    // request data day by day
     for (int i = 0; i < n; i++) {
       DateTime currentDay = recentDay.subtract(Duration(days: i));
       String currentDayString = queryString(currentDay);
