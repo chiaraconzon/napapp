@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 
-// =============================================================================
-// TUTORIAL DIALOG
-// =============================================================================
-// Le pagine del tutorial sono ora in AppStrings (app_strings.dart)
-// e vengono passate come parametro da home_page tramite AppStrings(_isEnglish).tutorialPages
-
+// Tutorial dialog that displays multiple pages using horizontal swipeclass TutorialDialog extends StatefulWidget {
 class TutorialDialog extends StatefulWidget {
   final List<Map<String, String>> pages;
   const TutorialDialog({Key? key, required this.pages}) : super(key: key);
@@ -15,36 +10,41 @@ class TutorialDialog extends StatefulWidget {
 }
 
 class _TutorialDialogState extends State<TutorialDialog> {
-  // Controller per gestire lo scroll ORIZZONTALE
+  // Controls horizontal page navigation
   final PageController _pageController = PageController();
+  // Stores the currently displayed page index
   int _current = 0;
 
   @override
   void dispose() {
+    // Dispose controller to release resources
     _pageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Get screen size and current theme
     final size = MediaQuery.of(context).size;
     final theme = Theme.of(context);
 
-    // Colori calibrati sul tema
+    // Adjust colors according to light/dark mode
     final isDark = theme.brightness == Brightness.dark;
     final cardBg = isDark ? Colors.grey.shade900 : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black87;
     final fadedColor = isDark ? Colors.white30 : Colors.black26;
 
     final total = widget.pages.length;
+    // Check whether user reached the last tutorial page
     final isLast = _current == total - 1;
 
     return Dialog(
+      // Main tutorial card container
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       backgroundColor: Colors.transparent,
       elevation: 0,
       child: Container(
-        // Rende la Card nettamente più grande (80% dell'altezza dello schermo)
+        // Tutorial card size and appearance
         height: size.height * 0.8,
         width: size.width * 0.9,
         decoration: BoxDecoration(
@@ -60,34 +60,36 @@ class _TutorialDialogState extends State<TutorialDialog> {
         ),
         child: Stack(
           children: [
-            // Contenuto principale con Scroll Orizzontale
+            // Main tutorial content
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
               child: Column(
                 children: [
-                  // Area scorrevole orizzontalmente (PageView)
+                  // Horizontal swipeable tutorial pages
                   Expanded(
                     child: PageView.builder(
                       controller: _pageController,
+                      // Updates current page indicator
                       onPageChanged: (index) {
                         setState(() {
                           _current = index;
                         });
                       },
                       itemCount: total,
+                      // Builds each tutorial page
                       itemBuilder: (ctx, i) {
                         final p = widget.pages[i];
                         return Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // Emoji leggermente ridimensionata
+                            // Tutorial icon
                             Text(
                               p['emoji'] ?? '✨',
                               style: const TextStyle(fontSize: 54),
                             ),
                             const SizedBox(height: 24),
-                            // Titolo più piccolo (20 anziché 24)
+                            // Tutorial title
                             Text(
                               p['title'] ?? '',
                               textAlign: TextAlign.center,
@@ -98,7 +100,7 @@ class _TutorialDialogState extends State<TutorialDialog> {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            // Corpo del testo più piccolo (13.5 anziché 16)
+                            // Tutorial description text
                             Text(
                               p['body'] ?? '',
                               textAlign: TextAlign.center,
@@ -116,11 +118,11 @@ class _TutorialDialogState extends State<TutorialDialog> {
 
                   const SizedBox(height: 16),
 
-                  // Elementi inferiori: Indicatori e pulsante Inizia (se ultima pagina)
+                  // Bottom section with indicators and start button
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Pallini indicatori delle pagine
+                      // Page progress indicators
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(total, (i) {
@@ -132,13 +134,15 @@ class _TutorialDialogState extends State<TutorialDialog> {
                             height: isActive ? 10 : 6,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: isActive ? theme.colorScheme.primary : fadedColor,
+                              color: isActive
+                                  ? theme.colorScheme.primary
+                                  : fadedColor,
                             ),
                           );
                         }),
                       ),
-                      
-                      // Spazio dinamico o Pulsante Inizia
+
+                      // Shows start button on final page
                       AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         height: isLast ? 70 : 20,
@@ -148,10 +152,13 @@ class _TutorialDialogState extends State<TutorialDialog> {
                                 child: SizedBox(
                                   width: double.infinity,
                                   height: 48,
+                                  //Closes tutorial dialog (INIZIA button)
                                   child: ElevatedButton(
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: theme.colorScheme.primary,
-                                      foregroundColor: theme.colorScheme.onPrimary,
+                                      backgroundColor:
+                                          theme.colorScheme.primary,
+                                      foregroundColor:
+                                          theme.colorScheme.onPrimary,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
@@ -176,7 +183,7 @@ class _TutorialDialogState extends State<TutorialDialog> {
               ),
             ),
 
-            // Tasto X in alto a destra per chiudere in qualsiasi momento
+            // Close button available on every tutorial page (X)
             Positioned(
               top: 12,
               right: 12,

@@ -1,22 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:napapp/models/sleep.dart';
 
 class SleepChart extends StatelessWidget {
-  const SleepChart({super.key});
+  final List<SleepData> sleepData;
 
+  SleepChart({super.key, required this.sleepData});
+
+  // Get a list of the hours of sleep of each day, 0 if the data is missing
+  List<double> getHoursOfSleep(List<SleepData> sleepData) {
+    List<double> hoursOfSleep = [];
+
+    for (int i = 0; i < 7; i++) {
+      int mins = (sleepData[i].minutesAsleep != null)
+          ? sleepData[i].minutesAsleep!
+          : 0;
+      double hours = mins / 60.0;
+      hoursOfSleep.add(hours);
+    }
+
+    return hoursOfSleep;
+  }
+
+  // Create labels for the plot, the labels being the date in form DD.MM
+  List<String> getLabels(List<SleepData> sleepData) {
+    List<String> labels = [];
+
+    for (int i = 0; i < 7; i++) {
+      DateTime date = sleepData[i].date;
+      String day = "${date.day}".padLeft(2, '0');
+      String month = "${date.month}".padLeft(2, '0');
+      String label = "$day.$month";
+
+      labels.add(label);
+    }
+
+    return labels;
+  }
+
+  // Create a list of spots for the plot, x label is 1:6, y label are the hours of sleep
+  List<FlSpot> getSpots(List<double> hrs) {
+    List<FlSpot> spots = [];
+
+    for (int i = 0; i < 7; i++) {
+      FlSpot spot = FlSpot(i.toDouble(), hrs[i]);
+      spots.add(spot);
+    }
+
+    return spots;
+  }
+
+  // Plot the progression of the hours of sleep
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final spots = [
-      const FlSpot(1, 7),
-      const FlSpot(2, 6.5),
-      const FlSpot(3, 8),
-      const FlSpot(4, 5.5),
-      const FlSpot(5, 7.5),
-      const FlSpot(6, 8.2),
-      const FlSpot(7, 7),
-    ];
+    final hoursOfSleep = getHoursOfSleep(sleepData);
+    final labels = getLabels(sleepData);
+
+    final spots = getSpots(hoursOfSleep);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -62,16 +104,17 @@ class SleepChart extends StatelessWidget {
 
                 titlesData: FlTitlesData(
                   topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
+                    sideTitles: SideTitles(showTitles: false, interval: 1),
                   ),
 
                   rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
+                    sideTitles: SideTitles(showTitles: false, interval: 1),
                   ),
 
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
+                      interval: 1,
 
                       reservedSize: 35,
 
@@ -89,24 +132,14 @@ class SleepChart extends StatelessWidget {
 
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
+                      interval: 1,
                       showTitles: true,
 
                       getTitlesWidget: (value, meta) {
-                        const days = [
-                          "",
-                          "Mon",
-                          "Tue",
-                          "Wed",
-                          "Thu",
-                          "Fri",
-                          "Sat",
-                          "Sun",
-                        ];
-
                         return Text(
-                          days[value.toInt()],
+                          labels[value.toInt()],
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 12,
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         );
@@ -117,7 +150,7 @@ class SleepChart extends StatelessWidget {
 
                 lineBarsData: [
                   LineChartBarData(
-                    spots: spots,
+                    spots: spots, // Altezze
 
                     isCurved: true,
 

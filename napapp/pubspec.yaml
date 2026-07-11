@@ -48,3 +48,4 @@ flutter:
 
   assets:
     - assets/sleep_icon.png
+    - assets/profile_imm/

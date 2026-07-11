@@ -1,8 +1,37 @@
 import 'package:flutter/material.dart';
 import 'stats_card.dart';
+import 'package:napapp/models/sleep.dart';
 
 class StatsGrid extends StatelessWidget {
-  const StatsGrid({super.key});
+  final List<SleepData> sleepData;
+  final int nNaps = 2; // mock value, could be improved upon further development
+
+  const StatsGrid({super.key, required this.sleepData});
+
+  int avgSleepMin(List<SleepData> sleepData) {
+    int sumThisWeek = 0;
+    int countThisWeek = 0;
+
+    for (int i = 0; i < 7; i++) {
+      int? mins = sleepData[i].minutesAsleep;
+      if (mins != null) {
+        sumThisWeek += mins;
+        countThisWeek += 1;
+      }
+    }
+    int avgSleep = (sumThisWeek / countThisWeek).round();
+
+    return avgSleep;
+  }
+
+  String avgSleepMsg(List<SleepData> sleepData) {
+    int avgSleep = avgSleepMin(sleepData);
+
+    int hrs = (avgSleep / 60).floor();
+    int min = avgSleep % 60;
+
+    return "$hrs h $min m";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,29 +51,15 @@ class StatsGrid extends StatelessWidget {
       children: [
         StatCard(
           icon: Icons.nightlight_round,
-          title: "Average Sleep",
-          value: "7h 42m",
+          title: "Average Sleep (last 7 days)",
+          value: avgSleepMsg(sleepData),
           accentColor: colors.tertiary,
-        ),
-
-        StatCard(
-          icon: Icons.bedtime_rounded,
-          title: "Average Nap",
-          value: "24 min",
-          accentColor: colors.secondary,
-        ),
-
-        StatCard(
-          icon: Icons.bolt_rounded,
-          title: "Recovery",
-          value: "86%",
-          accentColor: Colors.green,
         ),
 
         StatCard(
           icon: Icons.calendar_month_rounded,
           title: "This Week",
-          value: "5 naps",
+          value: "$nNaps naps",
           accentColor: colors.secondary,
         ),
       ],
