@@ -37,7 +37,7 @@ class AppStrings {
   String get sdsSevere   => isEnglish ? 'Severe debt'    : 'Debito severo';
 
   // ---------------------------------------------------------------------------
-  // SCOPO PISOLINO (le chiavi 'Energie','Memoria','Riflessi' vengono da NapAlgorithm)
+  // SCOPO PISOLINO (le chiavi 'Energie','Focus','Riflessi' vengono da NapAlgorithm)
   // ---------------------------------------------------------------------------
   String translateScope(String key) {
     if (!isEnglish) return key;
