@@ -6,13 +6,15 @@ class WeeklyInsightCard extends StatelessWidget {
 
   const WeeklyInsightCard({super.key, required this.sleepData2weeks});
 
+  // Computes change in average minutes of sleep of the current and past week (current week is defined as the most recent 7 days)
   int avgChange(List<SleepData> sleepData2weeks) {
     int sumThisWeek = 0;
     int countThisWeek = 0;
 
     int sumLastWeek = 0;
     int countLastWeek = 0;
-
+    // Computes sum of minutes of sleep and number of days available in the LAST week
+    // LAST because the list of sleepData is ordered chronologically
     for (int i = 0; i < 7; i++) {
       int? mins = sleepData2weeks[i].minutesAsleep;
       if (mins != null) {
@@ -21,6 +23,7 @@ class WeeklyInsightCard extends StatelessWidget {
       }
     }
 
+    // Computes sum of minutes of sleep and number of days available in the RECENT week
     for (int i = 7; i < 13; i++) {
       int? mins = sleepData2weeks[i].minutesAsleep;
       if (mins != null) {
@@ -28,10 +31,12 @@ class WeeklyInsightCard extends StatelessWidget {
         countThisWeek += 1;
       }
     }
-
+    
+    // Compute averages
     double avgLastWeek = sumLastWeek / countLastWeek;
     double avgThisWeek = sumThisWeek / countThisWeek;
 
+    // Computes change and rounds to int
     return (avgThisWeek - avgLastWeek).round();
   }
 
@@ -44,6 +49,7 @@ class WeeklyInsightCard extends StatelessWidget {
     String howChange = "";
     Icon trendIcon;
 
+    // Messages and icon of the widget changing depending on if the change is positive, negative or 0
     if (avgMinChange > 0) {
       changeMsg = "Your sleep consistency improved this week!";
       howChange = "+$avgMinChange min average sleep";
