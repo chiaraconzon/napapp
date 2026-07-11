@@ -83,14 +83,12 @@ class PreferencesService {
   }
 
   //CALENDAR EVENTS
-  // A differenza della sleep cache (valida solo per il giorno corrente),
-  // gli eventi calendario vanno mantenuti indefinitamente: rappresentano
-  // tutte le attività inserite dall'utente (passate e future), e devono
-  // essere ricaricate identiche ad ogni riavvio dell'app.
+  // calendar events are stored indefinitely.
+  // They contain all past and future user activities and must be fully 
+  // restored on every app restart.
   //
-  // La mappa Map<DateTime, List<MyEvent>> viene serializzata in JSON come
-  // Map<String, List<...>>, con le date normalizzate in chiavi "yyyy-MM-dd"
-
+  // The Map<DateTime, List<MyEvent>> is serialized to JSON as
+  // Map<String, List<dynamic>>, using "yyyy-MM-dd" strings as keys.
   static const _keyCalendarEvents = 'calendar_events';
   static final DateFormat _eventDayFormat = DateFormat('yyyy-MM-dd');
 
