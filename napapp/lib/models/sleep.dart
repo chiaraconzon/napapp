@@ -1,6 +1,7 @@
 import 'package:napapp/services/impact.dart';
 import 'package:intl/intl.dart';
 
+// This class defines the object that will contain the data from the wearable device needed for the app
 class SleepData {
   final DateTime date;
   final DateTime? startTime;
@@ -14,6 +15,7 @@ class SleepData {
     required this.minutesAsleep,
   });
 
+  // Constructor from a json object
   SleepData.fromJson(String date, Map<String, dynamic> json)
     : date = DateFormat('yyyy-MM-dd').parse(date),
       // "startTime": "05-03 22:20:00"
@@ -21,12 +23,14 @@ class SleepData {
       endTime = _timeWithYear(date, json["endTime"]),
       minutesAsleep = json["minutesAsleep"];
 
+  // Constructor in case of missing data
   SleepData.missingData(String date)
     : date = DateFormat('yyyy-MM-dd').parse(date),
       startTime = null,
       endTime = null,
       minutesAsleep = null;
 
+  // Adds year to the DateTime object, needed for the StartTime and EndTime
   static DateTime _timeWithYear(String date, String dateTimeWithoutYear) {
     String year = date.substring(0, 4);
     // controllo per il caso 1 gennaio, nel quale startTime sarà nell'anno precedente
