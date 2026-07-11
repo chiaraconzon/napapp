@@ -38,7 +38,7 @@ class SleepChart extends StatelessWidget {
     return labels;
   }
 
-  // Create a list of spots for the plot, x label is 1:6, y label are the hours of sleep
+  // Create a list of spots for the plot, x label is 0:6, y label are the hours of sleep
   List<FlSpot> getSpots(List<double> hrs) {
     List<FlSpot> spots = [];
 
