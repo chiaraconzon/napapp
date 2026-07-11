@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 
-// =============================================================================
-// ENUM ZONA
-// =============================================================================
+//NAP ZONE
 enum NapZone { green, yellow, orange, red }
 
-// =============================================================================
-// RISULTATO ALGORITMO
-// =============================================================================
+// ALGORITHM RESULT
 class NapResult {
   final NapZone zone;
   final int napEffectiveMin;
@@ -32,9 +28,7 @@ class NapResult {
   });
 }
 
-// =============================================================================
-// LIMITI ZONE
-// =============================================================================
+// ZONE LIMITS
 class ZoneLimits {
   final int greenStart;
   final int greenEnd;
@@ -48,4 +42,5 @@ class ZoneLimits {
   });
 }
 
+// NAP STATUS
 enum NapStatus { suggested, running, completed, interrupted }
