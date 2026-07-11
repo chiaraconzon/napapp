@@ -11,38 +11,33 @@ class NapController {
   NapResult? napResult;
   ZoneLimits? zoneLimits;
   double sds = 0.0;
-  TimeOfDay? wakeUpTime; // orario di sveglia recuperato dal wearable, per la UI
+  TimeOfDay? wakeUpTime; // Wake-up time retrieved from wearable
 
   NapController({
     required this.globalEvents,
   });
 
-  /// Recupera i dati reali dal wearable via Impact e aggiorna napResult, zoneLimits e sds.
-  ///
-  /// I dati SDS / orario sveglia vengono recuperati al massimo una volta al
-  /// giorno: se già presenti in cache (shared_preferences — persistente
-  /// anche a riavvii dell'app e a ricreazioni di questo controller, es.
-  /// quando si modifica il calendario) si riusano senza toccare la rete;
-  /// altrimenti si prova il fetch da Impact. Se il wearable non ha ancora
-  /// sincronizzato, non si salva nulla in cache, così si riprova
-  /// automaticamente al prossimo refresh (tra un minuto).
-  ///
-  /// L'algoritmo (zone, orario pisolino suggerito) viene invece SEMPRE
-  /// ricalcolato ad ogni chiamata, perché dipende dall'ora corrente e
-  /// dagli eventi del calendario.
+   // Fetches real data from the wearable via Impact and updates the nap state.
+  
+  // Wearable data (SDS/wake-up time) is fetched at most once a day:
+  // - If found in local cache (SharedPreferences), it uses it.
+  // - If not, it attempts a network fetch. If the wearable hasn't synced yet, 
+  //   it skips caching so it can retry on the next refresh. 
+  // The algorithm itself (zones, suggested nap time) is always recomputed 
+  // on every call since it relies on the current time and calendar events.
   Future<void> refresh(DateTime now) async {
-    final key = DateTime(now.year, now.month, now.day); //uso come key il giorno
+    final key = DateTime(now.year, now.month, now.day); // Use today's date as cache key
 
     TimeOfDay? wakeUpToday;
     TimeOfDay? averageSchoolWakeUp;
     double? sdsReal;
     TimeOfDay? wakeUpForDebug;
 
+    //Try to read from local cache to avoid unnecessary network calls
     final cached = await _trySafeCacheRead(key);
 
     if (cached != null) {
-      // Dati di oggi già recuperati in precedenza: li riusiamo senza richiamare il server.
-      //va a vedere se è average o wakeuptime
+      // Cache hit: Use previously fetched data for today
       sdsReal = cached.sds;
       wakeUpForDebug = cached.wakeUpTime;
       if (cached.wakeUpTime != null) {
@@ -53,22 +48,17 @@ class NapController {
         }
       }
     } else {
-      // Nessuna cache valida per oggi: proviamo a recuperare i dati freschi.
+      // Cache miss: Fetch fresh data from the Impact server
       try {
         final recentSleep = await RecentSleep.create();
 
-        // SDS reale: getSleepDebt() restituisce minuti → converti in ore
-        // (0.0 = nessun debito, 1.5 = debito moderato → coerente con NapAlgorithm)
+        // Convert Sleep Debt from minutes to hours (0.0 = no debt)
         sdsReal = recentSleep.getSleepDebt() / 60.0;
 
         final hasRealData = recentSleep.wakeUpTime != null ||
             recentSleep.sleepDuration.any((d) => d != null);
 
-        // isWakeUpTimeAlternative() == true  → l'orario è quello del giorno
-        //   più recente (recent[0]), lo trattiamo come sveglia di "oggi".
-        // isWakeUpTimeAlternative() == false → è stato necessario risalire
-        //   a un giorno feriale precedente: lo trattiamo come media
-        //   scolastica (usata dall'algoritmo solo la domenica).
+        // Determine if the wake-up time is from today or a past school day average (take the value of a past day)
         bool isAverage = false;
         if (recentSleep.wakeUpTime != null) {
           final tod = TimeOfDay.fromDateTime(recentSleep.wakeUpTime!);
@@ -81,9 +71,8 @@ class NapController {
           }
         }
 
+        //Cache the fetched data if it's valid, locking it for the rest of the day
         if (hasRealData) {
-          // Dati reali trovati: li blocchiamo in cache per il resto del
-          // giorno, così non richiamiamo più Impact fino a domani.
           try {
             await PreferencesService.saveSleepCache(
               fetchDate: key,
@@ -97,17 +86,13 @@ class NapController {
             );
           }
         }
-        // Altrimenti (wearable non ancora sincronizzato): non salviamo
-        // nulla in cache, così si riprova automaticamente al prossimo
-        // refresh, finché i dati non saranno disponibili.
       } catch (e) {
-        // Server Impact non raggiungibile, non autorizzato o dati mancanti:
-        // si ricade sui valori di fallback già previsti dall'algoritmo,
-        // senza far crashare l'app. Si riproverà al prossimo refresh.
+        // Fallback: If network fails, silently proceed so the algorithm can use defaults
         debugPrint('Impact: impossibile recuperare i dati reali di sonno ($e)');
       }
     }
 
+    // Recompute the nap algorithm with the latest data and time
     final algo = NapAlgorithm(
       todayEvents: globalEvents[key] ?? [],
       wakeUpToday: wakeUpToday,
@@ -122,9 +107,7 @@ class NapController {
     wakeUpTime = wakeUpForDebug;
   }
 
-  // Lettura sicura della cache: se shared_preferences avesse un problema
-  // (raro), trattiamo la situazione come "nessuna cache", non come errore
-  // fatale — si passerà semplicemente al fetch da Impact qui sopra.
+  //Helper to safely read cache without crashing the app on SharedPreferences errors
   Future<SleepCache?> _trySafeCacheRead(DateTime day) async {
     try {
       return await PreferencesService.getSleepCacheIfSameDay(day);
