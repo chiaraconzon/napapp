@@ -7,6 +7,6 @@ class TimeUtils {
     return '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
   }
 
-  // Converts TimeOfDay into total minutes from midnight
+  // Converts TimeOfDay into total minutes
   static int toMin(TimeOfDay t) => t.hour * 60 + t.minute;
 }
