@@ -13,9 +13,7 @@ class StatsPage extends StatelessWidget {
 
   StatsPage({
     super.key,
-    required this.sleepData
-    });
-
+    required this.sleepData});
   final List<FlSpot> sampleData = [
     const FlSpot(1, 3), // Lunedì: 3 attività
     const FlSpot(2, 5), // Martedì: 5 attività
