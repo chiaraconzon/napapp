@@ -46,7 +46,7 @@ class _HomePageState extends State<HomePage> {
 
   // async perché NapController.refresh() chiama il wearable via await
   Future<void> _refresh() async {
-    final now = DateTime.now();
+    final now = DateTime.now().subtract(Duration(days: 1));
     await _controller.refresh(now);
     if (mounted) setState(() {});
   }
@@ -726,7 +726,7 @@ class _HomePageState extends State<HomePage> {
   // -----------------------------------------------------------------------
   Widget _homeWidget() {
     final s = AppStrings(_isEnglish);
-    final now = DateTime.now();
+    final now = DateTime.now().subtract(Duration(days: 1));
     final key = DateTime(now.year, now.month, now.day);
     final eventiOggi = List<MyEvent>.from(globalEvents[key] ?? [])
       ..sort((a, b) {
