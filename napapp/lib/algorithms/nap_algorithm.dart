@@ -128,10 +128,7 @@ class NapAlgorithm {
     if (_effectiveWakeUp == null) {
       const fixedYellowEnd = 16 * 60; // 16:00
       // orangeEnd = yellowEnd + 90min, max 19:00
-      final orangeEnd = (fixedYellowEnd + 90).clamp(
-        fixedYellowEnd,
-        hm(19, 0),
-      ); //17:30
+      final orangeEnd = fixedYellowEnd + 90; //17:30
       if (zoneStart >= orangeEnd) return allRed(orangeEnd);
       // greenEnd e yellowEnd non possono scendere sotto zoneStart
       final greenEnd = zoneStart > hm(15, 0) ? zoneStart : hm(15, 0);
