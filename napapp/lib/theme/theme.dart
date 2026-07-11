@@ -190,11 +190,13 @@ class MaterialTheme {
       onError: Color(0xff680010),
       errorContainer: Color(0xffff6b6c),
       onErrorContainer: Color(0xff6d0011),
-      surface: Color(0xff141313),
-      onSurface: Color(0xffe5e2e1),
-      onSurfaceVariant: Color(0xffc8c5cd),
-      outline: Color(0xff919097),
-      outlineVariant: Color(0xff47464c),
+
+      // 🌙 NUOVA PALETTE NIGHT MODE
+      surface: Color(0xff121326),
+      onSurface: Color(0xffeeeef7),
+      onSurfaceVariant: Color(0xffc7c5d8),
+      outline: Color(0xff918fa8),
+      outlineVariant: Color(0xff46445f),
       shadow: Color(0xff000000),
       scrim: Color(0xff000000),
       inverseSurface: Color(0xffe5e2e1),
@@ -211,13 +213,15 @@ class MaterialTheme {
       onTertiaryFixed: Color(0xff281900),
       tertiaryFixedDim: Color(0xfff9bc4f),
       onTertiaryFixedVariant: Color(0xff604100),
-      surfaceDim: Color(0xff141313),
-      surfaceBright: Color(0xff3a3938),
-      surfaceContainerLowest: Color(0xff0e0e0e),
-      surfaceContainerLow: Color(0xff1c1b1b),
-      surfaceContainer: Color(0xff201f1f),
-      surfaceContainerHigh: Color(0xff2a2a29),
-      surfaceContainerHighest: Color(0xff353534),
+
+      // 🌌 livelli delle card
+      surfaceDim: Color(0xff101021),
+      surfaceBright: Color(0xff3b3955),
+      surfaceContainerLowest: Color(0xff0c0d1c),
+      surfaceContainerLow: Color(0xff19182b),
+      surfaceContainer: Color(0xff23213d),
+      surfaceContainerHigh: Color(0xff2d2a4b),
+      surfaceContainerHighest: Color(0xff38345b),
     );
   }
 
@@ -335,22 +339,19 @@ class MaterialTheme {
     return theme(darkHighContrastScheme());
   }
 
-
   ThemeData theme(ColorScheme colorScheme) => ThemeData(
-     useMaterial3: true,
-     brightness: colorScheme.brightness,
-     colorScheme: colorScheme,
-     textTheme: textTheme.apply(
-       bodyColor: colorScheme.onSurface,
-       displayColor: colorScheme.onSurface,
-     ),
-     scaffoldBackgroundColor: colorScheme.background,
-     canvasColor: colorScheme.surface,
+    useMaterial3: true,
+    brightness: colorScheme.brightness,
+    colorScheme: colorScheme,
+    textTheme: textTheme.apply(
+      bodyColor: colorScheme.onSurface,
+      displayColor: colorScheme.onSurface,
+    ),
+    scaffoldBackgroundColor: colorScheme.background,
+    canvasColor: colorScheme.surface,
   );
 
-
-  List<ExtendedColor> get extendedColors => [
-  ];
+  List<ExtendedColor> get extendedColors => [];
 }
 
 class ExtendedColor {
