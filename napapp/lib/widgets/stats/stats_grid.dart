@@ -8,6 +8,7 @@ class StatsGrid extends StatelessWidget {
 
   const StatsGrid({super.key, required this.sleepData});
 
+  // Computes average minutes of sleep of the past 7 days
   int avgSleepMin(List<SleepData> sleepData) {
     int sumThisWeek = 0;
     int countThisWeek = 0;
@@ -23,7 +24,8 @@ class StatsGrid extends StatelessWidget {
 
     return avgSleep;
   }
-
+  
+  // Computes string that displays the average in hours and minutes
   String avgSleepMsg(List<SleepData> sleepData) {
     int avgSleep = avgSleepMin(sleepData);
 
@@ -49,13 +51,14 @@ class StatsGrid extends StatelessWidget {
       childAspectRatio: 1.35,
 
       children: [
+        // Displays the sleep average of the past 7 days
         StatCard(
           icon: Icons.nightlight_round,
           title: "Average Sleep (last 7 days)",
           value: avgSleepMsg(sleepData),
           accentColor: colors.tertiary,
         ),
-
+        // Displays number of naps of the week (mock value: point of possible future developments)
         StatCard(
           icon: Icons.calendar_month_rounded,
           title: "This Week",
