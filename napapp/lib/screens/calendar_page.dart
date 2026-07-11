@@ -3,22 +3,19 @@ import 'package:table_calendar/table_calendar.dart';
 import 'app_strings.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
-// =============================================================================
-// MODELLO DATI
-// =============================================================================
+//DATA MODEL
 
-/// Rappresenta un singolo evento nel calendario.
-/// Gli eventi di una serie ricorrente condividono lo stesso [groupId];
-/// ogni occorrenza ha però un [id] univoco (formato "timestamp-i").
+// Represents a single calendar event.
+// Recurring events share the same [groupId], but each occurrence has a unique [id].
 class MyEvent {
-  String id; // ID univoco della singola occorrenza (es. "2024-...-0")
-  String groupId; // ID condiviso da tutte le ripetizioni dello stesso evento
+  String id; // ID univoco
+  String groupId; // ID condiviso
   String title;
   String category; // Lezione | Pranzo | Studio | Allenamento | Altro
   TimeOfDay startTime;
   TimeOfDay endTime;
   Color color;
-  final bool isRecurring; // true se fa parte di una serie ricorrente
+  final bool isRecurring; // true if it is a recurring event
 
   MyEvent({
     required this.id,
@@ -31,8 +28,7 @@ class MyEvent {
     this.isRecurring = false,
   });
 
-  /// Serializza l'evento in una mappa JSON-compatibile, usata da
-  /// [EventsStorageService] per salvare gli eventi in SharedPreferences.
+  // JSON Serialization: Required to save/load events via SharedPreferences.
   Map<String, dynamic> toJson() => {
     'id': id,
     'groupId': groupId,
@@ -46,7 +42,7 @@ class MyEvent {
     'isRecurring': isRecurring,
   };
 
-  /// Ricostruisce un [MyEvent] a partire dalla mappa prodotta da [toJson].
+  // Deserializes JSON back into a MyEvent object.
   factory MyEvent.fromJson(Map<String, dynamic> json) => MyEvent(
     id: json['id'] as String,
     groupId: json['groupId'] as String,
@@ -65,13 +61,9 @@ class MyEvent {
   );
 }
 
-// =============================================================================
-// WIDGET PRINCIPALE
-// =============================================================================
-
-/// Pagina del calendario. Riceve la mappa degli eventi da HomePage tramite
-/// [eventsMap] e notifica ogni modifica tramite [onEventsUpdated], così
-/// HomePage può ricalcolare immediatamente la predizione del pisolino.
+// MAIN WIDGET
+// Calendar UI. Receives [eventsMap] and triggers [onEventsUpdated] 
+// on changes to recalculate the Nap algorithm in HomePage.
 class CalendarPage extends StatefulWidget {
   final Map<DateTime, List<MyEvent>> eventsMap;
   final Function(Map<DateTime, List<MyEvent>>) onEventsUpdated;
@@ -92,10 +84,10 @@ class _CalendarPageState extends State<CalendarPage> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now().subtract(
     Duration(days: 1),
-  ); // giorno visibile al centro del calendario
-  DateTime? _selectedDay; // giorno selezionato dall'utente
+  ); //focused day
+  DateTime? _selectedDay; // selected day
 
-  /// Palette colori assegnabili agli eventi
+  // Default color palette
   final List<Color> _colors = [
     Colors.blue,
     Colors.pinkAccent,
@@ -105,7 +97,7 @@ class _CalendarPageState extends State<CalendarPage> {
     const Color.fromARGB(255, 243, 115, 222),
   ];
 
-  /// Categorie disponibili per gli eventi
+  // Core categories
   final List<String> _categories = [
     "Lezione",
     "Pranzo",
@@ -117,23 +109,19 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   void initState() {
     super.initState();
-    // Al primo avvio il giorno selezionato coincide con oggi
-    _selectedDay = _focusedDay;
+    _selectedDay = _focusedDay; //default
   }
 
-  // ---------------------------------------------------------------------------
-  // UTILITY
-  // ---------------------------------------------------------------------------
 
-  /// Formatta un [TimeOfDay] come "HH:MM" con zero padding (formato 24h)
+  // UTILITY
+  // Formats TimeOfDay to "HH:MM" 24h string.
   String _formatTime24h(TimeOfDay time) {
     final hours = time.hour.toString().padLeft(2, '0');
     final minutes = time.minute.toString().padLeft(2, '0');
     return "$hours:$minutes";
   }
 
-  /// Restituisce gli eventi del giorno [day] ordinati per orario di inizio.
-  /// Usato sia da [eventLoader] (marker sul calendario) sia da [_buildEventList].
+  // Retrieves and chronologically sorts events for a specific day.
   List<MyEvent> _getSortedEvents(DateTime day) {
     final key = DateTime(day.year, day.month, day.day);
     final events = widget.eventsMap[key] ?? [];
@@ -145,26 +133,23 @@ class _CalendarPageState extends State<CalendarPage> {
     return events;
   }
 
-  // ---------------------------------------------------------------------------
-  // BUILD PRINCIPALE
-  // ---------------------------------------------------------------------------
-
+  // MAIN BUILD 
   @override
   Widget build(BuildContext context) {
     final s = AppStrings(widget.isEnglish);
     return Column(
       children: [
         SizedBox(height: 50),
-        // --- Calendario (TableCalendar) ---
+        //Core calendar widget
         TableCalendar<MyEvent>(
           firstDay: DateTime.utc(2025, 1, 1),
           lastDay: DateTime.utc(2030, 12, 31),
           focusedDay: _focusedDay,
           calendarFormat: _calendarFormat,
 
-          startingDayOfWeek: StartingDayOfWeek
-              .monday, //vogliamo che il calendario inizi da lunedì
-          //due possibili formati (settimanale e mensile)
+          startingDayOfWeek: StartingDayOfWeek.monday, //calendar starts from monday
+          
+          //two possible formats (weekly and monthly)
           availableCalendarFormats: {
             CalendarFormat.month: s.monthFormat,
             CalendarFormat.week: s.weekFormat,
@@ -188,6 +173,13 @@ class _CalendarPageState extends State<CalendarPage> {
             rightChevronPadding: const EdgeInsets.all(4.0),
           ),
 
+          // Fixes text color for weekdays in dark mode
+          calendarStyle: CalendarStyle(
+            weekendTextStyle: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          
           selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
 
           onDaySelected: (sel, foc) => setState(() {
@@ -228,7 +220,7 @@ class _CalendarPageState extends State<CalendarPage> {
               );
             },
 
-            //visualizzare i puntini evento sotto al giorno corrispondente (ne visualizza al massimo 4)
+            // Draws up to 4 colored dots under days with events
             markerBuilder: (context, date, events) {
               if (events.isEmpty) return null;
               return Row(
@@ -254,8 +246,10 @@ class _CalendarPageState extends State<CalendarPage> {
 
         const Divider(),
 
+        // Daily agenda list
         Expanded(child: _buildEventList()),
 
+        // Add Activity button
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: FloatingActionButton.extended(
@@ -268,12 +262,9 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // LISTA EVENTI
-  // ---------------------------------------------------------------------------
-
-  /// Lista cronologica degli eventi del giorno selezionato.
-  /// Ogni riga mostra: pallino colorato | titolo | categoria e orari | modifica/elimina.
+  // EVENT LIST VIEW
+  // Renders the chronological list of events for the selected day.
+  // Each row displays: colored dot | title | category & times | edit/delete.
   Widget _buildEventList() {
     final s = AppStrings(widget.isEnglish);
     final list = _getSortedEvents(_selectedDay!);
@@ -294,13 +285,12 @@ class _CalendarPageState extends State<CalendarPage> {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Apre il foglio di modifica pre-compilato con i dati dell'evento
-              //(non posso variare la tipologia di evento, nè la ripetizione)
+              // modify event button
               IconButton(
                 icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
                 onPressed: () => _showAddSheet(eventToEdit: ev),
               ),
-              // Apre il dialog di conferma eliminazione
+              // delete event button
               IconButton(
                 icon: const Icon(Icons.delete_outline, size: 20),
                 onPressed: () => _showDeleteDialog(ev),
@@ -312,40 +302,27 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // FOGLIO DI INSERIMENTO / MODIFICA
-  // ---------------------------------------------------------------------------
 
-  /// Mostra il bottom sheet per creare o modificare un evento.
-  ///
-  /// Modalità creazione ([eventToEdit] == null):
-  ///   - tutti i campi vuoti/default
-  ///   - selettore ripetizione visibile
-  ///   - bottone "SALVA ATTIVITÀ"
-  ///
-  /// Modalità modifica ([eventToEdit] != null):
-  ///   - campi pre-compilati con i dati esistenti
-  ///   - categoria bloccata (non modificabile)
-  ///   - selettore ripetizione nascosto
-  ///   - bottone "AGGIORNA"
+  // ADD / EDIT BOTTOM SHEET
+  // Shows the bottom sheet to Create (eventToEdit == null) or Edit events
   void _showAddSheet({MyEvent? eventToEdit}) {
     final strings = AppStrings(widget.isEnglish);
     final bool isEditing = eventToEdit != null;
+    //Initialize form state
     String selectedCat = isEditing ? eventToEdit.category : _categories[0];
     final tCtrl = TextEditingController(
       text: isEditing ? eventToEdit.title : "",
     );
     TimeOfDay startTime = isEditing ? eventToEdit.startTime : TimeOfDay.now();
-    // Fine di default = inizio + 1 ora (con wrap alle 24h tramite % 24)
+    // default end = start + 1h 
     TimeOfDay endTime = isEditing
         ? eventToEdit.endTime
         : TimeOfDay(hour: (startTime.hour + 1) % 24, minute: startTime.minute);
     Color selCol = isEditing ? eventToEdit.color : _colors[0];
-    String repetition = 'Singola'; // chiave interna, sempre in italiano
+    String repetition = 'Singola'; //key
 
-    // --- NUOVO: Lista colori temporanea per questa singola apertura del foglio ---
+    // Store custom colors picked during this session
     List<Color> localColors = List.from(_colors);
-    // Se stiamo modificando un evento con un colore custom, lo aggiungiamo temporaneamente
     if (isEditing && !localColors.contains(selCol)) {
       localColors.add(selCol);
     }
@@ -353,20 +330,18 @@ class _CalendarPageState extends State<CalendarPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled:
-          true, // permette al foglio di crescere con la tastiera
+          true, // allow scrolling
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => StatefulBuilder(
-        // StatefulBuilder necessario: il foglio gestisce il proprio stato interno
-        // (categoria, orari, colore, ripetizione) separato da quello della pagina
         builder: (ctx, setSt) => Stack(
           children: [
             Padding(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(
                   ctx,
-                ).viewInsets.bottom, // evita la tastiera
+                ).viewInsets.bottom, 
                 left: 20,
                 right: 20,
                 top: 20,
@@ -376,7 +351,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Titolo del foglio
+                    // Title
                     Center(
                       child: Text(
                         isEditing ? strings.editDetails : strings.newActivity,
@@ -388,8 +363,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     ),
                     const SizedBox(height: 25),
 
-                    // --- Selezione categoria (chip) ---
-                    // In modifica i chip sono disabilitati: la categoria non può cambiare
+                    // Category Selection (Disabled during edit)
                     Text(
                       strings.category,
                       style: const TextStyle(
@@ -403,11 +377,11 @@ class _CalendarPageState extends State<CalendarPage> {
                       children: _categories.map((cat) {
                         final isSelected = selectedCat == cat;
                         return ChoiceChip(
-                          // cat è la chiave interna in italiano; la label è tradotta
+                          // cat is a key
                           label: Text(strings.categoryDisplay(cat)),
                           selected: isSelected,
                           onSelected: isEditing
-                              ? null // null disabilita il chip in modifica
+                              ? null // null disable modifing chip
                               : (selected) {
                                   if (selected) setSt(() => selectedCat = cat);
                                 },
@@ -416,8 +390,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     ),
                     const SizedBox(height: 20),
 
-                    // --- Titolo opzionale ---
-                    // Se lasciato vuoto, al salvataggio viene usato il nome della categoria
+                    // Optional title 
                     Text(
                       strings.titleOpt,
                       style: const TextStyle(
@@ -437,8 +410,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     ),
                     const SizedBox(height: 20),
 
-                    // --- Selezione orari inizio / fine (time picker 24h) ---
-                    // Toccare "Inizio" aggiorna automaticamente "Fine" a +1h
+                    // Time Pickers (Auto-updates end time based on start time (1h after))
                     Row(
                       children: [
                         Expanded(
@@ -490,8 +462,8 @@ class _CalendarPageState extends State<CalendarPage> {
                       ],
                     ),
 
-                    // --- Ripetizione (solo in creazione, nascosto in modifica) ---
-                    // Singola | Giornaliera (30gg) | Settimanale (12 sett.) | Mensile (6 mesi)
+                  // Repetition (Hidden during edit)
+                  // Singola | Giornaliera (30gg) | Settimanale (12 sett.) | Mensile (6 mesi)
                     if (!isEditing) ...[
                       const SizedBox(height: 20),
                       Text(
@@ -506,8 +478,6 @@ class _CalendarPageState extends State<CalendarPage> {
                         isExpanded: true,
                         items: ['Singola', 'Giornaliera', 'Settimanale', 'Mensile']
                             .map(
-                              // value resta la chiave italiana (usata da _save),
-                              // il testo mostrato è tradotto
                               (key) => DropdownMenuItem(
                                 value: key,
                                 child: Text(strings.repetitionDisplay(key)),
@@ -519,8 +489,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     ],
                     const SizedBox(height: 20),
 
-                    // --- Selezione colore (riga di pallini scrollabile) ---
-                    // Il pallino selezionato ha un bordo nero
+                    //Color Picker
                     Text(
                       strings.colorLabel,
                       style: const TextStyle(
@@ -534,7 +503,6 @@ class _CalendarPageState extends State<CalendarPage> {
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         children: [
-                          // 1. Usa localColors invece di _colors
                           ...localColors.map(
                             (c) => GestureDetector(
                               onTap: () => setSt(() => selCol = c),
@@ -557,7 +525,7 @@ class _CalendarPageState extends State<CalendarPage> {
                             ),
                           ),
 
-                          // 2. Cerchio arcobaleno per il Color Picker
+                          // icon for colorpicker
                           GestureDetector(
                             onTap: () {
                               showDialog(
@@ -587,7 +555,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                         onPressed: () {
                                           setSt(() {
                                             selCol = tempColor;
-                                            // Aggiungiamo il colore alla lista LOCALE, non a quella globale
+                                            // Add the color to the local list
                                             if (!localColors.contains(
                                               tempColor,
                                             )) {
@@ -634,10 +602,10 @@ class _CalendarPageState extends State<CalendarPage> {
                           ),
                         ],
                       ),
-                    ), //parte rifatta
+                    ), 
                     const SizedBox(height: 25),
 
-                    // --- Bottone SALVA / AGGIORNA ---
+                    // Save / Update Button
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 55),
@@ -646,7 +614,7 @@ class _CalendarPageState extends State<CalendarPage> {
                         ),
                       ),
                       onPressed: () {
-                        // Validazione 1: fine deve essere strettamente dopo inizio
+                        // Validate timeframe (end must be after start)
                         final startMin = startTime.hour * 60 + startTime.minute;
                         final endMin = endTime.hour * 60 + endTime.minute;
                         if (endMin <= startMin) {
@@ -654,15 +622,14 @@ class _CalendarPageState extends State<CalendarPage> {
                           return;
                         }
 
-                        // Validazione 2: Pranzo può essere inserito una sola volta per giorno.
-                        // Controlla tutti i giorni coperti dalla ripetizione scelta.
+                        // Ensure max 1 Lunch per day across all recurring dates (paying aldo attention to repetitive events)
                         if (selectedCat == "Pranzo") {
                           bool conflictFound = false;
                           int daysToCheck = 1;
                           if (!isEditing) {
-                            if (repetition == 'Giornaliera') daysToCheck = 30;
-                            if (repetition == 'Settimanale') daysToCheck = 12;
-                            if (repetition == 'Mensile') daysToCheck = 6;
+                            if (repetition == 'Giornaliera') daysToCheck = 30; // 30 days
+                            if (repetition == 'Settimanale') daysToCheck = 12; // 12 weeks
+                            if (repetition == 'Mensile') daysToCheck = 6; // 6 months
                           }
 
                           for (int i = 0; i < daysToCheck; i++) {
@@ -678,8 +645,7 @@ class _CalendarPageState extends State<CalendarPage> {
                             final key = DateTime(d.year, d.month, d.day);
                             final existingEvents = widget.eventsMap[key] ?? [];
 
-                            // Esclude l'evento corrente dal controllo duplicati
-                            // (altrimenti in modifica troverebbe sé stesso come conflitto)
+                            // Don't consider the current event
                             if (existingEvents.any(
                               (e) =>
                                   e.category == "Pranzo" &&
@@ -696,14 +662,14 @@ class _CalendarPageState extends State<CalendarPage> {
                           }
                         }
 
-                        // Se il titolo è vuoto usa il nome della categoria (tradotto) come fallback
+                        // If title is empy, use the category
                         String finalTitle = tCtrl.text.trim().isEmpty
                             ? strings.categoryDisplay(selectedCat)
                             : tCtrl.text;
 
                         if (isEditing) {
                           if (eventToEdit.isRecurring) {
-                            // Evento ricorrente → chiede se aggiornare solo questo o tutti
+                            // reccurent event → ask if upload only this or all the repetitions
                             _showUpdateOptionDialog(
                               eventToEdit,
                               finalTitle,
@@ -740,10 +706,10 @@ class _CalendarPageState extends State<CalendarPage> {
                     const SizedBox(height: 20),
                   ],
                 ),
-              ), // SingleChildScrollView
+              ), 
             ),
 
-            // Bottone X in alto a destra per chiudere il foglio senza salvare
+            // X button to close the window
             Positioned(
               right: 10,
               top: 10,
@@ -758,11 +724,9 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // DIALOGS
-  // ---------------------------------------------------------------------------
 
-  /// Dialog di errore generico con un solo bottone "HO CAPITO" / "GOT IT".
+  // DIALOGS
+  // Generic error pop-up "HO CAPITO" / "GOT IT".
   void _showErrorDialog(BuildContext ctx, String message) {
     final s = AppStrings(widget.isEnglish);
     showDialog(
@@ -786,8 +750,7 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  /// Dialog per eventi ricorrenti in modifica.
-  /// L'utente sceglie se applicare la modifica solo a questa occorrenza o a tutte.
+  // Asks to update a single occurrence or the whole recurring series
   void _showUpdateOptionDialog(
     MyEvent ev,
     String title,
@@ -805,8 +768,8 @@ class _CalendarPageState extends State<CalendarPage> {
           TextButton(
             onPressed: () {
               _applySingleUpdate(ev, title, start, end, col);
-              Navigator.pop(ctx); // chiude il dialog
-              Navigator.pop(context); // chiude il bottom sheet
+              Navigator.pop(ctx); // close the dialog
+              Navigator.pop(context); //close the bottom sheet
             },
             child: Text(s.thisOne),
           ),
@@ -823,9 +786,7 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  /// Dialog di eliminazione.
-  /// Per eventi ricorrenti mostra il bottone "TUTTE" (in rosso) che rimuove
-  /// tutte le occorrenze con lo stesso [groupId].
+  // Deletes a single occurrence or the entire series (same groupID).
   void _showDeleteDialog(MyEvent ev) {
     final s = AppStrings(widget.isEnglish);
     showDialog(
@@ -838,7 +799,7 @@ class _CalendarPageState extends State<CalendarPage> {
             onPressed: () => Navigator.pop(ctx),
             child: Text(s.cancel),
           ),
-          // Elimina solo l'occorrenza corrente (per id)
+          // delete a single one (ID)
           TextButton(
             onPressed: () {
               setState(
@@ -855,12 +816,12 @@ class _CalendarPageState extends State<CalendarPage> {
             },
             child: Text(s.thisActivity),
           ),
-          // Mostrato solo per eventi ricorrenti: elimina tutte le occorrenze
+          // Show ongly for reccurent events: delete all the occurrences
           if (ev.isRecurring)
             TextButton(
               onPressed: () {
                 setState(() {
-                  // Scorre tutta la mappa e rimuove ogni evento con lo stesso groupId
+                  // delete each event with the same groupId
                   widget.eventsMap.values.forEach(
                     (list) => list.removeWhere((e) => e.groupId == ev.groupId),
                   );
@@ -878,12 +839,8 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // OPERAZIONI SUGLI EVENTI
-  // ---------------------------------------------------------------------------
-
-  /// Aggiorna titolo, orari e colore di un singolo evento (per [id]).
-  /// Usato sia per eventi singoli sia per la scelta "SOLO QUESTO" nei ricorrenti.
+  // STATE MUTATIONS & SAVE LOGIC
+  // Updates a single event and triggers global refresh.
   void _applySingleUpdate(
     MyEvent ev,
     String title,
@@ -900,8 +857,7 @@ class _CalendarPageState extends State<CalendarPage> {
     widget.onEventsUpdated(widget.eventsMap);
   }
 
-  /// Aggiorna titolo, orari e colore di tutti gli eventi con lo stesso [gId].
-  /// Usato per la scelta "TUTTI" negli eventi ricorrenti.
+  // Updates all events sharing the same groupId.
   void _applyGroupUpdate(
     String gId,
     String title,
@@ -924,6 +880,7 @@ class _CalendarPageState extends State<CalendarPage> {
     widget.onEventsUpdated(widget.eventsMap);
   }
 
+  // Time Picker boxes.
   Widget _timeBox(String label, TimeOfDay time) {
     return Builder(
       builder: (context) {
@@ -963,13 +920,8 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  /// Salva uno o più eventi in base alla [repetition] scelta.
-  /// Tutti gli eventi di una serie condividono lo stesso [groupId] (= timestamp).
-  ///
-  /// Contatori di ripetizione:
-  ///   Giornaliera  → 30 occorrenze (~1 mese)
-  ///   Settimanale  → 12 occorrenze (~3 mesi)
-  ///   Mensile      → 6  occorrenze (~6 mesi)
+  // Generates and saves single or multiple recurring events based on the repetition rule.
+  void _save(
   void _save(
     String t,
     String cat,
@@ -980,7 +932,7 @@ class _CalendarPageState extends State<CalendarPage> {
   ) {
     final gid = DateTime.now()
         .subtract(Duration(days: 1))
-        .toString(); // groupId univoco basato sul timestamp
+        .toString(); // groupId 
     int count = 1;
     if (r == 'Giornaliera') count = 30;
     if (r == 'Settimanale') count = 12;
@@ -988,18 +940,18 @@ class _CalendarPageState extends State<CalendarPage> {
 
     setState(() {
       for (int i = 0; i < count; i++) {
-        // Calcola la data dell'i-esima occorrenza
+        // Calculate the date
         DateTime d = _selectedDay!;
         if (r == 'Giornaliera') d = d.add(Duration(days: i));
         if (r == 'Settimanale') d = d.add(Duration(days: 7 * i));
         if (r == 'Mensile') d = DateTime(d.year, d.month + i, d.day);
 
-        // Normalizza la chiave a mezzanotte (senza ore/minuti/secondi)
+        // Normalized the key
         final key = DateTime(d.year, d.month, d.day);
         widget.eventsMap.putIfAbsent(key, () => []);
         widget.eventsMap[key]!.add(
           MyEvent(
-            id: "$gid-$i", // id univoco per ogni occorrenza della serie
+            id: "$gid-$i", // unique id for each occorrence of the repetition
             groupId: gid,
             title: t,
             category: cat,
