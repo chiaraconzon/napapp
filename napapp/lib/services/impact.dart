@@ -34,10 +34,10 @@ class Impact {
     final body = {'username': Impact.username, 'password': Impact.password};
 
     //Get the response
-    print('Calling: $url');
+    //print('Calling: $url');
     final response = await http.post(Uri.parse(url), body: body);
-    print('authorize() status: ${response.statusCode}');
-    print('authorize() body: ${response.body}');
+    //print('authorize() status: ${response.statusCode}');
+    //print('authorize() body: ${response.body}');
 
     //If 200, set the token
     if (response.statusCode == 200) {
@@ -55,7 +55,7 @@ class Impact {
   static Future<SleepData> requestSleepData(String day) async {
     //Initialize the result
     SleepData result;
-    print('ha chiamato request data');
+    //print('ha chiamato request data');
 
     //Get the stored access token (Note that this code does not work if the tokens are null)
     final sp = await SharedPreferences.getInstance();
@@ -64,7 +64,9 @@ class Impact {
     //If access token is expired, refresh it
     if (access == null) {
       await authorize();
-      access = sp.getString('access'); // BUGFIX: prima non veniva riletto -> header "Bearer null"
+      access = sp.getString(
+        'access',
+      ); // BUGFIX: prima non veniva riletto -> header "Bearer null"
     } else if (isExpired(access)) {
       final refreshStatus = await _refreshTokens();
       if (refreshStatus != 200) {
@@ -84,7 +86,9 @@ class Impact {
     // Se dopo l'autenticazione il token è ancora nullo (es. credenziali errate),
     // fallisci subito con un errore chiaro invece di mandare "Bearer null" al server.
     if (access == null) {
-      throw Exception("Error: unable to authenticate with IMPACT (check credentials).");
+      throw Exception(
+        "Error: unable to authenticate with IMPACT (check credentials).",
+      );
     }
 
     //Create the (representative) request
@@ -94,14 +98,14 @@ class Impact {
     final headers = {HttpHeaders.authorizationHeader: 'Bearer $access'};
 
     //Get the response
-    print('Calling: $url');
+    //print('Calling: $url');
     final response = await http.get(Uri.parse(url), headers: headers);
-    print('requestSleepData($day) status: ${response.statusCode}');
-    print('requestSleepData($day) body: ${response.body}');
+    //print('requestSleepData($day) status: ${response.statusCode}');
+    //print('requestSleepData($day) body: ${response.body}');
 
     //if OK parse the response, otherwise return null
     if (response.statusCode == 200) {
-      print('response code 200');
+      //print('response code 200');
       final decodedResponse = jsonDecode(response.body);
       try {
         result = SleepData.fromJson(
@@ -130,7 +134,7 @@ class Impact {
     final body = {'refresh': refresh};
 
     //Get the respone
-    print('Calling: $url');
+    //print('Calling: $url');
     final response = await http.post(Uri.parse(url), body: body);
 
     //If 200 set the tokens

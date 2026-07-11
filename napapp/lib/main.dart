@@ -7,21 +7,16 @@ import 'theme/theme.dart';
 import 'screens/home_page.dart';
 
 void main() async {
-  // Necessario perché SharedPreferences (usato da loadSavedTheme) fa
-  // chiamate a piattaforma prima che runApp() abbia inizializzato i binding.
+  // Initialize system bindings (required to read async data before startup).
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Carica il tema salvato nella sessione precedente PRIMA di disegnare la
-  // UI, così l'app parte già con il tema giusto invece di lampeggiare
-  // prima su ThemeMode.system e poi passare al tema corretto.
+  // Load the saved theme BEFORE drawing the UI.
   final themeProvider = ThemeProvider();
   await themeProvider.loadSavedTheme();
 
+  // Run the app, making the ThemeProvider accessible to all screens.
   runApp(
-    ChangeNotifierProvider.value(
-      value: themeProvider,
-      child: const MyApp(),
-    ),
+    ChangeNotifierProvider.value(value: themeProvider, child: const MyApp()),
   );
 }
 
@@ -30,6 +25,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Listen for changes: if the theme is modified, the UI rebuilds automatically.
     final themeProvider = context.watch<ThemeProvider>();
 
     final textTheme = createTextTheme(context, "Noto Sans", "Noto Sans");
@@ -37,10 +33,13 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+
+      // Apply the generated themes and set the user's chosen mode.
       theme: theme.light(),
       darkTheme: theme.dark(),
       themeMode: themeProvider.themeMode,
 
+      // Define the initial page and navigation routes.
       home: LoginPage(),
 
       routes: {'/homepage': (context) => const HomePage()},

@@ -7,12 +7,15 @@ import 'calendar_page.dart';
 import 'stats_page.dart';
 import 'login_page.dart';
 import 'app_strings.dart';
+import 'profile_page.dart';
 
 import '../models/nap_models.dart';
+import '../models/sleep.dart';
 import '../utils/time_utils.dart';
 import '../utils/timeline_utils.dart';
 import '../controllers/nap_controller.dart';
 import '../services/preferences_service.dart';
+import '../services/impact.dart';
 import '../widgets/home/tutorial_dialog.dart';
 import '../widgets/home/nap_card.dart';
 import '../widgets/home/sds_reward.dart';
@@ -43,12 +46,61 @@ class _HomePageState extends State<HomePage> {
   int selectedAlarm = 1;
   bool _isEnglish = false;
   Timer? _napTimer;
+  String _profileName = "Utente";
+  int _profileImage = 0;
+
+  Map<DateTime, SleepData> globalSleepData = {};
+  List<SleepData> globalSleepDataList = [];
+
+  Future<void> _loadProfileName() async {
+    final saved = await PreferencesService.loadProfileName();
+
+    if (!mounted) return;
+
+    setState(() {
+      _profileName = saved;
+    });
+  }
+
+  Future<void> _loadProfileImage() async {
+    final image = await PreferencesService.loadProfileImage();
+
+    if (!mounted) return;
+
+    setState(() {
+      _profileImage = image;
+    });
+  }
+
+  Future<void> _loadProfile() async {
+    final name = await PreferencesService.loadProfileName();
+    final image = await PreferencesService.loadProfileImage();
+
+    setState(() {
+      _profileName = name;
+      _profileImage = image;
+    });
+  }
 
   // async perché NapController.refresh() chiama il wearable via await
   Future<void> _refresh() async {
-    final now = DateTime.now();
+    final now = DateTime.now().subtract(Duration(days: 1));
     await _controller.refresh(now);
     if (mounted) setState(() {});
+  }
+
+  // Metodo async per prendere 30 giorni di dati del sonno dal server Impact
+  Future<void> _loadSleepData() async {
+    List<SleepData> listData = await Impact.getN_DaysFromMostRecent(30);
+    // Converte lista in mappa -> CHANGE: resta List
+    Map<DateTime, SleepData> mapData = {
+      for (var elem in listData) elem.date: elem,
+    };
+
+    setState(() {
+      globalSleepData = mapData;
+      globalSleepDataList = listData;
+    });
   }
 
   @override
@@ -61,6 +113,9 @@ class _HomePageState extends State<HomePage> {
     _loadPersistedEvents(); // fire-and-forget: ricarica gli eventi salvati
     _loadPersistedLanguage(); // fire-and-forget: ricarica la lingua salvata
 
+    _loadSleepData();
+    _loadProfileName(); // ricarica il nome salvato
+    _loadProfileImage(); // ricarica imm profilo
     _napTimer = Timer.periodic(const Duration(minutes: 1), (_) async {
       if (mounted) await _refresh();
     });
@@ -119,8 +174,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final s = AppStrings(_isEnglish);
-    final name =
-        ModalRoute.of(context)?.settings.arguments as String? ?? 'Utente';
     final pages = [
       _homeWidget(),
       CalendarPage(
@@ -136,7 +189,7 @@ class _HomePageState extends State<HomePage> {
           PreferencesService.saveCalendarEvents(m);
         }),
       ),
-      StatsPage(),
+      StatsPage(sleepData: globalSleepDataList, sds: _controller.sds),
     ];
 
     return Scaffold(
@@ -174,33 +227,67 @@ class _HomePageState extends State<HomePage> {
               child: Align(
                 alignment: Alignment.bottomLeft,
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      "Ciao,",
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onPrimaryContainer,
-                          ),
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundImage: AssetImage(
+                        [
+                          "assets/profile_imm/imm1.png",
+                          "assets/profile_imm/imm2.png",
+                          "assets/profile_imm/imm3.png",
+                        ][_profileImage],
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      name.toUpperCase(),
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onPrimaryContainer,
-                          ),
+
+                    const SizedBox(width: 15),
+
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Ciao,",
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+
+                        Text(
+                          _profileName.toUpperCase(),
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('UTENTE'),
+              onTap: () async {
+                Navigator.pop(context);
+
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ProfilePage(
+                      currentName: _profileName,
+                      currentImage: _profileImage,
+                    ),
+                  ),
+                );
+
+                if (result == true) {
+                  _loadProfileName();
+                }
+
+                if (result == true) {
+                  await _loadProfile();
+                }
+              },
+            ),
+
             ListTile(
               leading: const Icon(Icons.palette_outlined),
               title: const Text('TEMA'),
@@ -726,7 +813,7 @@ class _HomePageState extends State<HomePage> {
   // -----------------------------------------------------------------------
   Widget _homeWidget() {
     final s = AppStrings(_isEnglish);
-    final now = DateTime.now();
+    final now = DateTime.now().subtract(Duration(days: 1));
     final key = DateTime(now.year, now.month, now.day);
     final eventiOggi = List<MyEvent>.from(globalEvents[key] ?? [])
       ..sort((a, b) {

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class SleepDebtCard extends StatelessWidget {
-  final double recovery;
+  final double sds;
 
-  const SleepDebtCard({super.key, this.recovery = 0.68});
+  const SleepDebtCard({super.key, required this.sds});
 
   @override
   Widget build(BuildContext context) {
@@ -11,12 +11,10 @@ class SleepDebtCard extends StatelessWidget {
 
     String message;
 
-    if (recovery >= 0.8) {
+    if (sds < 1) {
       message = "You're well rested";
-    } else if (recovery >= 0.5) {
-      message = "Some recovery needed";
     } else {
-      message = "High sleep debt";
+      message = "Some recovery needed";
     }
 
     return Container(
@@ -56,7 +54,7 @@ class SleepDebtCard extends StatelessWidget {
 
             children: [
               Text(
-                "${(recovery * 100).round()}%",
+                "${sds.toStringAsFixed(2)} h",
                 style: theme.textTheme.displaySmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -76,7 +74,7 @@ class SleepDebtCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
 
             child: LinearProgressIndicator(
-              value: recovery,
+              value: sds,
 
               minHeight: 12,
 
