@@ -9,10 +9,12 @@ import 'login_page.dart';
 import 'app_strings.dart';
 
 import '../models/nap_models.dart';
+import '../models/sleep.dart';
 import '../utils/time_utils.dart';
 import '../utils/timeline_utils.dart';
 import '../controllers/nap_controller.dart';
 import '../services/preferences_service.dart';
+import '../services/impact.dart';
 import '../widgets/home/tutorial_dialog.dart';
 import '../widgets/home/nap_card.dart';
 import '../widgets/home/sds_reward.dart';
@@ -44,11 +46,26 @@ class _HomePageState extends State<HomePage> {
   bool _isEnglish = false;
   Timer? _napTimer;
 
+  Map<DateTime, SleepData> globalSleepData = {};
+
   // async perché NapController.refresh() chiama il wearable via await
   Future<void> _refresh() async {
     final now = DateTime.now().subtract(Duration(days: 1));
     await _controller.refresh(now);
     if (mounted) setState(() {});
+  }
+
+  // Metodo async per prendere 30 giorni di dati del sonno dal server Impact
+  Future<void> _loadSleepData() async {
+    List<SleepData> listData = await Impact.getN_DaysFromMostRecent(30);
+    // converte lista in mappa
+    Map<DateTime, SleepData> mapData = {
+      for (var elem in listData) elem.date : elem
+    };
+
+    setState(() {
+      globalSleepData = mapData;
+    });
   }
 
   @override
@@ -60,6 +77,8 @@ class _HomePageState extends State<HomePage> {
     _refresh(); // fire-and-forget: aggiorna appena i dati arrivano
     _loadPersistedEvents(); // fire-and-forget: ricarica gli eventi salvati
     _loadPersistedLanguage(); // fire-and-forget: ricarica la lingua salvata
+
+    _loadSleepData();
 
     _napTimer = Timer.periodic(const Duration(minutes: 1), (_) async {
       if (mounted) await _refresh();
@@ -136,7 +155,9 @@ class _HomePageState extends State<HomePage> {
           PreferencesService.saveCalendarEvents(m);
         }),
       ),
-      StatsPage(),
+      StatsPage(
+        sleepData: globalSleepData,
+      ),
     ];
 
     return Scaffold(
