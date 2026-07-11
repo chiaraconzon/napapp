@@ -1,0 +1,155 @@
+import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
+import '../widgets/stats/stats_header.dart';
+import '../widgets/stats/stats_grid.dart';
+import '../widgets/stats/sleep_chart.dart';
+import '../widgets/stats/sleep_debt_card.dart';
+import '../widgets/stats/weekly_insight_card.dart';
+import '../models/sleep.dart';
+
+// ignore: must_be_immutable
+class StatsPage extends StatefulWidget {
+  final List<SleepData> sleepData;
+  double sds;
+
+<<<<<<< HEAD
+  StatsPage({
+    super.key,
+    required this.sleepData,
+    required this.sds
+    });
+=======
+  StatsPage({super.key, required this.sleepData, required this.sds});
+>>>>>>> f6cb9ed2f7722f48f31b590520c9086b7dea0440
+
+  final List<FlSpot> sampleData = [
+    const FlSpot(1, 3), // Lunedì: 3 attività
+    const FlSpot(2, 5), // Martedì: 5 attività
+    const FlSpot(3, 2), // Mercoledì: 2 attività
+    const FlSpot(4, 8), // Giovedì: 8 attività
+    const FlSpot(5, 4), // Venerdì: 4 attività
+  ];
+
+  @override
+  State<StatsPage> createState() => _StatsPageState();
+}
+
+<<<<<<< HEAD
+class _StatsPageState extends State<StatsPage>{
+
+=======
+class _StatsPageState extends State<StatsPage> {
+>>>>>>> f6cb9ed2f7722f48f31b590520c9086b7dea0440
+  late List<SleepData> _sleepDataList;
+  late List<SleepData> _data1week;
+  late List<SleepData> _data2week;
+
+  @override
+  void initState() {
+    super.initState();
+    _sleepDataList = widget.sleepData;
+    _data1week = get7Days(_sleepDataList);
+    _data2week = getNDays(_sleepDataList, 14);
+  }
+
+<<<<<<< HEAD
+  Map<DateTime, SleepData> ListToMap (List<SleepData> sleepDataList) {
+    Map<DateTime, SleepData> mapData = {
+      for (var elem in sleepDataList) elem.date : elem
+=======
+  Map<DateTime, SleepData> ListToMap(List<SleepData> sleepDataList) {
+    Map<DateTime, SleepData> mapData = {
+      for (var elem in sleepDataList) elem.date: elem,
+>>>>>>> f6cb9ed2f7722f48f31b590520c9086b7dea0440
+    };
+
+    return mapData;
+  }
+
+<<<<<<< HEAD
+  List<SleepData> get7Days (List<SleepData> sleepDataList) {
+    List<SleepData> data7days = sleepDataList.sublist(0,7);
+=======
+  List<SleepData> get7Days(List<SleepData> sleepDataList) {
+    List<SleepData> data7days = sleepDataList.sublist(0, 7);
+>>>>>>> f6cb9ed2f7722f48f31b590520c9086b7dea0440
+    data7days.sort((a, b) => a.date.compareTo(b.date));
+
+    return data7days;
+  }
+
+<<<<<<< HEAD
+  List<SleepData> getNDays (List<SleepData> sleepDataList, int n) {
+    if(n<1) return [];
+
+    List<SleepData> dataNdays = sleepDataList.sublist(0,n);
+=======
+  List<SleepData> getNDays(List<SleepData> sleepDataList, int n) {
+    if (n < 1) return [];
+
+    List<SleepData> dataNdays = sleepDataList.sublist(0, n);
+>>>>>>> f6cb9ed2f7722f48f31b590520c9086b7dea0440
+    dataNdays.sort((a, b) => a.date.compareTo(b.date));
+
+    return dataNdays;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              SizedBox(height: 10),
+              const StatsHeader(),
+
+              // Plot showing the amount of hours of sleep in the past 7 days
+              const SizedBox(height: 28),
+<<<<<<< HEAD
+              SleepChart(
+                sleepData: _data1week,
+              ),
+
+              // Grid that shows: average sleep time in the past week, number of naps taken this week (latter is a mock value)
+              const SizedBox(height: 10),
+              StatsGrid(
+                sleepData: _data1week,
+              ),
+
+              // Shows the amount of hours of sleep debt of the day, as calculated by the app's algorithm
+              const SizedBox(height: 28),
+              SleepDebtCard(
+                sds: widget.sds
+              ),
+
+              // Shows the change in average sleep time compared to the previous week
+              const SizedBox(height: 24),
+              WeeklyInsightCard(
+                sleepData2weeks: _data2week,
+              ),
+=======
+              SleepChart(sleepData: _data1week),
+
+              // Grid that shows: average sleep time in the past week, number of naps taken this week (latter is a mock value)
+              const SizedBox(height: 10),
+              StatsGrid(sleepData: _data1week),
+
+              // Shows the amount of hours of sleep debt of the day, as calculated by the app's algorithm
+              const SizedBox(height: 28),
+              SleepDebtCard(sds: widget.sds),
+
+              // Shows the change in average sleep time compared to the previous week
+              const SizedBox(height: 24),
+              WeeklyInsightCard(sleepData2weeks: _data2week),
+>>>>>>> f6cb9ed2f7722f48f31b590520c9086b7dea0440
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
