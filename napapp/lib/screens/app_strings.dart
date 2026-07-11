@@ -1,6 +1,4 @@
-/// Tutte le stringhe dell'app in italiano e inglese.
-/// Le categorie degli eventi ('Pranzo', 'Studio', ecc.) NON sono qui:
-/// sono chiavi interne dell'algoritmo e restano sempre in italiano.
+// All the strings in italin and english.
 class AppStrings {
   final bool isEnglish;
   const AppStrings(this.isEnglish);
@@ -39,7 +37,7 @@ class AppStrings {
   String get sdsSevere => isEnglish ? 'Severe debt' : 'Debito severo';
 
   // ---------------------------------------------------------------------------
-  // SCOPO PISOLINO (le chiavi 'Energie','Focus','Riflessi' vengono da NapAlgorithm)
+  // NAP SCOPE (the keys 'Energie','Focus','Riflessi' come from NapAlgorithm)
   // ---------------------------------------------------------------------------
   String translateScope(String key) {
     if (!isEnglish) return key;
@@ -65,7 +63,7 @@ class AppStrings {
   String get zoneBeyond => isEnglish ? 'beyond' : 'oltre';
 
   // ---------------------------------------------------------------------------
-  // STRINGA PREDIZIONE
+  // PREDICTION STRING
   // ---------------------------------------------------------------------------
   String get redZoneMsg => isEnglish
       ? 'Red Zone • Too late to sleep'
@@ -79,7 +77,7 @@ class AppStrings {
   String get fromTime => isEnglish ? 'from' : 'dalle';
 
   // ---------------------------------------------------------------------------
-  // CARD PISOLINO
+  // NAP CARD
   // ---------------------------------------------------------------------------
   String get napLabel => isEnglish ? 'Nap' : 'Pisolino';
   String get napEmergencyLabel =>
@@ -94,7 +92,7 @@ class AppStrings {
       : "Potresti avvertire stanchezza nei primi ~10 min dell'attività successiva";
 
   // ---------------------------------------------------------------------------
-  // DIALOG SVEGLIA
+  // DIALOG ALLARM
   // ---------------------------------------------------------------------------
   String get chooseNapTime =>
       isEnglish ? 'Choose nap time:' : 'Scegli tempo pisolino:';
@@ -121,7 +119,7 @@ class AppStrings {
   }
 
   // ---------------------------------------------------------------------------
-  // CALENDARIO – BOTTONE E HEADER
+  // CALENDAR- BUTTON AND HEADER
   // ---------------------------------------------------------------------------
   String get addActivity => isEnglish ? 'Add Activity' : 'Aggiungi Attività';
   String get monthFormat => isEnglish ? 'Month' : 'Mese';
@@ -177,7 +175,7 @@ class AppStrings {
   String get saveActivity => isEnglish ? 'SAVE ACTIVITY' : 'SALVA ATTIVITÀ';
   String get updateBtn => isEnglish ? 'UPDATE' : 'AGGIORNA';
 
-  // Questa traduce la label visualizzata della tipologia di evento (chiave interna resta in italiano).
+ // the key is in italian
   String categoryDisplay(String key) {
     if (!isEnglish) return key;
     switch (key) {
@@ -196,7 +194,7 @@ class AppStrings {
     }
   }
 
-  // Ripetizione: la chiave interna resta in italiano.
+  // The key is in italian
   String repetitionDisplay(String key) {
     if (!isEnglish) return key;
     switch (key) {
@@ -214,7 +212,7 @@ class AppStrings {
   }
 
   // ---------------------------------------------------------------------------
-  // DIALOGS ERRORE / CONFERMA
+  // DIALOGS 
   // ---------------------------------------------------------------------------
   String get attention => isEnglish ? 'Warning' : 'Attenzione';
   String get understood => isEnglish ? 'GOT IT' : 'HO CAPITO';
@@ -225,7 +223,7 @@ class AppStrings {
       ? 'Cannot save: Lunch activity already added on one of the selected days'
       : 'Impossibile salvare: attività Pranzo già inserita in uno dei giorni selezionati';
 
-  // Dialog evento ricorrente (modifica)
+  // Dialog recurrent event 
   String get editRecurring =>
       isEnglish ? 'Edit recurring event' : 'Modifica evento ricorrente';
   String get editRecurringMsg => isEnglish
@@ -234,7 +232,7 @@ class AppStrings {
   String get thisOne => isEnglish ? 'THIS ONE' : 'SOLO QUESTO';
   String get allBtn => isEnglish ? 'ALL' : 'TUTTI';
 
-  // Dialog eliminazione
+  // Dialog delete
   String get deleteActivity =>
       isEnglish ? 'Delete activity' : 'Elimina attività';
   String get isRecurringMsg => isEnglish
@@ -248,7 +246,7 @@ class AppStrings {
   String get allOccurrences => isEnglish ? 'ALL' : 'TUTTE';
 
   // ---------------------------------------------------------------------------
-  // DIALOG SELEZIONE TEMA (nel drawer)
+  // DIALOG THEME SELECTION (in the drawer)
   // ---------------------------------------------------------------------------
   String get selectTheme => isEnglish ? 'Select Theme' : 'Seleziona tema';
   String get themeSystem => isEnglish ? 'System' : 'Sistema';
@@ -256,7 +254,7 @@ class AppStrings {
   String get themeDark => isEnglish ? 'Dark' : 'Scuro';
 
   // ---------------------------------------------------------------------------
-  // DIALOG SELEZIONE LINGUA (nel drawer)
+  // DIALOG LANGUAGE SELECTION (in the drawer)
   // ---------------------------------------------------------------------------
   String get selectLanguage =>
       isEnglish ? 'Select Language' : 'Seleziona Lingua';
@@ -330,7 +328,7 @@ class AppStrings {
       'title': 'Statistiche',
       'body':
           'In Statistiche trovi il riepilogo del tuo sonno settimanale '
-          'e l\'andamento del debito di sonno nel tempo.',
+          'e altri parametri d\'interesse.',
     },
     {
       'emoji': '🚀',
@@ -402,7 +400,7 @@ class AppStrings {
       'title': 'Statistics',
       'body':
           'In Statistics you\'ll find a summary of your weekly sleep '
-          'and the trend of your sleep debt over time.',
+          'and other interesting parameters.',
     },
     {
       'emoji': '🚀',
