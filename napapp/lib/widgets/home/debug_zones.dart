@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/nap_models.dart';
-import '../algorithms/nap_algorithm.dart';
-import '../screens/app_strings.dart';
+import '../../models/nap_models.dart';
+import '../../algorithms/nap_algorithm.dart';
+import '../../screens/app_strings.dart';
 
 class DebugZonesBox extends StatelessWidget {
   final ZoneLimits lim;

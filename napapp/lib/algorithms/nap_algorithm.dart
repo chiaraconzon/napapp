@@ -21,7 +21,7 @@ class NapAlgorithm {
     this.sdsOverride,
   });
 
-  //ricerca dei gap tra gli eventi. Se due eventi sono sovraapposti vengono uniti. 
+  //ricerca dei gap tra gli eventi. Se due eventi sono sovraapposti vengono uniti.
   List<(int, int)> _buildGaps(int from, int to) {
     if (from >= to) return [];
 
@@ -98,29 +98,29 @@ class NapAlgorithm {
   // ---- limiti zone ----
   // Invariante garantita in tutti i rami:
   // greenStart ≤ greenEnd ≤ yellowEnd ≤ orangeEnd
-  // Nel ramo feriale/domenica con sveglia, yellowEnd e orangeEnd dipendono dalla sveglia. 
+  // Nel ramo feriale/domenica con sveglia, yellowEnd e orangeEnd dipendono dalla sveglia.
   ZoneLimits computeZoneLimits() {
     final zoneStart = _zoneStartMin();
 
     // Helper: se il pranzo finisce tardi e zoneStart supera orangeEnd → zona rossa
     ZoneLimits allRed(int orangeEnd) => ZoneLimits(
       greenStart: orangeEnd,
-      greenEnd:   orangeEnd,
-      yellowEnd:  orangeEnd,
-      orangeEnd:  orangeEnd,
+      greenEnd: orangeEnd,
+      yellowEnd: orangeEnd,
+      orangeEnd: orangeEnd,
     );
 
     // ---- SABATO: valori fissi ---- (considerato rispetto a l'una)
     if (_isSaturday) {
       const satOrangeEnd = 19 * 60; // 19:00 fisso
       if (zoneStart >= satOrangeEnd) return allRed(satOrangeEnd);
-      final greenEnd  = zoneStart > hm(17, 00) ? zoneStart : hm(17, 00);
-      final yellowEnd = greenEnd  > hm(18, 00) ? greenEnd  : hm(18, 00);
+      final greenEnd = zoneStart > hm(17, 00) ? zoneStart : hm(17, 00);
+      final yellowEnd = greenEnd > hm(18, 00) ? greenEnd : hm(18, 00);
       return ZoneLimits(
         greenStart: zoneStart,
-        greenEnd:   greenEnd,
-        yellowEnd:  yellowEnd,
-        orangeEnd:  satOrangeEnd,
+        greenEnd: greenEnd,
+        yellowEnd: yellowEnd,
+        orangeEnd: satOrangeEnd,
       );
     }
 
@@ -128,16 +128,19 @@ class NapAlgorithm {
     if (_effectiveWakeUp == null) {
       const fixedYellowEnd = 16 * 60; // 16:00
       // orangeEnd = yellowEnd + 90min, max 19:00
-      final orangeEnd = (fixedYellowEnd + 90).clamp(fixedYellowEnd, hm(19, 0)); //17:30
+      final orangeEnd = (fixedYellowEnd + 90).clamp(
+        fixedYellowEnd,
+        hm(19, 0),
+      ); //17:30
       if (zoneStart >= orangeEnd) return allRed(orangeEnd);
       // greenEnd e yellowEnd non possono scendere sotto zoneStart
-      final greenEnd  = zoneStart > hm(15, 0)      ? zoneStart      : hm(15, 0);
-      final yellowEnd = greenEnd  > fixedYellowEnd  ? greenEnd       : fixedYellowEnd;
+      final greenEnd = zoneStart > hm(15, 0) ? zoneStart : hm(15, 0);
+      final yellowEnd = greenEnd > fixedYellowEnd ? greenEnd : fixedYellowEnd;
       return ZoneLimits(
         greenStart: zoneStart,
-        greenEnd:   greenEnd,
-        yellowEnd:  yellowEnd,
-        orangeEnd:  orangeEnd,
+        greenEnd: greenEnd,
+        yellowEnd: yellowEnd,
+        orangeEnd: orangeEnd,
       );
     }
 
@@ -149,12 +152,13 @@ class NapAlgorithm {
     final wakeUpMin = toMin(wakeUp);
     final hasPranzo = todayEvents.any((e) => e.category == 'Pranzo');
 
-
-    final yellowEnd = wakeUpMin + 9 * 60; //distanza 7 ore rispetto a quando va a dormire
+    final yellowEnd =
+        wakeUpMin + 9 * 60; //distanza 7 ore rispetto a quando va a dormire
     final orangeEnd = yellowEnd + 90;
 
     // greenEnd "naturale": 8h dopo la sveglia, mai oltre yellowEnd.
-    final rawGreenEnd = wakeUpMin + 8 * 60; //distanza 8 ore rispetto a quando va a dormire
+    final rawGreenEnd =
+        wakeUpMin + 8 * 60; //distanza 8 ore rispetto a quando va a dormire
     final greenEndNatural = rawGreenEnd < yellowEnd ? rawGreenEnd : yellowEnd;
 
     // Quanto serve almeno per un pisolino (10 latenza + 10 pisolino minimo,
@@ -174,42 +178,46 @@ class NapAlgorithm {
         // basato sulla sveglia — il pranzo non lo estende mai.
         return ZoneLimits(
           greenStart: zoneStart,
-          greenEnd:   zoneStart,
-          yellowEnd:  zoneStart,
-          orangeEnd:  orangeEnd,
+          greenEnd: zoneStart,
+          yellowEnd: zoneStart,
+          orangeEnd: orangeEnd,
         );
       }
 
-      
-      final greenEnd = zoneStart > greenEndNatural ? zoneStart : greenEndNatural;
+      final greenEnd = zoneStart > greenEndNatural
+          ? zoneStart
+          : greenEndNatural;
       return ZoneLimits(
         greenStart: zoneStart,
-        greenEnd:   greenEnd,
-        yellowEnd:  yellowEnd,
-        orangeEnd:  orangeEnd,
+        greenEnd: greenEnd,
+        yellowEnd: yellowEnd,
+        orangeEnd: orangeEnd,
       );
     }
 
     // ---- Nessun pranzo: zoneStart effettivo basato sulla sveglia reale
     // (minimo tra wakeup+7h e le 13:30) di _zoneStartMin().
     final rawEffectiveStart = wakeUpMin + 7 * 60;
-    final effectiveZoneStart =
-        rawEffectiveStart < hm(14, 00) ? rawEffectiveStart : hm(14, 00);
+    final effectiveZoneStart = rawEffectiveStart < hm(14, 00)
+        ? rawEffectiveStart
+        : hm(14, 00);
 
     if (effectiveZoneStart + minSlotNeeded > orangeEnd) {
       return allRed(orangeEnd);
     }
 
-    final greenEnd =
-        effectiveZoneStart > greenEndNatural ? effectiveZoneStart : greenEndNatural;
-    final greenStart =
-        (greenEnd - 60) < hm(14, 00) ? (greenEnd - 60) : hm(14, 00);
+    final greenEnd = effectiveZoneStart > greenEndNatural
+        ? effectiveZoneStart
+        : greenEndNatural;
+    final greenStart = (greenEnd - 60) < hm(14, 00)
+        ? (greenEnd - 60)
+        : hm(14, 00);
 
     return ZoneLimits(
       greenStart: greenStart,
-      greenEnd:   greenEnd,
-      yellowEnd:  yellowEnd,
-      orangeEnd:  orangeEnd,
+      greenEnd: greenEnd,
+      yellowEnd: yellowEnd,
+      orangeEnd: orangeEnd,
     );
   }
 
@@ -220,7 +228,6 @@ class NapAlgorithm {
     return NapZone.red;
   }
 
-  
   // Valori ammessi di nap: 90,85,80,75,70,65,60,30,25,20,15,10
   static const List<int> napSteps = [
     90,
@@ -438,7 +445,7 @@ class NapAlgorithm {
     return _noNap();
   }
 
-  NapResult _noNap() => const NapResult(
+  NapResult _noNap() => NapResult(
     zone: NapZone.red,
     napEffectiveMin: 0,
     totalDisplayMin: 0,

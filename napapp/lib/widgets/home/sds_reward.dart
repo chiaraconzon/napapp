@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/app_strings.dart';
+import '../../screens/app_strings.dart';
 
 class SdsReward extends StatelessWidget {
   final double sds;

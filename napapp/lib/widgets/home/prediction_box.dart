@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/nap_models.dart';
-import '../utils/time_utils.dart';
-import '../screens/app_strings.dart';
+import '../../models/nap_models.dart';
+import '../../utils/time_utils.dart';
+import '../../screens/app_strings.dart';
 
 class PredictionBox extends StatelessWidget {
   final NapResult? r;

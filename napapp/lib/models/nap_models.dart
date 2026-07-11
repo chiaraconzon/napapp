@@ -17,8 +17,9 @@ class NapResult {
   final String scope;
   final String scopeEmoji;
   final bool hasInertiaWarning;
+  NapStatus status;
 
-  const NapResult({
+  NapResult({
     required this.zone,
     required this.napEffectiveMin,
     required this.totalDisplayMin,
@@ -27,6 +28,7 @@ class NapResult {
     required this.scope,
     required this.scopeEmoji,
     this.hasInertiaWarning = false,
+    this.status = NapStatus.suggested,
   });
 }
 
@@ -45,3 +47,5 @@ class ZoneLimits {
     required this.orangeEnd,
   });
 }
+
+enum NapStatus { suggested, running, completed, interrupted }

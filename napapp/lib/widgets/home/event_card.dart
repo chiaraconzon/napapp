@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../utils/time_utils.dart';
-import '../utils/event_utils.dart';
-import '../screens/calendar_page.dart';
-import '../screens/app_strings.dart';
+import '../../utils/time_utils.dart';
+import '../../utils/event_utils.dart';
+import '../../screens/calendar_page.dart';
+import '../../screens/app_strings.dart';
 
 class EventCard extends StatelessWidget {
   final MyEvent ev;

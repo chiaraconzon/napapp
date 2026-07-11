@@ -13,14 +13,14 @@ import '../utils/time_utils.dart';
 import '../utils/timeline_utils.dart';
 import '../controllers/nap_controller.dart';
 import '../services/preferences_service.dart';
-import '../widgets/tutorial_dialog.dart';
-import '../widgets/nap_card.dart';
-import '../widgets/sds_reward.dart';
-import '../widgets/debug_zones.dart';
-import '../widgets/event_card.dart';
-import '../widgets/prediction_box.dart';
-import '../widgets/time_picker.dart';
-import '../widgets/choose_time.dart';
+import '../widgets/home/tutorial_dialog.dart';
+import '../widgets/home/nap_card.dart';
+import '../widgets/home/sds_reward.dart';
+import '../widgets/home/debug_zones.dart';
+import '../widgets/home/event_card.dart';
+import '../widgets/home/prediction_box.dart';
+import '../widgets/home/time_picker.dart';
+import '../widgets/home/choose_time.dart';
 import '../providers/theme_provider.dart';
 import '../constrains/bibliography.dart';
 
@@ -342,7 +342,7 @@ class _HomePageState extends State<HomePage> {
 
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: const Text('CREDITS'),
+              title: const Text('BIBLIOGRAFIA'),
               onTap: () {
                 showDialog(
                   context: context,
@@ -355,7 +355,7 @@ class _HomePageState extends State<HomePage> {
                       title: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("Credits:"),
+                          const Text("Bibliography:"),
                           IconButton(
                             icon: const Icon(Icons.close),
                             onPressed: () => Navigator.pop(ctx),
@@ -399,9 +399,6 @@ class _HomePageState extends State<HomePage> {
       body: pages[_pageIndex],
       floatingActionButton: _pageIndex == 0
           ? FloatingActionButton(
-              backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-              foregroundColor: Theme.of(context).colorScheme.onSurface,
-
               onPressed: () {
                 final idealDuration = Duration(
                   minutes: _controller.napResult?.napEffectiveMin ?? 10,
@@ -811,6 +808,12 @@ class _HomePageState extends State<HomePage> {
                             isEnglish: _isEnglish,
                             fmtTOD: TimeUtils.fmtTOD,
                             zoneColor: _zoneColor,
+
+                            onRequestNewNap: () async {
+                              await _refresh();
+
+                              setState(() {});
+                            },
                           )
                         : EventCard(ev: items[i].event!, isEnglish: _isEnglish),
                   ),
