@@ -27,7 +27,9 @@ class SleepChart extends StatelessWidget {
 
     for(int i = 0; i < 8; i++) {
       DateTime date = sleepData[i].date;
-      String label = "${date.day}.${date.month}";
+      String day = "${date.day}".padLeft(2,'0');
+      String month = "${date.month}".padLeft(2,'0');
+      String label = "$day.$month";
 
       labels.add(label);
     }

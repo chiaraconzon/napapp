@@ -10,10 +10,13 @@ import '../models/sleep.dart';
 
 class StatsPage extends StatefulWidget {
   final List<SleepData> sleepData;
+  double sds;
 
   StatsPage({
     super.key,
-    required this.sleepData});
+    required this.sleepData,
+    required this.sds
+    });
 
   final List<FlSpot> sampleData = [
     const FlSpot(1, 3), // Lunedì: 3 attività
@@ -30,13 +33,15 @@ class StatsPage extends StatefulWidget {
 class _StatsPageState extends State<StatsPage>{
 
   late List<SleepData> _sleepDataList;
-  late List<SleepData> _7DaysData;
+  late List<SleepData> _data1week;
+  late List<SleepData> _data2week;
 
   @override
   void initState() {
     super.initState();
     _sleepDataList = widget.sleepData;
-    _7DaysData = get7Days(_sleepDataList);
+    _data1week = get7Days(_sleepDataList);
+    _data2week = getNDays(_sleepDataList, 14);
   }
 
   Map<DateTime, SleepData> ListToMap (List<SleepData> sleepDataList) {
@@ -48,7 +53,19 @@ class _StatsPageState extends State<StatsPage>{
   }
 
   List<SleepData> get7Days (List<SleepData> sleepDataList) {
-    return sleepDataList.sublist(0,8);
+    List<SleepData> data7days = sleepDataList.sublist(0,8);
+    data7days.sort((a, b) => a.date.compareTo(b.date));
+
+    return data7days;
+  }
+
+  List<SleepData> getNDays (List<SleepData> sleepDataList, int n) {
+    if(n<1) return [];
+
+    List<SleepData> dataNdays = sleepDataList.sublist(0,n+1);
+    dataNdays.sort((a, b) => a.date.compareTo(b.date));
+
+    return dataNdays;
   }
 
   @override
@@ -66,14 +83,21 @@ class _StatsPageState extends State<StatsPage>{
               SleepScoreCard(),
               const SizedBox(height: 10),
               const StatsGrid(),
+
               const SizedBox(height: 28),
               SleepChart(
-                sleepData: _7DaysData,
+                sleepData: _data1week,
               ),
+
               const SizedBox(height: 28),
-              const SleepDebtCard(),
+              SleepDebtCard(
+                sds: widget.sds
+              ),
+
               const SizedBox(height: 24),
-              const WeeklyInsightCard(),
+              WeeklyInsightCard(
+                sleepData2weeks: _data2week,
+              ),
             ],
 
             /*

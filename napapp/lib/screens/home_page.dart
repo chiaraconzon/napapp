@@ -159,6 +159,7 @@ class _HomePageState extends State<HomePage> {
       ),
       StatsPage(
         sleepData: globalSleepDataList,
+        sds: _controller.sds
       ),
     ];
 

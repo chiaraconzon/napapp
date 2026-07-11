@@ -1,11 +1,79 @@
 import 'package:flutter/material.dart';
+import 'package:napapp/models/sleep.dart';
 
 class WeeklyInsightCard extends StatelessWidget {
-  const WeeklyInsightCard({super.key});
+  final List<SleepData> sleepData2weeks;
+  
+  const WeeklyInsightCard({
+    super.key,
+    required this.sleepData2weeks
+    });
+
+  int avgChange(List<SleepData> sleepData2weeks) {
+    int sumThisWeek = 0;
+    int countThisWeek = 0;
+
+    int sumLastWeek = 0;
+    int countLastWeek = 0;
+
+    for(int i = 0; i < 8; i++) {
+      int? mins = sleepData2weeks[i].minutesAsleep;
+      if (mins != null) {
+        sumLastWeek += mins;
+        countLastWeek += 1;
+      }
+    }
+
+    for(int i = 8; i < 14; i++) {
+      int? mins = sleepData2weeks[i].minutesAsleep;
+      if (mins != null) {
+        sumThisWeek += mins;
+        countThisWeek += 1;
+      }
+    }
+
+    double avgLastWeek = sumLastWeek / countLastWeek;
+    double avgThisWeek = sumThisWeek / countThisWeek;
+
+    return (avgThisWeek-avgLastWeek).round();
+
+  }
 
   @override
   Widget build(BuildContext context) {
+    
+    int avgMinChange = avgChange(sleepData2weeks);
     final theme = Theme.of(context);
+
+    String changeMsg = "";
+    String howChange = "";
+    Icon trendIcon;
+
+    if(avgMinChange > 0) {
+      changeMsg = "Your sleep consistency improved this week!";
+      howChange = "+$avgMinChange min average sleep";
+      trendIcon = Icon(
+        Icons.trending_up_rounded,
+        size: 18,
+        color: theme.colorScheme.tertiary,
+      );
+    } else if (avgMinChange < 0) {
+      changeMsg = "Your sleep consistency decreased this week.";
+      howChange = "-${avgMinChange*(-1)} min average sleep";
+      trendIcon = Icon(
+        Icons.trending_down_rounded,
+        size: 18,
+        color: theme.colorScheme.tertiary,
+      );
+    } else {
+      changeMsg = "Your sleep consistency did not change this week.";
+      howChange = "No change in average sleep";
+      trendIcon = Icon(
+        Icons.trending_neutral_rounded,
+        size: 18,
+        color: theme.colorScheme.tertiary,
+      );
+    }
 
     return Container(
       padding: const EdgeInsets.all(22),
@@ -57,7 +125,7 @@ class WeeklyInsightCard extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 Text(
-                  "Your sleep consistency improved this week.",
+                  changeMsg,
 
                   style: theme.textTheme.bodyMedium,
                 ),
@@ -66,18 +134,12 @@ class WeeklyInsightCard extends StatelessWidget {
 
                 Row(
                   children: [
-                    Icon(
-                      Icons.trending_up_rounded,
-
-                      size: 18,
-
-                      color: theme.colorScheme.tertiary,
-                    ),
+                    trendIcon,
 
                     const SizedBox(width: 6),
 
                     Text(
-                      "+32 min average sleep",
+                      howChange,
 
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
