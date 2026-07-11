@@ -9,32 +9,34 @@ class AppStrings {
   // DRAWER
   // ---------------------------------------------------------------------------
   String hello(String name) => isEnglish ? 'Hello $name' : 'Ciao $name';
-  String get logout        => isEnglish ? 'Logout'    : 'Logout';
-  String get themeLabel    => isEnglish ? 'THEME'     : 'TEMA';
-  String get languageLabel => isEnglish ? 'LANGUAGE'  : 'LINGUA';
-  String get tutorialLabel => isEnglish ? 'TUTORIAL'  : 'TUTORIAL';
-  String get creditsLabel  => isEnglish ? 'CREDITS'   : 'CREDITS';
+  String get logout => isEnglish ? 'Logout' : 'Logout';
+  String get themeLabel => isEnglish ? 'THEME' : 'TEMA';
+  String get languageLabel => isEnglish ? 'LANGUAGE' : 'LINGUA';
+  String get tutorialLabel => isEnglish ? 'TUTORIAL' : 'TUTORIAL';
+  String get creditsLabel => isEnglish ? 'CREDITS' : 'CREDITS';
 
   // ---------------------------------------------------------------------------
   // BOTTOM NAV
   // ---------------------------------------------------------------------------
-  String get navHome     => 'Home';
-  String get navCalendar => isEnglish ? 'Calendar'   : 'Calendario';
-  String get navStats    => isEnglish ? 'Statistics'  : 'Statistiche';
+  String get navHome => 'Home';
+  String get navCalendar => isEnglish ? 'Calendar' : 'Calendario';
+  String get navStats => isEnglish ? 'Statistics' : 'Statistiche';
 
   // ---------------------------------------------------------------------------
   // HOME
   // ---------------------------------------------------------------------------
-  String get todaySchedule => isEnglish ? "Today's Schedule" : 'Impegni di oggi';
-  String get noEvents      => isEnglish ? 'No events today'  : 'Nessun impegno per oggi';
+  String get todaySchedule =>
+      isEnglish ? "Today's Schedule" : 'Impegni di oggi';
+  String get noEvents =>
+      isEnglish ? 'No events today' : 'Nessun impegno per oggi';
 
   // ---------------------------------------------------------------------------
   // SDS REWARD
   // ---------------------------------------------------------------------------
-  String get sdsGreat    => isEnglish ? 'Great shape'    : 'Ottima forma';
-  String get sdsLight    => isEnglish ? 'Slight deficit' : 'Leggero deficit';
-  String get sdsModerate => isEnglish ? 'Moderate debt'  : 'Debito moderato';
-  String get sdsSevere   => isEnglish ? 'Severe debt'    : 'Debito severo';
+  String get sdsGreat => isEnglish ? 'Great shape' : 'Ottima forma';
+  String get sdsLight => isEnglish ? 'Slight deficit' : 'Leggero deficit';
+  String get sdsModerate => isEnglish ? 'Moderate debt' : 'Debito moderato';
+  String get sdsSevere => isEnglish ? 'Severe debt' : 'Debito severo';
 
   // ---------------------------------------------------------------------------
   // SCOPO PISOLINO (le chiavi 'Energie','Focus','Riflessi' vengono da NapAlgorithm)
@@ -42,42 +44,48 @@ class AppStrings {
   String translateScope(String key) {
     if (!isEnglish) return key;
     switch (key) {
-      case 'Energie':  return 'Energy';
-      case 'Focus':  return 'Focus';
-      case 'Riflessi': return 'Reflexes';
-      default:         return key;
+      case 'Energie':
+        return 'Energy';
+      case 'Focus':
+        return 'Focus';
+      case 'Riflessi':
+        return 'Reflexes';
+      default:
+        return key;
     }
   }
 
   // ---------------------------------------------------------------------------
   // DEBUG ZONE
   // ---------------------------------------------------------------------------
-  String get zoneGreen  => isEnglish ? '🟢 Green'  : '🟢 Verde';
+  String get zoneGreen => isEnglish ? '🟢 Green' : '🟢 Verde';
   String get zoneYellow => isEnglish ? '🟡 Yellow' : '🟡 Gialla';
   String get zoneOrange => isEnglish ? '🟠 Orange' : '🟠 Arancione';
-  String get zoneRed    => isEnglish ? '🔴 Red'    : '🔴 Rossa';
-  String get zoneBeyond => isEnglish ? 'beyond'    : 'oltre';
+  String get zoneRed => isEnglish ? '🔴 Red' : '🔴 Rossa';
+  String get zoneBeyond => isEnglish ? 'beyond' : 'oltre';
 
   // ---------------------------------------------------------------------------
   // STRINGA PREDIZIONE
   // ---------------------------------------------------------------------------
-  String get redZoneMsg  => isEnglish
+  String get redZoneMsg => isEnglish
       ? 'Red Zone • Too late to sleep'
       : 'Zona Rossa • Troppo tardi per dormire';
-  String get orangeMsg   => isEnglish
+  String get orangeMsg => isEnglish
       ? 'Emergency window — only to reduce momentary drowsiness'
       : 'Finestra di emergenza — solo per ridurre la sonnolenza momentanea';
-  String get idealNap    => isEnglish ? 'Ideal Nap'       : 'Pisolino ideale';
-  String get emergencyNapPrediction => isEnglish ? 'Valid Nap' : 'Pisolino Valido';
-  String get fromTime    => isEnglish ? 'from'            : 'dalle';
+  String get idealNap => isEnglish ? 'Ideal Nap' : 'Pisolino ideale';
+  String get emergencyNapPrediction =>
+      isEnglish ? 'Valid Nap' : 'Pisolino Valido';
+  String get fromTime => isEnglish ? 'from' : 'dalle';
 
   // ---------------------------------------------------------------------------
   // CARD PISOLINO
   // ---------------------------------------------------------------------------
-  String get napLabel          => isEnglish ? 'Nap'           : 'Pisolino';
-  String get napEmergencyLabel => isEnglish ? 'Emergency Nap' : 'Pisolino di emergenza';
+  String get napLabel => isEnglish ? 'Nap' : 'Pisolino';
+  String get napEmergencyLabel =>
+      isEnglish ? 'Emergency Nap' : 'Pisolino di emergenza';
 
-  String napDetails( int total, String scope) => isEnglish
+  String napDetails(int total, String scope) => isEnglish
       ? '  $total min total  •  $scope'
       : '  $total min totali  •  $scope';
 
@@ -88,9 +96,11 @@ class AppStrings {
   // ---------------------------------------------------------------------------
   // DIALOG SVEGLIA
   // ---------------------------------------------------------------------------
-  String get chooseNapTime => isEnglish ? 'Choose nap time:' : 'Scegli tempo pisolino:';
-  String get startAlarm    => isEnglish ? 'Start'            : 'Avvia';
-  String get selectAlarmTitle => isEnglish ? 'Select the timer:' : 'Seleziona la sveglia:';
+  String get chooseNapTime =>
+      isEnglish ? 'Choose nap time:' : 'Scegli tempo pisolino:';
+  String get startAlarm => isEnglish ? 'Start' : 'Avvia';
+  String get selectAlarmTitle =>
+      isEnglish ? 'Select the timer:' : 'Seleziona la sveglia:';
 
   String alarmTimerStarted(int minutes) => isEnglish
       ? '$minutes-minute timer started'
@@ -98,12 +108,14 @@ class AppStrings {
 
   String alarmSet(int hours, int minutes) {
     if (isEnglish) {
-      if (hours > 0 && minutes > 0) return 'Alarm set in ${hours}h and ${minutes}m';
-      if (hours > 0)                return 'Alarm set in $hours hours';
+      if (hours > 0 && minutes > 0)
+        return 'Alarm set in ${hours}h and ${minutes}m';
+      if (hours > 0) return 'Alarm set in $hours hours';
       return 'Alarm set in $minutes minutes';
     } else {
-      if (hours > 0 && minutes > 0) return 'Sveglia impostata tra ${hours}h e ${minutes}m';
-      if (hours > 0)                return 'Sveglia impostata tra $hours ore';
+      if (hours > 0 && minutes > 0)
+        return 'Sveglia impostata tra ${hours}h e ${minutes}m';
+      if (hours > 0) return 'Sveglia impostata tra $hours ore';
       return 'Sveglia impostata tra $minutes minuti';
     }
   }
@@ -111,46 +123,76 @@ class AppStrings {
   // ---------------------------------------------------------------------------
   // CALENDARIO – BOTTONE E HEADER
   // ---------------------------------------------------------------------------
-  String get addActivity  => isEnglish ? 'Add Activity'   : 'Aggiungi Attività';
-  String get monthFormat  => isEnglish ? 'Month'          : 'Mese';
-  String get weekFormat   => isEnglish ? 'Week'           : 'Sett.';
+  String get addActivity => isEnglish ? 'Add Activity' : 'Aggiungi Attività';
+  String get monthFormat => isEnglish ? 'Month' : 'Mese';
+  String get weekFormat => isEnglish ? 'Week' : 'Sett.';
 
   List<String> get weekdays => isEnglish
       ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
       : ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'];
 
   List<String> get monthNames => isEnglish
-      ? ['January','February','March','April','May','June',
-         'July','August','September','October','November','December']
-      : ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
-         'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+      ? [
+          'January',
+          'February',
+          'March',
+          'April',
+          'May',
+          'June',
+          'July',
+          'August',
+          'September',
+          'October',
+          'November',
+          'December',
+        ]
+      : [
+          'Gennaio',
+          'Febbraio',
+          'Marzo',
+          'Aprile',
+          'Maggio',
+          'Giugno',
+          'Luglio',
+          'Agosto',
+          'Settembre',
+          'Ottobre',
+          'Novembre',
+          'Dicembre',
+        ];
 
   // ---------------------------------------------------------------------------
   // CALENDARIO – BOTTOM SHEET
   // ---------------------------------------------------------------------------
-  String get newActivity  => isEnglish ? 'New Activity'    : 'Nuova Attività';
-  String get editDetails  => isEnglish ? 'Edit Details'    : 'Modifica Dettagli';
-  String get category     => isEnglish ? 'Category'        : 'Categoria';
-  String get titleOpt     => isEnglish ? 'Title (optional)': 'Titolo (opzionale)';
-  String get titleHint    => isEnglish ? 'e.g. Swimming, Art, ...' : 'es. Nuoto, Arte, ...';
-  String get startTime    => isEnglish ? 'Start'           : 'Inizio';
-  String get endTime      => isEnglish ? 'End'             : 'Fine';
-  String get repetition   => isEnglish ? 'Repetition'      : 'Ripetizione';
-  String get colorLabel   => isEnglish ? 'Color'           : 'Colore';
-  String get saveActivity => isEnglish ? 'SAVE ACTIVITY'   : 'SALVA ATTIVITÀ';
-  String get updateBtn    => isEnglish ? 'UPDATE'          : 'AGGIORNA';
+  String get newActivity => isEnglish ? 'New Activity' : 'Nuova Attività';
+  String get editDetails => isEnglish ? 'Edit Details' : 'Modifica Dettagli';
+  String get category => isEnglish ? 'Category' : 'Categoria';
+  String get titleOpt => isEnglish ? 'Title (optional)' : 'Titolo (opzionale)';
+  String get titleHint =>
+      isEnglish ? 'e.g. Swimming, Art, ...' : 'es. Nuoto, Arte, ...';
+  String get startTime => isEnglish ? 'Start' : 'Inizio';
+  String get endTime => isEnglish ? 'End' : 'Fine';
+  String get repetition => isEnglish ? 'Repetition' : 'Ripetizione';
+  String get colorLabel => isEnglish ? 'Color' : 'Colore';
+  String get saveActivity => isEnglish ? 'SAVE ACTIVITY' : 'SALVA ATTIVITÀ';
+  String get updateBtn => isEnglish ? 'UPDATE' : 'AGGIORNA';
 
-  
   // Questa traduce la label visualizzata della tipologia di evento (chiave interna resta in italiano).
   String categoryDisplay(String key) {
     if (!isEnglish) return key;
     switch (key) {
-      case 'Lezione':    return 'Lesson';
-      case 'Pranzo':     return 'Lunch';
-      case 'Studio':     return 'Study';
-      case 'Allenamento':return 'Training';
-      case 'Altro':      return 'Other';
-      default:           return key;
+      case 'Lezione':
+        return 'Lesson';
+      case 'Pranzo':
+        return 'Lunch';
+      case 'Studio':
+        return 'Study';
+      case 'Allenamento':
+        return 'Training';
+      case 'Altro':
+        return 'Other';
+      default:
+        return key;
     }
   }
 
@@ -158,61 +200,72 @@ class AppStrings {
   String repetitionDisplay(String key) {
     if (!isEnglish) return key;
     switch (key) {
-      case 'Singola':     return 'Single';
-      case 'Giornaliera': return 'Daily';
-      case 'Settimanale': return 'Weekly';
-      case 'Mensile':     return 'Monthly';
-      default:            return key;
+      case 'Singola':
+        return 'Single';
+      case 'Giornaliera':
+        return 'Daily';
+      case 'Settimanale':
+        return 'Weekly';
+      case 'Mensile':
+        return 'Monthly';
+      default:
+        return key;
     }
   }
 
   // ---------------------------------------------------------------------------
   // DIALOGS ERRORE / CONFERMA
   // ---------------------------------------------------------------------------
-  String get attention       => isEnglish ? 'Warning'       : 'Attenzione';
-  String get understood      => isEnglish ? 'GOT IT'        : 'HO CAPITO';
-  String get endBeforeStart  => isEnglish
+  String get attention => isEnglish ? 'Warning' : 'Attenzione';
+  String get understood => isEnglish ? 'GOT IT' : 'HO CAPITO';
+  String get endBeforeStart => isEnglish
       ? 'End time cannot be before start time.'
       : "L'orario di fine non può essere oltre l'orario di inizio.";
-  String get lunchDuplicate  => isEnglish
+  String get lunchDuplicate => isEnglish
       ? 'Cannot save: Lunch activity already added on one of the selected days'
       : 'Impossibile salvare: attività Pranzo già inserita in uno dei giorni selezionati';
 
   // Dialog evento ricorrente (modifica)
-  String get editRecurring    => isEnglish ? 'Edit recurring event'    : 'Modifica evento ricorrente';
+  String get editRecurring =>
+      isEnglish ? 'Edit recurring event' : 'Modifica evento ricorrente';
   String get editRecurringMsg => isEnglish
       ? 'Do you want to apply changes to this event only or all occurrences?'
       : 'Vuoi applicare le modifiche solo a questo evento o a tutte le ripetizioni?';
   String get thisOne => isEnglish ? 'THIS ONE' : 'SOLO QUESTO';
-  String get allBtn  => isEnglish ? 'ALL'      : 'TUTTI';
+  String get allBtn => isEnglish ? 'ALL' : 'TUTTI';
 
   // Dialog eliminazione
-  String get deleteActivity => isEnglish ? 'Delete activity'              : 'Elimina attività';
-  String get isRecurringMsg => isEnglish ? 'This is a recurring activity.': "Questa è un'attività ricorrente.";
-  String get deleteConfirm  => isEnglish ? 'Do you want to delete this activity?' : 'Vuoi eliminare questa attività?';
-  String get cancel         => isEnglish ? 'CANCEL'        : 'ANNULLA';
-  String get thisActivity   => isEnglish ? 'THIS ACTIVITY' : "QUESTA ATTIVITA'";
-  String get allOccurrences => isEnglish ? 'ALL'           : 'TUTTE';
+  String get deleteActivity =>
+      isEnglish ? 'Delete activity' : 'Elimina attività';
+  String get isRecurringMsg => isEnglish
+      ? 'This is a recurring activity.'
+      : "Questa è un'attività ricorrente.";
+  String get deleteConfirm => isEnglish
+      ? 'Do you want to delete this activity?'
+      : 'Vuoi eliminare questa attività?';
+  String get cancel => isEnglish ? 'CANCEL' : 'ANNULLA';
+  String get thisActivity => isEnglish ? 'THIS ACTIVITY' : "QUESTA ATTIVITA'";
+  String get allOccurrences => isEnglish ? 'ALL' : 'TUTTE';
 
   // ---------------------------------------------------------------------------
   // DIALOG SELEZIONE TEMA (nel drawer)
   // ---------------------------------------------------------------------------
   String get selectTheme => isEnglish ? 'Select Theme' : 'Seleziona tema';
-  String get themeSystem => isEnglish ? 'System'       : 'Sistema';
-  String get themeLight  => isEnglish ? 'Light'        : 'Chiaro';
-  String get themeDark   => isEnglish ? 'Dark'         : 'Scuro';
+  String get themeSystem => isEnglish ? 'System' : 'Sistema';
+  String get themeLight => isEnglish ? 'Light' : 'Chiaro';
+  String get themeDark => isEnglish ? 'Dark' : 'Scuro';
 
   // ---------------------------------------------------------------------------
   // DIALOG SELEZIONE LINGUA (nel drawer)
   // ---------------------------------------------------------------------------
-  String get selectLanguage => isEnglish ? 'Select Language' : 'Seleziona Lingua';
+  String get selectLanguage =>
+      isEnglish ? 'Select Language' : 'Seleziona Lingua';
 
   // ---------------------------------------------------------------------------
   // TUTORIAL PAGES
   // ---------------------------------------------------------------------------
-  List<Map<String, String>> get tutorialPages => isEnglish
-      ? _tutorialPagesEn
-      : _tutorialPagesIt;
+  List<Map<String, String>> get tutorialPages =>
+      isEnglish ? _tutorialPagesEn : _tutorialPagesIt;
 
   static const List<Map<String, String>> _tutorialPagesIt = [
     {
@@ -334,8 +387,7 @@ class AppStrings {
     {
       'emoji': '📅',
       'title': 'Adding Activities',
-      'body':
-          'Go to Calendar and press "+ Add Activity" to add an event.',
+      'body': 'Go to Calendar and press "+ Add Activity" to add an event.',
     },
     {
       'emoji': '⏰',

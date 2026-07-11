@@ -34,35 +34,35 @@ class MyEvent {
   /// Serializza l'evento in una mappa JSON-compatibile, usata da
   /// [EventsStorageService] per salvare gli eventi in SharedPreferences.
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'groupId': groupId,
-        'title': title,
-        'category': category,
-        'startHour': startTime.hour,
-        'startMinute': startTime.minute,
-        'endHour': endTime.hour,
-        'endMinute': endTime.minute,
-        'color': color.value,
-        'isRecurring': isRecurring,
-      };
+    'id': id,
+    'groupId': groupId,
+    'title': title,
+    'category': category,
+    'startHour': startTime.hour,
+    'startMinute': startTime.minute,
+    'endHour': endTime.hour,
+    'endMinute': endTime.minute,
+    'color': color.value,
+    'isRecurring': isRecurring,
+  };
 
   /// Ricostruisce un [MyEvent] a partire dalla mappa prodotta da [toJson].
   factory MyEvent.fromJson(Map<String, dynamic> json) => MyEvent(
-        id: json['id'] as String,
-        groupId: json['groupId'] as String,
-        title: json['title'] as String,
-        category: json['category'] as String,
-        startTime: TimeOfDay(
-          hour: json['startHour'] as int,
-          minute: json['startMinute'] as int,
-        ),
-        endTime: TimeOfDay(
-          hour: json['endHour'] as int,
-          minute: json['endMinute'] as int,
-        ),
-        color: Color(json['color'] as int),
-        isRecurring: json['isRecurring'] as bool? ?? false,
-      );
+    id: json['id'] as String,
+    groupId: json['groupId'] as String,
+    title: json['title'] as String,
+    category: json['category'] as String,
+    startTime: TimeOfDay(
+      hour: json['startHour'] as int,
+      minute: json['startMinute'] as int,
+    ),
+    endTime: TimeOfDay(
+      hour: json['endHour'] as int,
+      minute: json['endMinute'] as int,
+    ),
+    color: Color(json['color'] as int),
+    isRecurring: json['isRecurring'] as bool? ?? false,
+  );
 }
 
 // =============================================================================
@@ -90,8 +90,9 @@ class CalendarPage extends StatefulWidget {
 
 class _CalendarPageState extends State<CalendarPage> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
-  DateTime _focusedDay =
-      DateTime.now().subtract(Duration(days: 1)); // giorno visibile al centro del calendario
+  DateTime _focusedDay = DateTime.now().subtract(
+    Duration(days: 1),
+  ); // giorno visibile al centro del calendario
   DateTime? _selectedDay; // giorno selezionato dall'utente
 
   /// Palette colori assegnabili agli eventi
@@ -161,8 +162,8 @@ class _CalendarPageState extends State<CalendarPage> {
           focusedDay: _focusedDay,
           calendarFormat: _calendarFormat,
 
-          startingDayOfWeek: StartingDayOfWeek.monday, //vogliamo che il calendario inizi da lunedì
-
+          startingDayOfWeek: StartingDayOfWeek
+              .monday, //vogliamo che il calendario inizi da lunedì
           //due possibili formati (settimanale e mensile)
           availableCalendarFormats: {
             CalendarFormat.month: s.monthFormat,
@@ -293,7 +294,7 @@ class _CalendarPageState extends State<CalendarPage> {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Apre il foglio di modifica pre-compilato con i dati dell'evento 
+              // Apre il foglio di modifica pre-compilato con i dati dell'evento
               //(non posso variare la tipologia di evento, nè la ripetizione)
               IconButton(
                 icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
@@ -375,356 +376,372 @@ class _CalendarPageState extends State<CalendarPage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                  // Titolo del foglio
-                  Center(
-                    child: Text(
-                      isEditing ? strings.editDetails : strings.newActivity,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 25),
-
-                  // --- Selezione categoria (chip) ---
-                  // In modifica i chip sono disabilitati: la categoria non può cambiare
-                  Text(
-                    strings.category,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8.0,
-                    children: _categories.map((cat) {
-                      final isSelected = selectedCat == cat;
-                      return ChoiceChip(
-                        // cat è la chiave interna in italiano; la label è tradotta
-                        label: Text(strings.categoryDisplay(cat)),
-                        selected: isSelected,
-                        onSelected: isEditing
-                            ? null // null disabilita il chip in modifica
-                            : (selected) {
-                                if (selected) setSt(() => selectedCat = cat);
-                              },
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // --- Titolo opzionale ---
-                  // Se lasciato vuoto, al salvataggio viene usato il nome della categoria
-                  Text(
-                    strings.titleOpt,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: tCtrl,
-                    decoration: InputDecoration(
-                      hintText: strings.titleHint,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // --- Selezione orari inizio / fine (time picker 24h) ---
-                  // Toccare "Inizio" aggiorna automaticamente "Fine" a +1h
-                  Row(
-                    children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: () async {
-                            final t = await showTimePicker(
-                              context: ctx,
-                              initialTime: startTime,
-                              builder: (context, child) => MediaQuery(
-                                data: MediaQuery.of(
-                                  context,
-                                ).copyWith(alwaysUse24HourFormat: true),
-                                child: child!,
-                              ),
-                            );
-                            if (t != null) {
-                              setSt(() {
-                                startTime = t;
-                                // Aggiorna fine automaticamente a inizio + 1h
-                                endTime = TimeOfDay(
-                                  hour: (t.hour + 1) % 24,
-                                  minute: t.minute,
-                                );
-                              });
-                            }
-                          },
-                          child: _timeBox(strings.startTime, startTime),
+                    // Titolo del foglio
+                    Center(
+                      child: Text(
+                        isEditing ? strings.editDetails : strings.newActivity,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: InkWell(
-                          onTap: () async {
-                            final t = await showTimePicker(
-                              context: ctx,
-                              initialTime: endTime,
-                              builder: (context, child) => MediaQuery(
-                                data: MediaQuery.of(
-                                  context,
-                                ).copyWith(alwaysUse24HourFormat: true),
-                                child: child!,
-                              ),
-                            );
-                            if (t != null) setSt(() => endTime = t);
-                          },
-                          child: _timeBox(strings.endTime, endTime),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 25),
 
-                  // --- Ripetizione (solo in creazione, nascosto in modifica) ---
-                  // Singola | Giornaliera (30gg) | Settimanale (12 sett.) | Mensile (6 mesi)
-                  if (!isEditing) ...[
-                    const SizedBox(height: 20),
+                    // --- Selezione categoria (chip) ---
+                    // In modifica i chip sono disabilitati: la categoria non può cambiare
                     Text(
-                      strings.repetition,
+                      strings.category,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
                     ),
-                    DropdownButton<String>(
-                      value: repetition,
-                      isExpanded: true,
-                      items: ['Singola', 'Giornaliera', 'Settimanale', 'Mensile']
-                          .map(
-                            // value resta la chiave italiana (usata da _save),
-                            // il testo mostrato è tradotto
-                            (key) => DropdownMenuItem(
-                              value: key,
-                              child: Text(strings.repetitionDisplay(key)),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (v) => setSt(() => repetition = v!),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8.0,
+                      children: _categories.map((cat) {
+                        final isSelected = selectedCat == cat;
+                        return ChoiceChip(
+                          // cat è la chiave interna in italiano; la label è tradotta
+                          label: Text(strings.categoryDisplay(cat)),
+                          selected: isSelected,
+                          onSelected: isEditing
+                              ? null // null disabilita il chip in modifica
+                              : (selected) {
+                                  if (selected) setSt(() => selectedCat = cat);
+                                },
+                        );
+                      }).toList(),
                     ),
-                  ],
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  // --- Selezione colore (riga di pallini scrollabile) ---
-                  // Il pallino selezionato ha un bordo nero
-                  Text(
-                    strings.colorLabel,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                    // --- Titolo opzionale ---
+                    // Se lasciato vuoto, al salvataggio viene usato il nome della categoria
+                    Text(
+                      strings.titleOpt,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    height: 40,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: tCtrl,
+                      decoration: InputDecoration(
+                        hintText: strings.titleHint,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // --- Selezione orari inizio / fine (time picker 24h) ---
+                    // Toccare "Inizio" aggiorna automaticamente "Fine" a +1h
+                    Row(
                       children: [
-                        // 1. Usa localColors invece di _colors
-                        ...localColors.map((c) => GestureDetector(
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              final t = await showTimePicker(
+                                context: ctx,
+                                initialTime: startTime,
+                                builder: (context, child) => MediaQuery(
+                                  data: MediaQuery.of(
+                                    context,
+                                  ).copyWith(alwaysUse24HourFormat: true),
+                                  child: child!,
+                                ),
+                              );
+                              if (t != null) {
+                                setSt(() {
+                                  startTime = t;
+                                  // Aggiorna fine automaticamente a inizio + 1h
+                                  endTime = TimeOfDay(
+                                    hour: (t.hour + 1) % 24,
+                                    minute: t.minute,
+                                  );
+                                });
+                              }
+                            },
+                            child: _timeBox(strings.startTime, startTime),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: InkWell(
+                            onTap: () async {
+                              final t = await showTimePicker(
+                                context: ctx,
+                                initialTime: endTime,
+                                builder: (context, child) => MediaQuery(
+                                  data: MediaQuery.of(
+                                    context,
+                                  ).copyWith(alwaysUse24HourFormat: true),
+                                  child: child!,
+                                ),
+                              );
+                              if (t != null) setSt(() => endTime = t);
+                            },
+                            child: _timeBox(strings.endTime, endTime),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // --- Ripetizione (solo in creazione, nascosto in modifica) ---
+                    // Singola | Giornaliera (30gg) | Settimanale (12 sett.) | Mensile (6 mesi)
+                    if (!isEditing) ...[
+                      const SizedBox(height: 20),
+                      Text(
+                        strings.repetition,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      DropdownButton<String>(
+                        value: repetition,
+                        isExpanded: true,
+                        items: ['Singola', 'Giornaliera', 'Settimanale', 'Mensile']
+                            .map(
+                              // value resta la chiave italiana (usata da _save),
+                              // il testo mostrato è tradotto
+                              (key) => DropdownMenuItem(
+                                value: key,
+                                child: Text(strings.repetitionDisplay(key)),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (v) => setSt(() => repetition = v!),
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+
+                    // --- Selezione colore (riga di pallini scrollabile) ---
+                    // Il pallino selezionato ha un bordo nero
+                    Text(
+                      strings.colorLabel,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: 40,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          // 1. Usa localColors invece di _colors
+                          ...localColors.map(
+                            (c) => GestureDetector(
                               onTap: () => setSt(() => selCol = c),
                               child: Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 5),
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                ),
                                 width: 30,
                                 decoration: BoxDecoration(
                                   color: c,
                                   shape: BoxShape.circle,
                                   border: selCol == c
-                                      ? Border.all(color: Colors.black, width: 2)
+                                      ? Border.all(
+                                          color: Colors.black,
+                                          width: 2,
+                                        )
                                       : null,
                                 ),
                               ),
-                            )),
-                        
-                        // 2. Cerchio arcobaleno per il Color Picker
-                        GestureDetector(
-                          onTap: () {
-                            showDialog(
-                              context: ctx, 
-                              builder: (BuildContext dialogContext) {
-                                Color tempColor = selCol; 
-                                return AlertDialog(
-                                  title: Text(strings.colorLabel), 
-                                  content: SingleChildScrollView(
-                                    child: ColorPicker(
-                                      pickerColor: selCol,
-                                      onColorChanged: (Color color) {
-                                        tempColor = color;
-                                      },
-                                      pickerAreaHeightPercent: 0.8,
-                                      enableAlpha: false,
-                                    ),
-                                  ),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      child: Text(strings.cancel), 
-                                      onPressed: () => Navigator.of(dialogContext).pop(),
-                                    ),
-                                    TextButton(
-                                      child: const Text('OK'),
-                                      onPressed: () {
-                                        setSt(() {
-                                          selCol = tempColor;
-                                          // Aggiungiamo il colore alla lista LOCALE, non a quella globale
-                                          if (!localColors.contains(tempColor)) {
-                                            localColors.add(tempColor);
-                                          }
-                                        });
-                                        Navigator.of(dialogContext).pop();
-                                      },
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 5),
-                            width: 30,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: const SweepGradient(
-                                colors: [
-                                  Colors.red, Colors.yellow, Colors.green,
-                                  Colors.cyan, Colors.blue,  Colors.red,
-                                ],
-                              ),
-                              border: Border.all(
-                                color: Colors.grey.shade400,
-                                width: 1,
-                              ),
-                            ),
-                            child: const Icon(
-                              Icons.add,
-                              size: 18,
-                              color: Colors.white,
-                              shadows: [Shadow(color: Colors.black45, blurRadius: 2)],
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ), //parte rifatta
-                  const SizedBox(height: 25),
 
-                  // --- Bottone SALVA / AGGIORNA ---
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 55),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                          // 2. Cerchio arcobaleno per il Color Picker
+                          GestureDetector(
+                            onTap: () {
+                              showDialog(
+                                context: ctx,
+                                builder: (BuildContext dialogContext) {
+                                  Color tempColor = selCol;
+                                  return AlertDialog(
+                                    title: Text(strings.colorLabel),
+                                    content: SingleChildScrollView(
+                                      child: ColorPicker(
+                                        pickerColor: selCol,
+                                        onColorChanged: (Color color) {
+                                          tempColor = color;
+                                        },
+                                        pickerAreaHeightPercent: 0.8,
+                                        enableAlpha: false,
+                                      ),
+                                    ),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        child: Text(strings.cancel),
+                                        onPressed: () =>
+                                            Navigator.of(dialogContext).pop(),
+                                      ),
+                                      TextButton(
+                                        child: const Text('OK'),
+                                        onPressed: () {
+                                          setSt(() {
+                                            selCol = tempColor;
+                                            // Aggiungiamo il colore alla lista LOCALE, non a quella globale
+                                            if (!localColors.contains(
+                                              tempColor,
+                                            )) {
+                                              localColors.add(tempColor);
+                                            }
+                                          });
+                                          Navigator.of(dialogContext).pop();
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 5),
+                              width: 30,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: const SweepGradient(
+                                  colors: [
+                                    Colors.red,
+                                    Colors.yellow,
+                                    Colors.green,
+                                    Colors.cyan,
+                                    Colors.blue,
+                                    Colors.red,
+                                  ],
+                                ),
+                                border: Border.all(
+                                  color: Colors.grey.shade400,
+                                  width: 1,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.add,
+                                size: 18,
+                                color: Colors.white,
+                                shadows: [
+                                  Shadow(color: Colors.black45, blurRadius: 2),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    onPressed: () {
-                      // Validazione 1: fine deve essere strettamente dopo inizio
-                      final startMin = startTime.hour * 60 + startTime.minute;
-                      final endMin = endTime.hour * 60 + endTime.minute;
-                      if (endMin <= startMin) {
-                        _showErrorDialog(ctx, strings.endBeforeStart);
-                        return;
-                      }
+                    ), //parte rifatta
+                    const SizedBox(height: 25),
 
-                      // Validazione 2: Pranzo può essere inserito una sola volta per giorno.
-                      // Controlla tutti i giorni coperti dalla ripetizione scelta.
-                      if (selectedCat == "Pranzo") {
-                        bool conflictFound = false;
-                        int daysToCheck = 1;
-                        if (!isEditing) {
-                          if (repetition == 'Giornaliera') daysToCheck = 30;
-                          if (repetition == 'Settimanale') daysToCheck = 12;
-                          if (repetition == 'Mensile') daysToCheck = 6;
-                        }
-
-                        for (int i = 0; i < daysToCheck; i++) {
-                          DateTime d = _selectedDay!;
-                          if (!isEditing) {
-                            if (repetition == 'Giornaliera')
-                              d = d.add(Duration(days: i));
-                            if (repetition == 'Settimanale')
-                              d = d.add(Duration(days: 7 * i));
-                            if (repetition == 'Mensile')
-                              d = DateTime(d.year, d.month + i, d.day);
-                          }
-                          final key = DateTime(d.year, d.month, d.day);
-                          final existingEvents = widget.eventsMap[key] ?? [];
-
-                          // Esclude l'evento corrente dal controllo duplicati
-                          // (altrimenti in modifica troverebbe sé stesso come conflitto)
-                          if (existingEvents.any(
-                            (e) =>
-                                e.category == "Pranzo" &&
-                                e.id != (eventToEdit?.id ?? ""),
-                          )) {
-                            conflictFound = true;
-                            break;
-                          }
-                        }
-
-                        if (conflictFound) {
-                          _showErrorDialog(ctx, strings.lunchDuplicate);
+                    // --- Bottone SALVA / AGGIORNA ---
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 55),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        // Validazione 1: fine deve essere strettamente dopo inizio
+                        final startMin = startTime.hour * 60 + startTime.minute;
+                        final endMin = endTime.hour * 60 + endTime.minute;
+                        if (endMin <= startMin) {
+                          _showErrorDialog(ctx, strings.endBeforeStart);
                           return;
                         }
-                      }
 
-                      // Se il titolo è vuoto usa il nome della categoria (tradotto) come fallback
-                      String finalTitle = tCtrl.text.trim().isEmpty
-                          ? strings.categoryDisplay(selectedCat)
-                          : tCtrl.text;
+                        // Validazione 2: Pranzo può essere inserito una sola volta per giorno.
+                        // Controlla tutti i giorni coperti dalla ripetizione scelta.
+                        if (selectedCat == "Pranzo") {
+                          bool conflictFound = false;
+                          int daysToCheck = 1;
+                          if (!isEditing) {
+                            if (repetition == 'Giornaliera') daysToCheck = 30;
+                            if (repetition == 'Settimanale') daysToCheck = 12;
+                            if (repetition == 'Mensile') daysToCheck = 6;
+                          }
 
-                      if (isEditing) {
-                        if (eventToEdit.isRecurring) {
-                          // Evento ricorrente → chiede se aggiornare solo questo o tutti
-                          _showUpdateOptionDialog(
-                            eventToEdit,
-                            finalTitle,
-                            startTime,
-                            endTime,
-                            selCol,
-                          );
+                          for (int i = 0; i < daysToCheck; i++) {
+                            DateTime d = _selectedDay!;
+                            if (!isEditing) {
+                              if (repetition == 'Giornaliera')
+                                d = d.add(Duration(days: i));
+                              if (repetition == 'Settimanale')
+                                d = d.add(Duration(days: 7 * i));
+                              if (repetition == 'Mensile')
+                                d = DateTime(d.year, d.month + i, d.day);
+                            }
+                            final key = DateTime(d.year, d.month, d.day);
+                            final existingEvents = widget.eventsMap[key] ?? [];
+
+                            // Esclude l'evento corrente dal controllo duplicati
+                            // (altrimenti in modifica troverebbe sé stesso come conflitto)
+                            if (existingEvents.any(
+                              (e) =>
+                                  e.category == "Pranzo" &&
+                                  e.id != (eventToEdit?.id ?? ""),
+                            )) {
+                              conflictFound = true;
+                              break;
+                            }
+                          }
+
+                          if (conflictFound) {
+                            _showErrorDialog(ctx, strings.lunchDuplicate);
+                            return;
+                          }
+                        }
+
+                        // Se il titolo è vuoto usa il nome della categoria (tradotto) come fallback
+                        String finalTitle = tCtrl.text.trim().isEmpty
+                            ? strings.categoryDisplay(selectedCat)
+                            : tCtrl.text;
+
+                        if (isEditing) {
+                          if (eventToEdit.isRecurring) {
+                            // Evento ricorrente → chiede se aggiornare solo questo o tutti
+                            _showUpdateOptionDialog(
+                              eventToEdit,
+                              finalTitle,
+                              startTime,
+                              endTime,
+                              selCol,
+                            );
+                          } else {
+                            _applySingleUpdate(
+                              eventToEdit,
+                              finalTitle,
+                              startTime,
+                              endTime,
+                              selCol,
+                            );
+                            Navigator.pop(context);
+                          }
                         } else {
-                          _applySingleUpdate(
-                            eventToEdit,
+                          _save(
                             finalTitle,
+                            selectedCat,
                             startTime,
                             endTime,
                             selCol,
+                            repetition,
                           );
                           Navigator.pop(context);
                         }
-                      } else {
-                        _save(
-                          finalTitle,
-                          selectedCat,
-                          startTime,
-                          endTime,
-                          selCol,
-                          repetition,
-                        );
-                        Navigator.pop(context);
-                      }
-                    },
-                    child: Text(
-                      isEditing ? strings.updateBtn : strings.saveActivity,
+                      },
+                      child: Text(
+                        isEditing ? strings.updateBtn : strings.saveActivity,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ), // SingleChildScrollView
-          ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ), // SingleChildScrollView
+            ),
 
             // Bottone X in alto a destra per chiudere il foglio senza salvare
             Positioned(
@@ -961,7 +978,8 @@ class _CalendarPageState extends State<CalendarPage> {
     Color c,
     String r,
   ) {
-    final gid = DateTime.now().subtract(Duration(days: 1))
+    final gid = DateTime.now()
+        .subtract(Duration(days: 1))
         .toString(); // groupId univoco basato sul timestamp
     int count = 1;
     if (r == 'Giornaliera') count = 30;

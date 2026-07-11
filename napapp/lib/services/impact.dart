@@ -64,7 +64,9 @@ class Impact {
     //If access token is expired, refresh it
     if (access == null) {
       await authorize();
-      access = sp.getString('access'); // BUGFIX: prima non veniva riletto -> header "Bearer null"
+      access = sp.getString(
+        'access',
+      ); // BUGFIX: prima non veniva riletto -> header "Bearer null"
     } else if (isExpired(access)) {
       final refreshStatus = await _refreshTokens();
       if (refreshStatus != 200) {
@@ -84,7 +86,9 @@ class Impact {
     // Se dopo l'autenticazione il token è ancora nullo (es. credenziali errate),
     // fallisci subito con un errore chiaro invece di mandare "Bearer null" al server.
     if (access == null) {
-      throw Exception("Error: unable to authenticate with IMPACT (check credentials).");
+      throw Exception(
+        "Error: unable to authenticate with IMPACT (check credentials).",
+      );
     }
 
     //Create the (representative) request
