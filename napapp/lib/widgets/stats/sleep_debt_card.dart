@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SleepDebtCard extends StatelessWidget {
+  // Value of the sleep debt computed by the algorithm
   final double sds;
 
   const SleepDebtCard({super.key, required this.sds});
@@ -11,6 +12,7 @@ class SleepDebtCard extends StatelessWidget {
 
     String message;
 
+    // Message depends on the value of the sleep debt
     if (sds < 1) {
       message = "You're well rested";
     } else {
