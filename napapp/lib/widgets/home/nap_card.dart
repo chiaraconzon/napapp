@@ -95,11 +95,12 @@ class _NapCardState extends State<NapCard> {
         borderRadius: BorderRadius.circular(15),
 
         onTap: () {
-          // SE IL PISOLINO È PARTITO
+          // ---------------------------------------------------------
+          // PISOLINO IN CORSO
+          // ---------------------------------------------------------
           if (widget.r.status == NapStatus.running) {
             showDialog(
               context: context,
-
               builder: (ctx) {
                 return AlertDialog(
                   backgroundColor:
@@ -107,18 +108,12 @@ class _NapCardState extends State<NapCard> {
                       ? Theme.of(context).colorScheme.surface
                       : null,
                   title: const Text("Pisolino in corso"),
-
                   content: const Text("Vuoi interrompere il pisolino?"),
-
                   actions: [
                     TextButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                      },
-
+                      onPressed: () => Navigator.pop(ctx),
                       child: const Text("Continua"),
                     ),
-
                     FilledButton(
                       onPressed: () {
                         napTimer?.cancel();
@@ -137,7 +132,6 @@ class _NapCardState extends State<NapCard> {
 
                         showDialog(
                           context: context,
-
                           builder: (ctx2) {
                             final tooShort = sleptMinutes < 10;
 
@@ -147,9 +141,7 @@ class _NapCardState extends State<NapCard> {
                                       Brightness.dark
                                   ? Theme.of(context).colorScheme.surface
                                   : null,
-
                               title: const Text("Pisolino interrotto"),
-
                               content: Text(
                                 tooShort
                                     ? "Hai dormito per $sleptMinutes minuti.\n\n"
@@ -157,32 +149,24 @@ class _NapCardState extends State<NapCard> {
                                     : "Hai dormito per $sleptMinutes minuti.\n\n"
                                           "Può bastare così!",
                               ),
-
                               actions: [
                                 if (tooShort)
                                   FilledButton(
                                     onPressed: () {
                                       Navigator.pop(ctx2);
-
                                       widget.onRequestNewNap();
                                     },
-
                                     child: const Text("Nuovo pisolino"),
                                   ),
-
                                 TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(ctx2);
-                                  },
-
-                                  child: const Text("OK"),
+                                  onPressed: () => Navigator.pop(ctx2),
+                                  child: const Text("Annulla"),
                                 ),
                               ],
                             );
                           },
                         );
                       },
-
                       child: const Text("Interrompi"),
                     ),
                   ],
@@ -193,14 +177,47 @@ class _NapCardState extends State<NapCard> {
             return;
           }
 
-          // ALTRIMENTI APRE IL DIALOG NORMALE
+          // ---------------------------------------------------------
+          // PISOLINO INTERROTTO
+          // ---------------------------------------------------------
+          if (widget.r.status == NapStatus.interrupted) {
+            showDialog(
+              context: context,
+              builder: (ctx) {
+                return AlertDialog(
+                  backgroundColor:
+                      Theme.of(context).brightness == Brightness.dark
+                      ? Theme.of(context).colorScheme.surface
+                      : null,
+                  title: const Text("Pisolino interrotto"),
+                  content: const Text("Vuoi impostare un nuovo pisolino?"),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text("No"),
+                    ),
+                    FilledButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        widget.onRequestNewNap();
+                      },
+                      child: const Text("Sì"),
+                    ),
+                  ],
+                );
+              },
+            );
+
+            return;
+          }
+
+          // ---------------------------------------------------------
+          // PISOLINO SUGGERITO O COMPLETATO
+          // ---------------------------------------------------------
           showNapDialog(
             context: context,
-
             napResult: widget.r,
-
             s: s,
-
             onNapStarted: () {
               setState(() {
                 widget.r.status = NapStatus.running;
@@ -211,7 +228,6 @@ class _NapCardState extends State<NapCard> {
             },
           );
         },
-
         child: Container(
           decoration: BoxDecoration(
             color: color.withOpacity(0.07),
