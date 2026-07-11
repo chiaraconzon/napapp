@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+// Header of the stats page
 class StatsHeader extends StatelessWidget {
   const StatsHeader({super.key});
 
