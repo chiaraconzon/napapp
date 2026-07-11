@@ -13,7 +13,7 @@ class SleepChart extends StatelessWidget {
   List<double> getHoursOfSleep(List<SleepData> sleepData) {
     List<double> hoursOfSleep = [];
 
-    for(int i = 0; i < 8; i++) {
+    for(int i = 0; i < 7; i++) {
       int mins = (sleepData[i].minutesAsleep != null) ? sleepData[i].minutesAsleep! : 0;
       double hours = mins/60.0;
       hoursOfSleep.add(hours);
@@ -25,7 +25,7 @@ class SleepChart extends StatelessWidget {
   List<String> getLabels(List<SleepData> sleepData) {
     List<String> labels = [];
 
-    for(int i = 0; i < 8; i++) {
+    for(int i = 0; i < 7; i++) {
       DateTime date = sleepData[i].date;
       String day = "${date.day}".padLeft(2,'0');
       String month = "${date.month}".padLeft(2,'0');
@@ -40,7 +40,7 @@ class SleepChart extends StatelessWidget {
   List<FlSpot> getSpots(List<double> hrs) {
     List<FlSpot> spots = [];
 
-    for(int i = 0; i < 8; i++) {
+    for(int i = 0; i < 7; i++) {
       FlSpot spot = FlSpot(i.toDouble(),hrs[i]);
       spots.add(spot);
     }
@@ -101,16 +101,17 @@ class SleepChart extends StatelessWidget {
 
                 titlesData: FlTitlesData(
                   topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
+                    sideTitles: SideTitles(showTitles: false, interval: 1),
                   ),
 
                   rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
+                    sideTitles: SideTitles(showTitles: false, interval: 1),
                   ),
 
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
+                      interval: 1,
 
                       reservedSize: 35,
 
@@ -128,13 +129,14 @@ class SleepChart extends StatelessWidget {
 
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
+                      interval: 1,
                       showTitles: true,
 
                       getTitlesWidget: (value, meta) {
                         return Text(
                           labels[value.toInt()],
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 12,
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
                         );

@@ -53,7 +53,7 @@ class _StatsPageState extends State<StatsPage>{
   }
 
   List<SleepData> get7Days (List<SleepData> sleepDataList) {
-    List<SleepData> data7days = sleepDataList.sublist(0,8);
+    List<SleepData> data7days = sleepDataList.sublist(0,7);
     data7days.sort((a, b) => a.date.compareTo(b.date));
 
     return data7days;
@@ -62,7 +62,7 @@ class _StatsPageState extends State<StatsPage>{
   List<SleepData> getNDays (List<SleepData> sleepDataList, int n) {
     if(n<1) return [];
 
-    List<SleepData> dataNdays = sleepDataList.sublist(0,n+1);
+    List<SleepData> dataNdays = sleepDataList.sublist(0,n);
     dataNdays.sort((a, b) => a.date.compareTo(b.date));
 
     return dataNdays;

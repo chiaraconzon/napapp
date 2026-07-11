@@ -15,7 +15,7 @@ class StatsGrid extends StatelessWidget {
     int sumThisWeek = 0;
     int countThisWeek = 0;
 
-    for(int i = 0; i < 8; i++) {
+    for(int i = 0; i < 7; i++) {
       int? mins = sleepData[i].minutesAsleep;
       if (mins != null) {
         sumThisWeek += mins;
@@ -65,20 +65,6 @@ class StatsGrid extends StatelessWidget {
           value: "$nNaps naps",
           accentColor: colors.secondary,
         ),
-
-        // StatCard(
-        //   icon: Icons.bedtime_rounded,
-        //   title: "Average Nap",
-        //   value: "24 min",
-        //   accentColor: colors.secondary,
-        // ),
-
-        // StatCard(
-        //   icon: Icons.bolt_rounded,
-        //   title: "Recovery",
-        //   value: "86%",
-        //   accentColor: Colors.green,
-        // ),
       ],
     );
   }
