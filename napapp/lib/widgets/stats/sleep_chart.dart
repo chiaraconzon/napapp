@@ -13,7 +13,7 @@ class SleepChart extends StatelessWidget {
   List<double> getHoursOfSleep(List<SleepData> sleepData) {
     List<double> hoursOfSleep = [];
 
-    for(int i = 0; i < 8; i++) {
+    for(int i = 0; i < 7; i++) {
       int mins = (sleepData[i].minutesAsleep != null) ? sleepData[i].minutesAsleep! : 0;
       double hours = mins/60.0;
       hoursOfSleep.add(hours);
