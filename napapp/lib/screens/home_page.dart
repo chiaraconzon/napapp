@@ -47,6 +47,7 @@ class _HomePageState extends State<HomePage> {
   Timer? _napTimer;
 
   Map<DateTime, SleepData> globalSleepData = {};
+  List<SleepData> globalSleepDataList = [];
 
   // async perché NapController.refresh() chiama il wearable via await
   Future<void> _refresh() async {
@@ -58,13 +59,14 @@ class _HomePageState extends State<HomePage> {
   // Metodo async per prendere 30 giorni di dati del sonno dal server Impact
   Future<void> _loadSleepData() async {
     List<SleepData> listData = await Impact.getN_DaysFromMostRecent(30);
-    // converte lista in mappa
+    // Converte lista in mappa -> CHANGE: resta List
     Map<DateTime, SleepData> mapData = {
       for (var elem in listData) elem.date : elem
     };
 
     setState(() {
       globalSleepData = mapData;
+      globalSleepDataList = listData;
     });
   }
 
@@ -156,7 +158,7 @@ class _HomePageState extends State<HomePage> {
         }),
       ),
       StatsPage(
-        sleepData: globalSleepData,
+        sleepData: globalSleepDataList,
       ),
     ];
 

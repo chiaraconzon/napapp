@@ -8,12 +8,13 @@ import '../widgets/stats/sleep_debt_card.dart';
 import '../widgets/stats/weekly_insight_card.dart';
 import '../models/sleep.dart';
 
-class StatsPage extends StatelessWidget {
-  final Map<DateTime, SleepData> sleepData;
+class StatsPage extends StatefulWidget {
+  final List<SleepData> sleepData;
 
   StatsPage({
     super.key,
     required this.sleepData});
+
   final List<FlSpot> sampleData = [
     const FlSpot(1, 3), // Lunedì: 3 attività
     const FlSpot(2, 5), // Martedì: 5 attività
@@ -21,6 +22,34 @@ class StatsPage extends StatelessWidget {
     const FlSpot(4, 8), // Giovedì: 8 attività
     const FlSpot(5, 4), // Venerdì: 4 attività
   ];
+
+  @override
+  State<StatsPage> createState() => _StatsPageState();
+}
+
+class _StatsPageState extends State<StatsPage>{
+
+  late List<SleepData> _sleepDataList;
+  late List<SleepData> _7DaysData;
+
+  @override
+  void initState() {
+    super.initState();
+    _sleepDataList = widget.sleepData;
+    _7DaysData = get7Days(_sleepDataList);
+  }
+
+  Map<DateTime, SleepData> ListToMap (List<SleepData> sleepDataList) {
+    Map<DateTime, SleepData> mapData = {
+      for (var elem in sleepDataList) elem.date : elem
+    };
+
+    return mapData;
+  }
+
+  List<SleepData> get7Days (List<SleepData> sleepDataList) {
+    return sleepDataList.sublist(0,8);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +67,9 @@ class StatsPage extends StatelessWidget {
               const SizedBox(height: 10),
               const StatsGrid(),
               const SizedBox(height: 28),
-              const SleepChart(),
+              SleepChart(
+                sleepData: _7DaysData,
+              ),
               const SizedBox(height: 28),
               const SleepDebtCard(),
               const SizedBox(height: 24),

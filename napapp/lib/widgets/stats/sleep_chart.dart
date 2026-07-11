@@ -1,22 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:napapp/models/sleep.dart';
 
 class SleepChart extends StatelessWidget {
-  const SleepChart({super.key});
+  final List<SleepData> sleepData;
+
+  SleepChart({
+    super.key,
+    required this.sleepData
+  });
+
+  List<double> getHoursOfSleep(List<SleepData> sleepData) {
+    List<double> hoursOfSleep = [];
+
+    for(int i = 0; i < 8; i++) {
+      int mins = (sleepData[i].minutesAsleep != null) ? sleepData[i].minutesAsleep! : 0;
+      double hours = mins/60.0;
+      hoursOfSleep.add(hours);
+    }
+
+    return hoursOfSleep;
+  }
+
+  List<String> getLabels(List<SleepData> sleepData) {
+    List<String> labels = [];
+
+    for(int i = 0; i < 8; i++) {
+      DateTime date = sleepData[i].date;
+      String label = "${date.day}.${date.month}";
+
+      labels.add(label);
+    }
+
+    return labels;
+  }
+
+  List<FlSpot> getSpots(List<double> hrs) {
+    List<FlSpot> spots = [];
+
+    for(int i = 0; i < 8; i++) {
+      FlSpot spot = FlSpot(i.toDouble(),hrs[i]);
+      spots.add(spot);
+    }
+
+    return spots;
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final spots = [
-      const FlSpot(1, 7),
-      const FlSpot(2, 6.5),
-      const FlSpot(3, 8),
-      const FlSpot(4, 5.5),
-      const FlSpot(5, 7.5),
-      const FlSpot(6, 8.2),
-      const FlSpot(7, 7),
-    ];
+    final hoursOfSleep = getHoursOfSleep(sleepData);
+    final labels = getLabels(sleepData);    
+    
+    final spots = getSpots(hoursOfSleep);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -92,19 +129,8 @@ class SleepChart extends StatelessWidget {
                       showTitles: true,
 
                       getTitlesWidget: (value, meta) {
-                        const days = [
-                          "",
-                          "Mon",
-                          "Tue",
-                          "Wed",
-                          "Thu",
-                          "Fri",
-                          "Sat",
-                          "Sun",
-                        ];
-
                         return Text(
-                          days[value.toInt()],
+                          labels[value.toInt()],
                           style: TextStyle(
                             fontSize: 11,
                             color: theme.colorScheme.onSurfaceVariant,
@@ -117,7 +143,7 @@ class SleepChart extends StatelessWidget {
 
                 lineBarsData: [
                   LineChartBarData(
-                    spots: spots,
+                    spots: spots, // Altezze
 
                     isCurved: true,
 
