@@ -28,6 +28,22 @@ class AppStrings {
   String get noEvents =>
       isEnglish ? 'No events today' : 'Nessun impegno per oggi';
 
+  // Drawer greeting (two-line layout: "Hello," + name)
+  String get greetingLabel => isEnglish ? 'Hello,' : 'Ciao,';
+  String get userLabel => isEnglish ? 'USER' : 'UTENTE';
+
+  // Alarm dialog recommendation box
+  String get recommendedNap =>
+      isEnglish ? 'Recommended nap' : 'Pisolino consigliato';
+  String napMinutes(int minutes) =>
+      isEnglish ? '$minutes minutes' : '$minutes minuti';
+
+  // Alarm dialog preset buttons
+  String get presetReflexes => isEnglish ? 'Reflexes' : 'Riflessi';
+  String get presetFocus => 'Focus';
+  String get presetRecovery => isEnglish ? 'Recovery' : 'Recupero';
+  String get startNapButton => isEnglish ? 'Start nap' : 'Avvia pisolino';
+
   // ---------------------------------------------------------------------------
   // SDS REWARD
   // ---------------------------------------------------------------------------
@@ -37,13 +53,13 @@ class AppStrings {
   String get sdsSevere => isEnglish ? 'Severe debt' : 'Debito severo';
 
   // ---------------------------------------------------------------------------
-  // NAP SCOPE (the keys 'Energie','Focus','Riflessi' come from NapAlgorithm)
+  // NAP SCOPE (the keys 'Recupero','Focus','Riflessi' come from NapAlgorithm)
   // ---------------------------------------------------------------------------
   String translateScope(String key) {
     if (!isEnglish) return key;
     switch (key) {
-      case 'Energie':
-        return 'Energy';
+      case 'Recupero':
+        return 'Recovery';
       case 'Focus':
         return 'Focus';
       case 'Riflessi':
@@ -259,6 +275,28 @@ class AppStrings {
   String get selectLanguage =>
       isEnglish ? 'Select Language' : 'Seleziona Lingua';
 
+  // Language names are self-referential and stay the same in both languages
+  String get languageItalian => 'Italiano';
+  String get languageEnglish => 'English';
+
+  // ---------------------------------------------------------------------------
+  // DIALOG BIBLIOGRAPHY (in the drawer)
+  // ---------------------------------------------------------------------------
+  String get bibliographyLabel =>
+      isEnglish ? 'BIBLIOGRAPHY' : 'BIBLIOGRAFIA';
+  String get bibliographyDialogTitle =>
+      isEnglish ? 'Bibliography:' : 'Bibliografia:';
+
+  // ---------------------------------------------------------------------------
+  // PROFILE PAGE
+  // ---------------------------------------------------------------------------
+  String get profileTitle => isEnglish ? 'Profile' : 'Profilo';
+  String get nicknameLabel => 'Nickname';
+  String get enterNameHint => isEnglish ? 'Enter name' : 'Inserisci nome';
+  String get chooseProfileImage =>
+      isEnglish ? 'Choose profile image' : 'Scegli immagine profilo';
+  String get saveButton => isEnglish ? 'Save' : 'Salva';
+
   // ---------------------------------------------------------------------------
   // TUTORIAL PAGES
   // ---------------------------------------------------------------------------
@@ -328,7 +366,7 @@ class AppStrings {
       'title': 'Statistiche',
       'body':
           'In Statistiche trovi il riepilogo del tuo sonno settimanale '
-          'e altri parametri d\'interesse.',
+          'e altre informazioni d\'interesse.',
     },
     {
       'emoji': '🚀',
@@ -400,7 +438,7 @@ class AppStrings {
       'title': 'Statistics',
       'body':
           'In Statistics you\'ll find a summary of your weekly sleep '
-          'and other interesting parameters.',
+          'and other information of interest.',
     },
     {
       'emoji': '🚀',
