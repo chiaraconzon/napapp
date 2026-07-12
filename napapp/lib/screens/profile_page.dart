@@ -80,7 +80,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                     children: [
                       const Text(
-                        "Nome utente",
+                        "Nickname",
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
