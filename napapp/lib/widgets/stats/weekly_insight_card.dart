@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:napapp/models/sleep.dart';
+import '../../screens/app_strings.dart';
 
 class WeeklyInsightCard extends StatelessWidget {
   final List<SleepData> sleepData2weeks;
+  final bool isEnglish;
 
-  const WeeklyInsightCard({super.key, required this.sleepData2weeks});
+  const WeeklyInsightCard({
+    super.key,
+    required this.sleepData2weeks,
+    this.isEnglish = false,
+  });
 
   // Computes change in average minutes of sleep of the current and past week (current week is defined as the most recent 7 days)
   int avgChange(List<SleepData> sleepData2weeks) {
@@ -44,6 +50,7 @@ class WeeklyInsightCard extends StatelessWidget {
   Widget build(BuildContext context) {
     int avgMinChange = avgChange(sleepData2weeks);
     final theme = Theme.of(context);
+    final s = AppStrings(isEnglish);
 
     String changeMsg = "";
     String howChange = "";
@@ -51,24 +58,24 @@ class WeeklyInsightCard extends StatelessWidget {
 
     // Messages and icon of the widget changing depending on if the change is positive, negative or 0
     if (avgMinChange > 0) {
-      changeMsg = "Your sleep consistency improved this week!";
-      howChange = "+$avgMinChange min average sleep";
+      changeMsg = s.sleepImprovedMsg;
+      howChange = s.avgSleepIncrease(avgMinChange);
       trendIcon = Icon(
         Icons.trending_up_rounded,
         size: 18,
         color: theme.colorScheme.tertiary,
       );
     } else if (avgMinChange < 0) {
-      changeMsg = "Your sleep consistency decreased this week.";
-      howChange = "-${avgMinChange * (-1)} min average sleep";
+      changeMsg = s.sleepDecreasedMsg;
+      howChange = s.avgSleepDecrease(avgMinChange * (-1));
       trendIcon = Icon(
         Icons.trending_down_rounded,
         size: 18,
         color: theme.colorScheme.tertiary,
       );
     } else {
-      changeMsg = "Your sleep consistency did not change this week.";
-      howChange = "No change in average sleep";
+      changeMsg = s.sleepUnchangedMsg;
+      howChange = s.avgSleepNoChange;
       trendIcon = Icon(
         Icons.trending_neutral_rounded,
         size: 18,
@@ -116,7 +123,7 @@ class WeeklyInsightCard extends StatelessWidget {
 
               children: [
                 Text(
-                  "Weekly Insight",
+                  s.weeklyInsightTitle,
 
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
