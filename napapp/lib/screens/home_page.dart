@@ -197,7 +197,11 @@ class _HomePageState extends State<HomePage> {
           PreferencesService.saveCalendarEvents(m);
         }),
       ),
-      StatsPage(sleepData: globalSleepDataList, sds: _controller.sds),
+      StatsPage(
+        sleepData: globalSleepDataList,
+        sds: _controller.sds,
+        isEnglish: _isEnglish,
+      ),
     ];
 
     return Scaffold(
