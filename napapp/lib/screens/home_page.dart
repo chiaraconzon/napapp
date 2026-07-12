@@ -933,7 +933,7 @@ class _HomePageState extends State<HomePage> {
             child: Text(
               s.todaySchedule,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 23,
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.onSurface,
               ),
