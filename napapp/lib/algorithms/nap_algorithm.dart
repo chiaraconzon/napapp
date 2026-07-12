@@ -140,7 +140,7 @@ class NapAlgorithm {
     final hasPranzo = todayEvents.any((e) => e.category == 'Pranzo');
 
     final yellowEnd = wakeUpMin + 9 * 60; // 9 hours after waking up (7 before going to bed)
-    final orangeEnd = yellowEnd + 90; //9h + 1h
+    final orangeEnd = yellowEnd + 90; //9h + 1.30h
     final rawGreenEnd = wakeUpMin + 8 * 60; // 8 hours after waking up
     final greenEndNatural = rawGreenEnd < yellowEnd ? rawGreenEnd : yellowEnd;
     
