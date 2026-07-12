@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import '../services/preferences_service.dart';
+import 'app_strings.dart';
 
 class ProfilePage extends StatefulWidget {
   final String currentName;
   final int currentImage;
+  final bool isEnglish;
 
   const ProfilePage({
     super.key,
     required this.currentName,
     required this.currentImage,
+    this.isEnglish = false,
   });
 
   @override
@@ -60,10 +63,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppStrings(widget.isEnglish);
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
 
-      appBar: AppBar(title: const Text("Profilo")),
+      appBar: AppBar(title: Text(s.profileTitle)),
 
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -79,9 +84,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
 
                     children: [
-                      const Text(
-                        "Nickname",
-                        style: TextStyle(
+                      Text(
+                        s.nicknameLabel,
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -94,17 +99,17 @@ class _ProfilePageState extends State<ProfilePage> {
 
                         maxLength: 13,
 
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: "Inserisci nome",
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
+                          hintText: s.enterNameHint,
                         ),
                       ),
 
                       const SizedBox(height: 30),
 
-                      const Text(
-                        "Scegli immagine profilo",
-                        style: TextStyle(
+                      Text(
+                        s.chooseProfileImage,
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -155,9 +160,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: FilledButton(
                           onPressed: saveProfile,
 
-                          child: const Text(
-                            "Salva",
-                            style: TextStyle(fontSize: 18),
+                          child: Text(
+                            s.saveButton,
+                            style: const TextStyle(fontSize: 18),
                           ),
                         ),
                       ),
