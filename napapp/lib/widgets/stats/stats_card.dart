@@ -24,7 +24,6 @@ class StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(24),
-
         boxShadow: theme.brightness == Brightness.light
             ? [
                 BoxShadow(
@@ -35,11 +34,10 @@ class StatCard extends StatelessWidget {
               ]
             : [],
       ),
-
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icona
+          // Top Icon
           Container(
             height: 38,
             width: 38,
@@ -52,9 +50,11 @@ class StatCard extends StatelessWidget {
 
           const Spacer(),
 
-          // Valore grande
+          // Main Stat Value (Protected against horizontal overflow)
           Text(
             value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -62,9 +62,11 @@ class StatCard extends StatelessWidget {
 
           const SizedBox(height: 4),
 
-          // Titolo
+          // Stat Title (Protected against overflow: max 2 lines then ellipsis)
           Text(
             title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
