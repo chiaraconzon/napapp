@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// Tutorial dialog that displays multiple pages using horizontal swipeclass TutorialDialog extends StatefulWidget {
+// Tutorial dialog that displays multiple pages using horizontal swipe
 class TutorialDialog extends StatefulWidget {
   final List<Map<String, String>> pages;
   const TutorialDialog({Key? key, required this.pages}) : super(key: key);
@@ -30,7 +30,7 @@ class _TutorialDialogState extends State<TutorialDialog> {
 
     // Adjust colors according to light/dark mode
     final isDark = theme.brightness == Brightness.dark;
-    final cardBg = isDark ? Colors.grey.shade900 : Colors.white;
+    final cardBg = theme.colorScheme.surface;
     final textColor = isDark ? Colors.white : Colors.black87;
     final fadedColor = isDark ? Colors.white30 : Colors.black26;
 
