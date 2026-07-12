@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:napapp/models/sleep.dart';
+import '../../screens/app_strings.dart';
 
 class SleepChart extends StatelessWidget {
   final List<SleepData> sleepData;
+  final bool isEnglish;
 
-  SleepChart({super.key, required this.sleepData});
+  SleepChart({super.key, required this.sleepData, this.isEnglish = false});
 
   // Get a list of the hours of sleep of each day, 0 if the data is missing
   List<double> getHoursOfSleep(List<SleepData> sleepData) {
@@ -54,6 +56,7 @@ class SleepChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = AppStrings(isEnglish);
 
     final hoursOfSleep = getHoursOfSleep(sleepData);
     final labels = getLabels(sleepData);
@@ -82,7 +85,7 @@ class SleepChart extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Sleep Trend",
+            s.sleepTrendTitle,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
