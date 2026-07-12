@@ -7,12 +7,11 @@ class AppStrings {
   // DRAWER
   // ---------------------------------------------------------------------------
   String get greetingLabel => isEnglish ? 'Hello,' : 'Ciao,';
-  String get userLabel => isEnglish ? 'USER' : 'UTENTE';
+  String get userLabel => isEnglish ? 'PROFILE ' : 'PROFILO';
   String get logout => isEnglish ? 'Logout' : 'Logout';
   String get themeLabel => isEnglish ? 'THEME' : 'TEMA';
   String get languageLabel => isEnglish ? 'LANGUAGE' : 'LINGUA';
   String get tutorialLabel => isEnglish ? 'TUTORIAL' : 'TUTORIAL';
-  
 
   // ---------------------------------------------------------------------------
   // BOTTOM NAV
@@ -188,7 +187,7 @@ class AppStrings {
   String get saveActivity => isEnglish ? 'SAVE ACTIVITY' : 'SALVA ATTIVITÀ';
   String get updateBtn => isEnglish ? 'UPDATE' : 'AGGIORNA';
 
- // the key is in italian
+  // the key is in italian
   String categoryDisplay(String key) {
     if (!isEnglish) return key;
     switch (key) {
@@ -225,7 +224,7 @@ class AppStrings {
   }
 
   // ---------------------------------------------------------------------------
-  // DIALOGS 
+  // DIALOGS
   // ---------------------------------------------------------------------------
   String get attention => isEnglish ? 'Warning' : 'Attenzione';
   String get understood => isEnglish ? 'GOT IT' : 'HO CAPITO';
@@ -236,7 +235,7 @@ class AppStrings {
       ? 'Cannot save: Lunch activity already added on one of the selected days'
       : 'Impossibile salvare: attività Pranzo già inserita in uno dei giorni selezionati';
 
-  // Dialog recurrent event 
+  // Dialog recurrent event
   String get editRecurring =>
       isEnglish ? 'Edit recurring event' : 'Modifica evento ricorrente';
   String get editRecurringMsg => isEnglish
@@ -279,8 +278,7 @@ class AppStrings {
   // ---------------------------------------------------------------------------
   // DIALOG BIBLIOGRAPHY (in the drawer)
   // ---------------------------------------------------------------------------
-  String get bibliographyLabel =>
-      isEnglish ? 'BIBLIOGRAPHY' : 'BIBLIOGRAFIA';
+  String get bibliographyLabel => isEnglish ? 'BIBLIOGRAPHY' : 'BIBLIOGRAFIA';
   String get bibliographyDialogTitle =>
       isEnglish ? 'Bibliography:' : 'Bibliografia:';
 
@@ -301,7 +299,8 @@ class AppStrings {
   String get statsHeaderSubtitle =>
       isEnglish ? 'Your sleep journey' : 'Il tuo percorso del sonno';
 
-  String get sleepTrendTitle => isEnglish ? 'Sleep Trend' : 'Andamento del sonno';
+  String get sleepTrendTitle =>
+      isEnglish ? 'Sleep Trend' : 'Andamento del sonno';
 
   String get sleepDebtTitle => isEnglish ? 'Sleep Debt' : 'Debito di Sonno';
   String get wellRestedMsg =>
@@ -336,12 +335,10 @@ class AppStrings {
   String get sleepUnchangedMsg => isEnglish
       ? 'Your sleep consistency did not change this week.'
       : 'La costanza del tuo sonno non è cambiata questa settimana.';
-  String avgSleepIncrease(int minutes) => isEnglish
-      ? '+$minutes min average sleep'
-      : '+$minutes min sonno medio';
-  String avgSleepDecrease(int minutes) => isEnglish
-      ? '-$minutes min average sleep'
-      : '-$minutes min sonno medio';
+  String avgSleepIncrease(int minutes) =>
+      isEnglish ? '+$minutes min average sleep' : '+$minutes min sonno medio';
+  String avgSleepDecrease(int minutes) =>
+      isEnglish ? '-$minutes min average sleep' : '-$minutes min sonno medio';
   String get avgSleepNoChange => isEnglish
       ? 'No change in average sleep'
       : 'Nessun cambiamento nel sonno medio';

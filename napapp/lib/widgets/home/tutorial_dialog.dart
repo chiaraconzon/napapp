@@ -165,8 +165,8 @@ class _TutorialDialogState extends State<TutorialDialog> {
                                       elevation: 2,
                                     ),
                                     onPressed: () => Navigator.pop(context),
-                                    child: const Text(
-                                      'Inizia',
+                                    child: Text(
+                                      'Start',
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,

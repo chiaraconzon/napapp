@@ -5,11 +5,22 @@ import '../../screens/app_strings.dart';
 import '../../models/nap_models.dart';
 import 'nap_dialog.dart';
 
+// Card that displays the recommended nap and manages its lifecycle
+// (suggested, running, interrupted and completed)
 class NapCard extends StatefulWidget {
+  // Nap data returned by the algorithm
   final NapResult r;
+
+  // Current language
   final bool isEnglish;
+
+  // Function used to format TimeOfDay values
   final String Function(TimeOfDay) fmtTOD;
+
+  // Returns the color associated with the nap zone
   final Color Function(NapZone) zoneColor;
+
+  // Callback used to request a new nap recommendation
   final VoidCallback onRequestNewNap;
 
   const NapCard({
@@ -26,15 +37,22 @@ class NapCard extends StatefulWidget {
 }
 
 class _NapCardState extends State<NapCard> {
+  // Timer used to determine when the nap is completed
   Timer? napTimer;
+
+  // Stores the time at which the nap started
   DateTime? napStartTime;
 
+  // Starts the nap timer
   void startNapTimer() {
+    // Cancels any previous timer
     napTimer?.cancel();
 
+    // Starts a new timer with the nap duration
     napTimer = Timer(Duration(seconds: widget.r.totalDisplayMin), () {
       if (!mounted) return;
 
+      // Updates the nap status when the timer ends
       setState(() {
         widget.r.status = NapStatus.completed;
       });
@@ -43,6 +61,7 @@ class _NapCardState extends State<NapCard> {
 
   @override
   void dispose() {
+    // Releases timer resources
     napTimer?.cancel();
 
     super.dispose();
@@ -50,10 +69,13 @@ class _NapCardState extends State<NapCard> {
 
   @override
   Widget build(BuildContext context) {
+    // Localized strings
     final s = AppStrings(widget.isEnglish);
 
+    // Color associated with the nap zone
     final color = widget.zoneColor(widget.r.zone);
 
+    // Label shown in the card depending on nap status
     String label;
 
     switch (widget.r.status) {
@@ -76,11 +98,13 @@ class _NapCardState extends State<NapCard> {
         break;
     }
 
+    // Formats suggested start and end times
     final start = widget.fmtTOD(widget.r.suggestedStart!);
 
     final end = widget.fmtTOD(widget.r.suggestedEnd!);
 
     return Card(
+      // Card appearance
       elevation: 3,
 
       margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
@@ -94,10 +118,10 @@ class _NapCardState extends State<NapCard> {
       child: InkWell(
         borderRadius: BorderRadius.circular(15),
 
+        // Handles tap on the nap card
         onTap: () {
-          // ---------------------------------------------------------
-          // PISOLINO IN CORSO
-          // ---------------------------------------------------------
+          // RUNNING NAP
+          // Allows the user to interrupt the current nap
           if (widget.r.status == NapStatus.running) {
             showDialog(
               context: context,
@@ -107,29 +131,39 @@ class _NapCardState extends State<NapCard> {
                       Theme.of(context).brightness == Brightness.dark
                       ? Theme.of(context).colorScheme.surface
                       : null,
+
                   title: const Text("Pisolino in corso"),
+
                   content: const Text("Vuoi interrompere il pisolino?"),
+
                   actions: [
+                    // Closes the dialog without interrupting the nap
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
                       child: const Text("Continua"),
                     ),
+
+                    // Stops the nap
                     FilledButton(
                       onPressed: () {
+                        // Stops the timer
                         napTimer?.cancel();
 
+                        // Calculates how many minutes the user actually slept
                         final sleptMinutes = napStartTime == null
                             ? 0
                             : DateTime.now()
                                   .difference(napStartTime!)
                                   .inMinutes;
 
+                        // Updates nap status
                         setState(() {
                           widget.r.status = NapStatus.interrupted;
                         });
 
                         Navigator.pop(ctx);
 
+                        // Shows interruption summary
                         showDialog(
                           context: context,
                           builder: (ctx2) {
@@ -141,7 +175,10 @@ class _NapCardState extends State<NapCard> {
                                       Brightness.dark
                                   ? Theme.of(context).colorScheme.surface
                                   : null,
+
                               title: const Text("Pisolino interrotto"),
+
+                              // Shows a different message depending on nap duration
                               content: Text(
                                 tooShort
                                     ? "Hai dormito per $sleptMinutes minuti.\n\n"
@@ -149,7 +186,9 @@ class _NapCardState extends State<NapCard> {
                                     : "Hai dormito per $sleptMinutes minuti.\n\n"
                                           "Può bastare così!",
                               ),
+
                               actions: [
+                                // Suggests requesting another nap if the previous one was too short
                                 if (tooShort)
                                   FilledButton(
                                     onPressed: () {
@@ -158,6 +197,8 @@ class _NapCardState extends State<NapCard> {
                                     },
                                     child: const Text("Nuovo pisolino"),
                                   ),
+
+                                // Closes the dialog
                                 TextButton(
                                   onPressed: () => Navigator.pop(ctx2),
                                   child: const Text("Annulla"),
@@ -167,6 +208,7 @@ class _NapCardState extends State<NapCard> {
                           },
                         );
                       },
+
                       child: const Text("Interrompi"),
                     ),
                   ],
@@ -177,9 +219,8 @@ class _NapCardState extends State<NapCard> {
             return;
           }
 
-          // ---------------------------------------------------------
-          // PISOLINO INTERROTTO
-          // ---------------------------------------------------------
+          // INTERRUPTED NAP
+          // Allows the user to request a new recommendation
           if (widget.r.status == NapStatus.interrupted) {
             showDialog(
               context: context,
@@ -189,13 +230,19 @@ class _NapCardState extends State<NapCard> {
                       Theme.of(context).brightness == Brightness.dark
                       ? Theme.of(context).colorScheme.surface
                       : null,
+
                   title: const Text("Pisolino interrotto"),
+
                   content: const Text("Vuoi impostare un nuovo pisolino?"),
+
                   actions: [
+                    // Closes the dialog
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
                       child: const Text("No"),
                     ),
+
+                    // Requests a new nap recommendation
                     FilledButton(
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -211,25 +258,29 @@ class _NapCardState extends State<NapCard> {
             return;
           }
 
-          // ---------------------------------------------------------
-          // PISOLINO SUGGERITO O COMPLETATO
-          // ---------------------------------------------------------
+          // SUGGESTED OR COMPLETED NAP
+          // Opens the confirmation dialog before starting a new nap.
           showNapDialog(
             context: context,
             napResult: widget.r,
             s: s,
+
             onNapStarted: () {
+              // Updates nap status and stores the start time
               setState(() {
                 widget.r.status = NapStatus.running;
                 napStartTime = DateTime.now();
               });
 
+              // Starts the nap timer
               startNapTimer();
             },
           );
         },
+
         child: Container(
           decoration: BoxDecoration(
+            // Light background using the zone color
             color: color.withOpacity(0.07),
 
             borderRadius: BorderRadius.circular(15),
@@ -241,6 +292,7 @@ class _NapCardState extends State<NapCard> {
               vertical: 10,
             ),
 
+            // Status icon
             leading: Container(
               padding: const EdgeInsets.all(8),
 
@@ -253,11 +305,8 @@ class _NapCardState extends State<NapCard> {
               child: Icon(
                 switch (widget.r.status) {
                   NapStatus.running => Icons.timer,
-
                   NapStatus.completed => Icons.check_circle,
-
                   NapStatus.interrupted => Icons.pause_circle,
-
                   NapStatus.suggested => Icons.bedtime,
                 },
 
@@ -267,6 +316,7 @@ class _NapCardState extends State<NapCard> {
               ),
             ),
 
+            // Card title
             title: Text(
               '${widget.r.scopeEmoji} $label',
 
@@ -279,6 +329,7 @@ class _NapCardState extends State<NapCard> {
               ),
             ),
 
+            // Card details
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 5),
 
@@ -286,6 +337,7 @@ class _NapCardState extends State<NapCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
+                  // Displays suggested start and end times
                   Row(
                     children: [
                       Icon(
@@ -314,6 +366,7 @@ class _NapCardState extends State<NapCard> {
 
                   const SizedBox(height: 3),
 
+                  // Displays nap duration and purpose
                   Text(
                     s.napDetails(
                       widget.r.totalDisplayMin,
@@ -323,6 +376,7 @@ class _NapCardState extends State<NapCard> {
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   ),
 
+                  // Displays a warning if sleep inertia is expected
                   if (widget.r.hasInertiaWarning)
                     Row(
                       children: [

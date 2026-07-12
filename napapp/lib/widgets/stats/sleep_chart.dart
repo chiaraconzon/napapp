@@ -153,7 +153,7 @@ class SleepChart extends StatelessWidget {
 
                 lineBarsData: [
                   LineChartBarData(
-                    spots: spots, // Altezze
+                    spots: spots, // Hights
 
                     isCurved: true,
 

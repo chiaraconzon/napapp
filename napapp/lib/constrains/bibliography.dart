@@ -1,7 +1,6 @@
 // BIBLIOGRAPHY
 class BibliographyItem {
   final String citation;
-
   const BibliographyItem({required this.citation});
 }
 

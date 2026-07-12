@@ -40,7 +40,7 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/sleep_icon.png"
-  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_background: "#FDC308"
   adaptive_icon_foreground: "assets/sleep_icon.png"
 
 flutter:

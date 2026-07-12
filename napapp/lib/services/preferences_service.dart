@@ -178,25 +178,31 @@ class PreferencesService {
     return prefs.getBool(_keyIsEnglish) ?? false;
   }
 
+  // Profile name used in the application
   static const _profileNameKey = 'profile_name';
 
+  // Saves choosen name
   static Future<void> saveProfileName(String name) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_profileNameKey, name);
   }
 
+  // Loads choosen name
   static Future<String> loadProfileName() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_profileNameKey) ?? 'Utente';
+    return prefs.getString(_profileNameKey) ?? 'admin';
   }
 
+  // Profile image used in the application
   static const _profileImageKey = 'profile_image';
 
+  // Save choosen image
   static Future<void> saveProfileImage(int index) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_profileImageKey, index);
   }
 
+  // Loads choosen image
   static Future<int> loadProfileImage() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_profileImageKey) ?? 0;

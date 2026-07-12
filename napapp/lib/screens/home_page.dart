@@ -51,7 +51,7 @@ class _HomePageState extends State<HomePage> {
   bool _isEnglish = false;
   Timer? _napTimer;
   // Profile state
-  String _profileName = "Utente";
+  String _profileName = "admin";
   int _profileImage = 0;
 
   // Sleep data retrieved from IMPACT server
@@ -69,7 +69,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-   // Loads saved profile image from local storage
+  // Loads saved profile image from local storage
   Future<void> _loadProfileImage() async {
     final image = await PreferencesService.loadProfileImage();
 
@@ -122,13 +122,13 @@ class _HomePageState extends State<HomePage> {
     _controller = NapController(globalEvents: globalEvents);
 
     // Load initial app data
-    _refresh(); 
-    _loadPersistedEvents(); 
-    _loadPersistedLanguage(); 
+    _refresh();
+    _loadPersistedEvents();
+    _loadPersistedLanguage();
 
     _loadSleepData();
-    _loadProfileName(); 
-    _loadProfileImage(); 
+    _loadProfileName();
+    _loadProfileImage();
     // Periodically update nap suggestions (every minute)
     _napTimer = Timer.periodic(const Duration(minutes: 1), (_) async {
       if (mounted) await _refresh();
@@ -265,13 +265,18 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Text(
                           s.greetingLabel,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith( color: Colors.black,),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleLarge?.copyWith(color: Colors.black),
                         ),
 
                         Text(
                           _profileName.toUpperCase(),
                           style: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.bold,color: Colors.black,),
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
                         ),
                       ],
                     ),
@@ -324,7 +329,13 @@ class _HomePageState extends State<HomePage> {
                       title: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('${s.selectTheme}:', style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+                          Text(
+                            '${s.selectTheme}:',
+                            style: const TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           IconButton(
                             icon: const Icon(Icons.close),
                             onPressed: () => Navigator.pop(ctx),
@@ -402,7 +413,13 @@ class _HomePageState extends State<HomePage> {
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('${s.selectLanguage}:', style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+                        Text(
+                          '${s.selectLanguage}:',
+                          style: const TextStyle(
+                            fontSize: 19,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         IconButton(
                           icon: const Icon(Icons.close),
                           onPressed: () => Navigator.pop(ctx),
@@ -452,7 +469,7 @@ class _HomePageState extends State<HomePage> {
               },
             ),
 
-            // Bibliography 
+            // Bibliography
             ListTile(
               leading: const Icon(Icons.info_outline),
               title: Text(s.bibliographyLabel),
@@ -523,7 +540,8 @@ class _HomePageState extends State<HomePage> {
 
                 setState(() {
                   selectedAlarm = 0;
-                  selectedDuration = idealDuration +const Duration(minutes: 10);
+                  selectedDuration =
+                      idealDuration + const Duration(minutes: 10);
                 });
 
                 // Show Alarm Configuration Dialog
@@ -607,7 +625,9 @@ class _HomePageState extends State<HomePage> {
                                         const SizedBox(height: 4),
 
                                         Text(
-                                          s.napMinutes(idealDuration.inMinutes + 10),
+                                          s.napMinutes(
+                                            idealDuration.inMinutes + 10,
+                                          ),
 
                                           style: TextStyle(
                                             fontSize: 20,
@@ -678,7 +698,9 @@ class _HomePageState extends State<HomePage> {
                                           Text(
                                             s.presetReflexes,
 
-                                            style: const TextStyle(fontSize: 14),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -717,7 +739,9 @@ class _HomePageState extends State<HomePage> {
                                           Text(
                                             s.presetFocus,
 
-                                            style: const TextStyle(fontSize: 14),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -756,7 +780,9 @@ class _HomePageState extends State<HomePage> {
                                           Text(
                                             s.presetRecovery,
 
-                                            style: const TextStyle(fontSize: 14),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -880,11 +906,9 @@ class _HomePageState extends State<HomePage> {
           Center(
             child: Container(
               width: 150, // separator length
-              height: 3, 
+              height: 3,
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(
-                  0.4,
-                ), 
+                color: Colors.grey.withOpacity(0.4),
                 borderRadius: BorderRadius.circular(1.5),
               ),
             ),
@@ -898,8 +922,7 @@ class _HomePageState extends State<HomePage> {
               child: DebugZonesBox(
                 lim: _controller.zoneLimits!,
                 isEnglish: _isEnglish,
-                wakeUpTime:
-                    _controller.wakeUpTime, 
+                wakeUpTime: _controller.wakeUpTime,
                 sds: _controller.sds,
               ),
             ),

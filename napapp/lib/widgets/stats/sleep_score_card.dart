@@ -56,7 +56,7 @@ class SleepScoreCard extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Cerchio di sfondo
+                // Background circle
                 SizedBox(
                   height: 130,
                   width: 130,
@@ -68,7 +68,7 @@ class SleepScoreCard extends StatelessWidget {
                   ),
                 ),
 
-                // Cerchio progresso
+                // Progress circle
                 SizedBox(
                   height: 130,
                   width: 130,
@@ -80,7 +80,7 @@ class SleepScoreCard extends StatelessWidget {
                   ),
                 ),
 
-                // Score centrale
+                // Central score
                 Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
