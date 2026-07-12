@@ -51,7 +51,7 @@ class StatsGrid extends StatelessWidget {
       crossAxisSpacing: 14,
       mainAxisSpacing: 14,
 
-      childAspectRatio: 1.35,
+      childAspectRatio: 1,
 
       children: [
         // Displays the sleep average of the past 7 days
