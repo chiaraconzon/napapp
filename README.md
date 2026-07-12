@@ -16,5 +16,3 @@ An integrated calendar considers lessons, study sessions, workouts, and other da
 ### Sleep Analysis
 The app uses sleep parameters, including sleep debt, to estimate the user's recovery needs and provide personalized nap recommendations.
 
-### Accessibility
-The interface is available in both Italian and English.
