@@ -298,6 +298,58 @@ class AppStrings {
   String get saveButton => isEnglish ? 'Save' : 'Salva';
 
   // ---------------------------------------------------------------------------
+  // STATS PAGE
+  // ---------------------------------------------------------------------------
+  String get statsHeaderTitle => isEnglish ? 'Statistics' : 'Statistiche';
+  String get statsHeaderSubtitle =>
+      isEnglish ? 'Your sleep journey' : 'Il tuo percorso del sonno';
+
+  String get sleepTrendTitle => isEnglish ? 'Sleep Trend' : 'Andamento del sonno';
+
+  String get sleepDebtTitle => isEnglish ? 'Sleep Debt' : 'Debito di Sonno';
+  String get wellRestedMsg =>
+      isEnglish ? "You're well rested" : 'Hai riposato bene';
+  String get recoveryNeededMsg =>
+      isEnglish ? 'Some recovery needed' : "Serve un po' di recupero";
+
+  String get sleepScoreTitle =>
+      isEnglish ? 'Sleep Score' : 'Punteggio del sonno';
+  String get excellentSleepMsg =>
+      isEnglish ? 'Excellent sleep' : 'Sonno eccellente';
+  String get goodSleepMsg => isEnglish ? 'Good sleep' : 'Sonno buono';
+  String get needsAttentionMsg =>
+      isEnglish ? 'Needs attention' : 'Richiede attenzione';
+
+  String get avgSleepTitle => isEnglish
+      ? 'Average Sleep (last 7 days)'
+      : 'Sonno medio (ultimi 7 giorni)';
+  String get thisWeekTitle => isEnglish ? 'This Week' : 'Questa settimana';
+  String napsCount(int n) => isEnglish
+      ? '$n ${n == 1 ? 'nap' : 'naps'}'
+      : '$n ${n == 1 ? 'pisolino' : 'pisolini'}';
+
+  String get weeklyInsightTitle =>
+      isEnglish ? 'Weekly Insight' : 'Analisi Settimanale';
+  String get sleepImprovedMsg => isEnglish
+      ? 'Your sleep consistency improved this week!'
+      : 'La costanza del tuo sonno è migliorata questa settimana!';
+  String get sleepDecreasedMsg => isEnglish
+      ? 'Your sleep consistency decreased this week.'
+      : 'La costanza del tuo sonno è diminuita questa settimana.';
+  String get sleepUnchangedMsg => isEnglish
+      ? 'Your sleep consistency did not change this week.'
+      : 'La costanza del tuo sonno non è cambiata questa settimana.';
+  String avgSleepIncrease(int minutes) => isEnglish
+      ? '+$minutes min average sleep'
+      : '+$minutes min sonno medio';
+  String avgSleepDecrease(int minutes) => isEnglish
+      ? '-$minutes min average sleep'
+      : '-$minutes min sonno medio';
+  String get avgSleepNoChange => isEnglish
+      ? 'No change in average sleep'
+      : 'Nessun cambiamento nel sonno medio';
+
+  // ---------------------------------------------------------------------------
   // TUTORIAL PAGES
   // ---------------------------------------------------------------------------
   List<Map<String, String>> get tutorialPages =>
