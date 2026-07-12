@@ -363,7 +363,7 @@ class AppStrings {
           'Quattro zone indicano la qualità della fascia oraria per il pisolino:\n\n'
           '🟢 Verde — momento ideale\n'
           '🟡 Gialla — pisolino valido\n'
-          '🟠 Arancione — finestra di emergenza ridotta\n'
+          '🟠 Arancione — finestra di emergenza\n'
           '🔴 Rossa — troppo tardi, nessun pisolino',
     },
     {
@@ -436,7 +436,7 @@ class AppStrings {
           'Four zones indicate the quality of the time slot for a nap:\n\n'
           '🟢 Green — ideal moment\n'
           '🟡 Yellow — valid nap\n'
-          '🟠 Orange — reduced emergency window\n'
+          '🟠 Orange — emergency window\n'
           '🔴 Red — too late, no nap',
     },
     {
