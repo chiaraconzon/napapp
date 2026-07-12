@@ -200,7 +200,7 @@ class NapAlgorithm {
 
   // map a time offset to its corresponding zone color.
   NapZone _zoneOfOffset(int offsetMin, ZoneLimits lim) {
-    if (offsetMin <= lim.greenEnd) return NapZone.green;
+    if (offsetMin <= lim.greenEnd && lim.greenEnd > lim.greenStart) return NapZone.green;
     if (offsetMin <= lim.yellowEnd) return NapZone.yellow;
     if (offsetMin <= lim.orangeEnd) return NapZone.orange;
     return NapZone.red;
