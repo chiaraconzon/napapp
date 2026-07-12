@@ -265,13 +265,13 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Text(
                           s.greetingLabel,
-                          style: Theme.of(context).textTheme.titleLarge,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith( color: Colors.black,),
                         ),
 
                         Text(
                           _profileName.toUpperCase(),
                           style: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                              ?.copyWith(fontWeight: FontWeight.bold,color: Colors.black,),
                         ),
                       ],
                     ),
