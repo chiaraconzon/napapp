@@ -37,22 +37,28 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-// provaeffwefw
+// State management for the home page
 class _HomePageState extends State<HomePage> {
+  // Core controllers and state variables
   late NapController _controller;
 
+  // Stores user calendar events
   Map<DateTime, List<MyEvent>> globalEvents = {};
+  // Timer and UI state
   Duration selectedDuration = const Duration(minutes: 10);
   int _pageIndex = 0;
   int selectedAlarm = 1;
   bool _isEnglish = false;
   Timer? _napTimer;
+  // Profile state
   String _profileName = "Utente";
   int _profileImage = 0;
 
+  // Sleep data retrieved from IMPACT server
   Map<DateTime, SleepData> globalSleepData = {};
   List<SleepData> globalSleepDataList = [];
 
+  // Loads saved user name from local storage
   Future<void> _loadProfileName() async {
     final saved = await PreferencesService.loadProfileName();
 
@@ -63,6 +69,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+   // Loads saved profile image from local storage
   Future<void> _loadProfileImage() async {
     final image = await PreferencesService.loadProfileImage();
 
@@ -73,6 +80,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Loads complete profile information
   Future<void> _loadProfile() async {
     final name = await PreferencesService.loadProfileName();
     final image = await PreferencesService.loadProfileImage();
@@ -83,17 +91,19 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  // async perché NapController.refresh() chiama il wearable via await
+  // Refreshes nap algorithm using the latest sleep data
   Future<void> _refresh() async {
     final now = DateTime.now().subtract(Duration(days: 1));
     await _controller.refresh(now);
+    // Update UI after new data is available
     if (mounted) setState(() {});
   }
 
-  // Metodo async per prendere 30 giorni di dati del sonno dal server Impact
+  // Downloads recent sleep history from IMPACT server
   Future<void> _loadSleepData() async {
+    // Retrieves the last 30 days of sleep data
     List<SleepData> listData = await Impact.getN_DaysFromMostRecent(30);
-    // Converte lista in mappa -> CHANGE: resta List
+    // Map dates to SleepData objects
     Map<DateTime, SleepData> mapData = {
       for (var elem in listData) elem.date: elem,
     };
@@ -108,28 +118,25 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
+    // Initialize controller
     _controller = NapController(globalEvents: globalEvents);
 
-    _refresh(); // fire-and-forget: aggiorna appena i dati arrivano
-    _loadPersistedEvents(); // fire-and-forget: ricarica gli eventi salvati
-    _loadPersistedLanguage(); // fire-and-forget: ricarica la lingua salvata
+    // Load initial app data
+    _refresh(); 
+    _loadPersistedEvents(); 
+    _loadPersistedLanguage(); 
 
     _loadSleepData();
-    _loadProfileName(); // ricarica il nome salvato
-    _loadProfileImage(); // ricarica imm profilo
+    _loadProfileName(); 
+    _loadProfileImage(); 
+    // Periodically update nap suggestions (every minute)
     _napTimer = Timer.periodic(const Duration(minutes: 1), (_) async {
       if (mounted) await _refresh();
     });
   }
 
-  /// Ricarica dal disco (SharedPreferences) gli eventi calendario salvati
-  /// nelle sessioni precedenti e li ripopola in [globalEvents], così le
-  /// attività inserite dall'utente sopravvivono alla chiusura dell'app.
-  ///
-  /// Si mantiene lo stesso oggetto Map (clear + addAll) invece di
-  /// riassegnare globalEvents, così il riferimento passato a NapController
-  /// resta valido; il controller viene comunque ricreato per coerenza con
-  /// il resto del codice, e si ricalcola subito la predizione.
+  // Restore calendar events from SharedPreferences
+  // Ensures user activities survive app restarts
   Future<void> _loadPersistedEvents() async {
     final loaded = await PreferencesService.loadCalendarEvents();
     if (!mounted || loaded.isEmpty) return;
@@ -144,21 +151,21 @@ class _HomePageState extends State<HomePage> {
     await _refresh();
   }
 
-  /// Ricarica dal disco (SharedPreferences) la lingua scelta nella sessione
-  /// precedente, così l'app riparte già nella lingua giusta invece di
-  /// tornare sempre all'italiano di default.
+  // Restore language preference from SharedPreferences
   Future<void> _loadPersistedLanguage() async {
     final saved = await PreferencesService.loadIsEnglish();
     if (!mounted) return;
     setState(() => _isEnglish = saved);
   }
 
+  // Cleanup resources
   @override
   void dispose() {
     _napTimer?.cancel();
     super.dispose();
   }
 
+  // Map NapZone enums to specific UI colors
   Color _zoneColor(NapZone z) {
     switch (z) {
       case NapZone.green:
@@ -175,18 +182,18 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final s = AppStrings(_isEnglish);
+    // Define the 3 main app views
     final pages = [
       _homeWidget(),
       CalendarPage(
         eventsMap: globalEvents,
         isEnglish: _isEnglish,
+        // Triggered when calendar is modified
         onEventsUpdated: (m) => setState(() {
           globalEvents = m;
           _controller = NapController(globalEvents: globalEvents);
           _refresh();
-          // Persiste su SharedPreferences ogni modifica al calendario
-          // (aggiunta/modifica/eliminazione evento), così viene ricaricata
-          // alla riapertura dell'app. Fire-and-forget, come _refresh().
+          // Save calendar changes to disk
           PreferencesService.saveCalendarEvents(m);
         }),
       ),
@@ -195,6 +202,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       extendBodyBehindAppBar: false,
+      // Top AppBar (visible only on Home tab)
       appBar: _pageIndex == 0
           ? AppBar(
               backgroundColor: Colors.transparent,
@@ -205,6 +213,7 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () => Scaffold.of(context).openDrawer(),
                 ),
               ),
+              // SDS Score Badge
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 16),
@@ -213,9 +222,11 @@ class _HomePageState extends State<HomePage> {
               ],
             )
           : null,
+      // Side Navigation Drawer
       drawer: Drawer(
         child: Column(
           children: [
+            // Custom Profile Header
             DrawerHeader(
               margin: EdgeInsets.zero,
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
@@ -230,6 +241,7 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    // Profile Avatar
                     CircleAvatar(
                       radius: 30,
                       backgroundImage: AssetImage(
@@ -242,7 +254,7 @@ class _HomePageState extends State<HomePage> {
                     ),
 
                     const SizedBox(width: 15),
-
+                    // Greeting and Name
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -263,6 +275,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
+            // Profile Edit Menu Item
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text('UTENTE'),
@@ -279,10 +292,12 @@ class _HomePageState extends State<HomePage> {
                   ),
                 );
 
+                // Reload profile data if changed
                 if (result == true) {
                   _loadProfileName();
                 }
 
+                // Theme Selection Menu Item
                 if (result == true) {
                   await _loadProfile();
                 }
@@ -367,6 +382,7 @@ class _HomePageState extends State<HomePage> {
                 );
               },
             ),
+            // Language Selection Menu Item
             ListTile(
               leading: const Icon(Icons.language_outlined),
               title: const Text('LINGUA'),
@@ -419,6 +435,7 @@ class _HomePageState extends State<HomePage> {
                 );
               },
             ),
+            // App Tutorial
             ListTile(
               leading: const Icon(Icons.help_outline),
               title: const Text('TUTORIAL'),
@@ -428,6 +445,7 @@ class _HomePageState extends State<HomePage> {
               },
             ),
 
+            // Bibliography 
             ListTile(
               leading: const Icon(Icons.info_outline),
               title: const Text('BIBLIOGRAFIA'),
@@ -472,6 +490,8 @@ class _HomePageState extends State<HomePage> {
             ),
             const Spacer(),
             const Divider(),
+
+            // Logout Action
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: Text(s.logout),
@@ -485,9 +505,11 @@ class _HomePageState extends State<HomePage> {
       ),
 
       body: pages[_pageIndex],
+      // Floating Alarm Button (Visible only on Home page)
       floatingActionButton: _pageIndex == 0
           ? FloatingActionButton(
               onPressed: () {
+                // Determine ideal nap duration from algorithm
                 final idealDuration = Duration(
                   minutes: _controller.napResult?.napEffectiveMin ?? 10,
                 );
@@ -497,6 +519,7 @@ class _HomePageState extends State<HomePage> {
                   selectedDuration = idealDuration;
                 });
 
+                // Show Alarm Configuration Dialog
                 showDialog(
                   context: context,
                   builder: (context) {
@@ -525,6 +548,7 @@ class _HomePageState extends State<HomePage> {
                                 mainAxisSize: MainAxisSize.min,
 
                                 children: [
+                                  // Dialog Header
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -546,7 +570,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   const SizedBox(height: 8),
 
-                                  // CONSIGLIO ALGORITMO
+                                  // ALGORITHM RECOMMENDATION BOX
                                   Container(
                                     width: double.infinity,
 
@@ -594,7 +618,7 @@ class _HomePageState extends State<HomePage> {
 
                                   const SizedBox(height: 12),
 
-                                  // ROTELLE
+                                  // CUSTOM TIME PICKER WHEEL
                                   ChooseTime(
                                     duration: selectedDuration,
 
@@ -607,12 +631,13 @@ class _HomePageState extends State<HomePage> {
 
                                   const SizedBox(height: 6),
 
-                                  // PRESET
+                                  // PRESET ALARM BUTTONS
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceEvenly,
 
                                     children: [
+                                      // 10 Min Preset
                                       Column(
                                         mainAxisSize: MainAxisSize.min,
 
@@ -651,6 +676,7 @@ class _HomePageState extends State<HomePage> {
                                         ],
                                       ),
 
+                                      // 30 Min Preset
                                       Column(
                                         mainAxisSize: MainAxisSize.min,
 
@@ -689,6 +715,7 @@ class _HomePageState extends State<HomePage> {
                                         ],
                                       ),
 
+                                      // 90 Min Preset
                                       Column(
                                         mainAxisSize: MainAxisSize.min,
 
@@ -731,7 +758,7 @@ class _HomePageState extends State<HomePage> {
 
                                   const SizedBox(height: 20),
 
-                                  // BOTTONE
+                                  // START ALARM BUTTON
                                   SizedBox(
                                     width: double.infinity,
 
@@ -753,6 +780,7 @@ class _HomePageState extends State<HomePage> {
                                           ),
                                         );
 
+                                        // Trigger OS native alarm
                                         FlutterAlarmClock.createTimer(
                                           length: selectedDuration.inSeconds,
                                         );
@@ -784,13 +812,14 @@ class _HomePageState extends State<HomePage> {
               child: const Icon(Icons.alarm),
             )
           : null,
+      // Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _pageIndex,
         onTap: (i) => setState(() => _pageIndex = i),
         selectedItemColor: Theme.of(
           context,
-        ).colorScheme.primary, // Colore dell'icona selezionata
-        unselectedItemColor: Colors.grey, // Colore delle icone NON selezionate
+        ).colorScheme.primary, // Color of the selected icon
+        unselectedItemColor: Colors.grey, // Color of the not selected icons
         items: [
           BottomNavigationBarItem(
             icon: const Icon(Icons.home),
@@ -816,6 +845,7 @@ class _HomePageState extends State<HomePage> {
     final s = AppStrings(_isEnglish);
     final now = DateTime.now().subtract(Duration(days: 1));
     final key = DateTime(now.year, now.month, now.day);
+    // Fetch and sort today's events chronologically
     final eventiOggi = List<MyEvent>.from(globalEvents[key] ?? [])
       ..sort((a, b) {
         final ma = a.startTime.hour * 60 + a.startTime.minute;
@@ -823,12 +853,13 @@ class _HomePageState extends State<HomePage> {
         return ma.compareTo(mb);
       });
 
+    // Generate chronological timeline mapping events alongside predicted nap
     final items = buildTimeline(eventiOggi, _controller.napResult);
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Stringa predizione
+          // Nap prediction textual display
           Padding(
             padding: const EdgeInsets.only(left: 16, right: 16, top: 4),
             child: PredictionBox(
@@ -837,16 +868,16 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
-          // NUOVO ELEMENTO: Righetta corta centrata divisoria
+          // Visual horizontal separator
           const SizedBox(height: 12),
           Center(
             child: Container(
-              width: 150, // Lunghezza della riga
-              height: 3, // Spessore della riga
+              width: 150, // separator length
+              height: 3, 
               decoration: BoxDecoration(
                 color: Colors.grey.withOpacity(
                   0.4,
-                ), // Colore neutro semitrasparente
+                ), 
                 borderRadius: BorderRadius.circular(1.5),
               ),
             ),
@@ -861,15 +892,16 @@ class _HomePageState extends State<HomePage> {
                 lim: _controller.zoneLimits!,
                 isEnglish: _isEnglish,
                 wakeUpTime:
-                    _controller.wakeUpTime, // ← da aggiungere in NapController
+                    _controller.wakeUpTime, 
                 sds: _controller.sds,
               ),
             ),
           if (_controller.zoneLimits != null) const SizedBox(height: 8),
 
-          // Lista cronologica degli impegni
+          // timeline of tasks and naps
           Expanded(
             child: items.isEmpty
+                // Empty state view
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -887,10 +919,12 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                   )
+                // Populated agenda view
                 : ListView.builder(
                     padding: const EdgeInsets.only(bottom: 20),
                     itemCount: items.length,
                     itemBuilder: (ctx, i) => items[i].isNap
+                        // Render algorithm's nap suggestion block
                         ? NapCard(
                             r: items[i].napResult!,
                             isEnglish: _isEnglish,
@@ -903,6 +937,7 @@ class _HomePageState extends State<HomePage> {
                               setState(() {});
                             },
                           )
+                        // Render standard user event
                         : EventCard(ev: items[i].event!, isEnglish: _isEnglish),
                   ),
           ),
@@ -914,6 +949,7 @@ class _HomePageState extends State<HomePage> {
   // ---------------------------------------------------------------------------
   // TUTORIAL
   // ---------------------------------------------------------------------------
+  // Display the tutorial dialog
   void _showTutorial(BuildContext context) {
     showDialog(
       context: context,
