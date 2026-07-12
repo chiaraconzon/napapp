@@ -12,8 +12,14 @@ class StatsPage extends StatefulWidget {
   // Data for the stat widgets
   final List<SleepData> sleepData;
   double sds;
+  final bool isEnglish;
 
-  StatsPage({super.key, required this.sleepData, required this.sds});
+  StatsPage({
+    super.key,
+    required this.sleepData,
+    required this.sds,
+    this.isEnglish = false,
+  });
 
   @override
   State<StatsPage> createState() => _StatsPageState();
@@ -70,23 +76,26 @@ class _StatsPageState extends State<StatsPage> {
             children: [
               // Header
               SizedBox(height: 10),
-              const StatsHeader(),
+              StatsHeader(isEnglish: widget.isEnglish),
 
               // Plot showing the amount of hours of sleep in the past 7 days
               const SizedBox(height: 28),
-              SleepChart(sleepData: _data1week),
+              SleepChart(sleepData: _data1week, isEnglish: widget.isEnglish),
 
               // Grid that shows: average sleep time in the past week, number of naps taken this week (latter is a mock value)
               const SizedBox(height: 10),
-              StatsGrid(sleepData: _data1week),
+              StatsGrid(sleepData: _data1week, isEnglish: widget.isEnglish),
 
               // Shows the amount of hours of sleep debt of the day, as calculated by the app's algorithm
               const SizedBox(height: 28),
-              SleepDebtCard(sds: widget.sds),
+              SleepDebtCard(sds: widget.sds, isEnglish: widget.isEnglish),
 
               // Shows the change in average sleep time compared to the previous week
               const SizedBox(height: 24),
-              WeeklyInsightCard(sleepData2weeks: _data2week),
+              WeeklyInsightCard(
+                sleepData2weeks: _data2week,
+                isEnglish: widget.isEnglish,
+              ),
             ],
           ),
         ),
