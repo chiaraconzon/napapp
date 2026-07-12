@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
+import '../../screens/app_strings.dart';
 
 class SleepDebtCard extends StatelessWidget {
   // Value of the sleep debt computed by the algorithm
   final double sds;
+  final bool isEnglish;
 
-  const SleepDebtCard({super.key, required this.sds});
+  const SleepDebtCard({super.key, required this.sds, this.isEnglish = false});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = AppStrings(isEnglish);
 
     String message;
 
     // Message depends on the value of the sleep debt
     if (sds < 1) {
-      message = "You're well rested";
+      message = s.wellRestedMsg;
     } else {
-      message = "Some recovery needed";
+      message = s.recoveryNeededMsg;
     }
 
     return Container(
@@ -43,7 +46,7 @@ class SleepDebtCard extends StatelessWidget {
 
         children: [
           Text(
-            "Sleep Debt",
+            s.sleepDebtTitle,
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
