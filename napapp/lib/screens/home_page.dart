@@ -516,7 +516,7 @@ class _HomePageState extends State<HomePage> {
 
                 setState(() {
                   selectedAlarm = 0;
-                  selectedDuration = idealDuration;
+                  selectedDuration = idealDuration +const Duration(minutes: 10);
                 });
 
                 // Show Alarm Configuration Dialog
@@ -600,7 +600,7 @@ class _HomePageState extends State<HomePage> {
                                         const SizedBox(height: 4),
 
                                         Text(
-                                          "${idealDuration.inMinutes} minuti",
+                                          "${idealDuration.inMinutes+10} minuti",
 
                                           style: TextStyle(
                                             fontSize: 20,
@@ -637,7 +637,7 @@ class _HomePageState extends State<HomePage> {
                                         MainAxisAlignment.spaceEvenly,
 
                                     children: [
-                                      // 10 Min Preset
+                                      // 10+10 Min Preset
                                       Column(
                                         mainAxisSize: MainAxisSize.min,
 
@@ -648,18 +648,18 @@ class _HomePageState extends State<HomePage> {
 
                                             child: AlarmCircleTimer(
                                               duration: const Duration(
-                                                minutes: 10,
+                                                minutes: 20,
                                               ),
 
                                               selected:
                                                   selectedDuration ==
-                                                  const Duration(minutes: 10),
+                                                  const Duration(minutes: 20),
 
                                               onTap: () {
                                                 setDialogState(() {
                                                   selectedDuration =
                                                       const Duration(
-                                                        minutes: 10,
+                                                        minutes: 20,
                                                       );
                                                 });
                                               },
@@ -669,14 +669,14 @@ class _HomePageState extends State<HomePage> {
                                           const SizedBox(height: 5),
 
                                           const Text(
-                                            "Boost",
+                                            "Riflessi",
 
                                             style: TextStyle(fontSize: 14),
                                           ),
                                         ],
                                       ),
 
-                                      // 30 Min Preset
+                                      // 30+10 Min Preset
                                       Column(
                                         mainAxisSize: MainAxisSize.min,
 
@@ -687,18 +687,18 @@ class _HomePageState extends State<HomePage> {
 
                                             child: AlarmCircleTimer(
                                               duration: const Duration(
-                                                minutes: 30,
+                                                minutes: 40,
                                               ),
 
                                               selected:
                                                   selectedDuration ==
-                                                  const Duration(minutes: 30),
+                                                  const Duration(minutes: 40),
 
                                               onTap: () {
                                                 setDialogState(() {
                                                   selectedDuration =
                                                       const Duration(
-                                                        minutes: 30,
+                                                        minutes: 40,
                                                       );
                                                 });
                                               },
@@ -708,14 +708,14 @@ class _HomePageState extends State<HomePage> {
                                           const SizedBox(height: 5),
 
                                           const Text(
-                                            "Memoria",
+                                            "Focus",
 
                                             style: TextStyle(fontSize: 14),
                                           ),
                                         ],
                                       ),
 
-                                      // 90 Min Preset
+                                      // 90+10 Min Preset
                                       Column(
                                         mainAxisSize: MainAxisSize.min,
 
@@ -726,18 +726,18 @@ class _HomePageState extends State<HomePage> {
 
                                             child: AlarmCircleTimer(
                                               duration: const Duration(
-                                                minutes: 90,
+                                                minutes: 100,
                                               ),
 
                                               selected:
                                                   selectedDuration ==
-                                                  const Duration(minutes: 90),
+                                                  const Duration(minutes: 100),
 
                                               onTap: () {
                                                 setDialogState(() {
                                                   selectedDuration =
                                                       const Duration(
-                                                        minutes: 90,
+                                                        minutes: 100,
                                                       );
                                                 });
                                               },
