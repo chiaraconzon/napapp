@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
+import '../../screens/app_strings.dart';
 
 class SleepScoreCard extends StatelessWidget {
   final int score;
+  final bool isEnglish;
 
-  const SleepScoreCard({super.key, this.score = 91});
+  const SleepScoreCard({super.key, this.score = 91, this.isEnglish = false});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = AppStrings(isEnglish);
 
     String message;
 
     if (score >= 90) {
-      message = "Excellent sleep";
+      message = s.excellentSleepMsg;
     } else if (score >= 70) {
-      message = "Good sleep";
+      message = s.goodSleepMsg;
     } else {
-      message = "Needs attention";
+      message = s.needsAttentionMsg;
     }
 
     return Container(
@@ -39,7 +42,7 @@ class SleepScoreCard extends StatelessWidget {
       child: Column(
         children: [
           Text(
-            "Sleep Score",
+            s.sleepScoreTitle,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
             ),
