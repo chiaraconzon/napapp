@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
+import '../../screens/app_strings.dart';
 
 // Header of the stats page
 class StatsHeader extends StatelessWidget {
-  const StatsHeader({super.key});
+  final bool isEnglish;
+
+  const StatsHeader({super.key, this.isEnglish = false});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final s = AppStrings(isEnglish);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Statistics",
+          s.statsHeaderTitle,
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -21,7 +25,7 @@ class StatsHeader extends StatelessWidget {
         const SizedBox(height: 6),
 
         Text(
-          "Your sleep journey",
+          s.statsHeaderSubtitle,
           style: theme.textTheme.bodyLarge?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
