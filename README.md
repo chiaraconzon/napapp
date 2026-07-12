@@ -5,7 +5,7 @@ The app analyzes the user's daily schedule and sleep parameters, including sleep
 
 The goal is to support recovery from sleepiness while avoiding interference with nighttime sleep, adapting recommendations to the user's individual needs.
 
-## Features
+## Main Features
 
 ### Intelligent Nap Scheduling
 A dedicated algorithm analyzes the user's daily context and suggests the ideal nap duration and timing based on the actual need for recovery.
