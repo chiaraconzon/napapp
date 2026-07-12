@@ -260,7 +260,7 @@ class _HomePageState extends State<HomePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Ciao,",
+                          s.greetingLabel,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
 
@@ -278,7 +278,7 @@ class _HomePageState extends State<HomePage> {
             // Profile Edit Menu Item
             ListTile(
               leading: const Icon(Icons.person),
-              title: const Text('UTENTE'),
+              title: Text(s.userLabel),
               onTap: () async {
                 Navigator.pop(context);
 
@@ -288,6 +288,7 @@ class _HomePageState extends State<HomePage> {
                     builder: (_) => ProfilePage(
                       currentName: _profileName,
                       currentImage: _profileImage,
+                      isEnglish: _isEnglish,
                     ),
                   ),
                 );
@@ -306,7 +307,7 @@ class _HomePageState extends State<HomePage> {
 
             ListTile(
               leading: const Icon(Icons.palette_outlined),
-              title: const Text('TEMA'),
+              title: Text(s.themeLabel),
               onTap: () {
                 showDialog(
                   context: context,
@@ -319,7 +320,7 @@ class _HomePageState extends State<HomePage> {
                       title: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("Seleziona tema:", style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+                          Text('${s.selectTheme}:', style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
                           IconButton(
                             icon: const Icon(Icons.close),
                             onPressed: () => Navigator.pop(ctx),
@@ -345,7 +346,7 @@ class _HomePageState extends State<HomePage> {
                                     Navigator.pop(ctx);
                                   }
                                 },
-                                title: const Text("Sistema"),
+                                title: Text(s.themeSystem),
                               ),
                               RadioListTile<ThemeMode>(
                                 value: ThemeMode.light,
@@ -358,7 +359,7 @@ class _HomePageState extends State<HomePage> {
                                     Navigator.pop(ctx);
                                   }
                                 },
-                                title: const Text("Chiaro"),
+                                title: Text(s.themeLight),
                               ),
                               RadioListTile<ThemeMode>(
                                 value: ThemeMode.dark,
@@ -371,7 +372,7 @@ class _HomePageState extends State<HomePage> {
                                     Navigator.pop(ctx);
                                   }
                                 },
-                                title: const Text("Scuro"),
+                                title: Text(s.themeDark),
                               ),
                             ],
                           );
@@ -385,7 +386,7 @@ class _HomePageState extends State<HomePage> {
             // Language Selection Menu Item
             ListTile(
               leading: const Icon(Icons.language_outlined),
-              title: const Text('LINGUA'),
+              title: Text(s.languageLabel),
               onTap: () {
                 showDialog(
                   context: context,
@@ -397,7 +398,7 @@ class _HomePageState extends State<HomePage> {
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text("Seleziona lingua:", style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
+                        Text('${s.selectLanguage}:', style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
                         IconButton(
                           icon: const Icon(Icons.close),
                           onPressed: () => Navigator.pop(ctx),
@@ -416,7 +417,7 @@ class _HomePageState extends State<HomePage> {
                                 setState(() => _isEnglish = false);
                                 Navigator.pop(ctx);
                               },
-                              title: const Text('Italiano'),
+                              title: Text(s.languageItalian),
                             ),
                             RadioListTile<bool>(
                               value: true,
@@ -425,7 +426,7 @@ class _HomePageState extends State<HomePage> {
                                 setState(() => _isEnglish = true);
                                 Navigator.pop(ctx);
                               },
-                              title: const Text('English'),
+                              title: Text(s.languageEnglish),
                             ),
                           ],
                         );
@@ -438,7 +439,7 @@ class _HomePageState extends State<HomePage> {
             // App Tutorial
             ListTile(
               leading: const Icon(Icons.help_outline),
-              title: const Text('TUTORIAL'),
+              title: Text(s.tutorialLabel),
               onTap: () {
                 Navigator.pop(context);
                 _showTutorial(context);
@@ -448,7 +449,7 @@ class _HomePageState extends State<HomePage> {
             // Bibliography 
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: const Text('BIBLIOGRAFIA'),
+              title: Text(s.bibliographyLabel),
               onTap: () {
                 showDialog(
                   context: context,
@@ -461,7 +462,7 @@ class _HomePageState extends State<HomePage> {
                       title: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("Bibliography:"),
+                          Text(s.bibliographyDialogTitle),
                           IconButton(
                             icon: const Icon(Icons.close),
                             onPressed: () => Navigator.pop(ctx),
@@ -589,10 +590,10 @@ class _HomePageState extends State<HomePage> {
 
                                     child: Column(
                                       children: [
-                                        const Text(
-                                          "Pisolino consigliato",
+                                        Text(
+                                          s.recommendedNap,
 
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -600,7 +601,7 @@ class _HomePageState extends State<HomePage> {
                                         const SizedBox(height: 4),
 
                                         Text(
-                                          "${idealDuration.inMinutes+10} minuti",
+                                          s.napMinutes(idealDuration.inMinutes + 10),
 
                                           style: TextStyle(
                                             fontSize: 20,
@@ -668,10 +669,10 @@ class _HomePageState extends State<HomePage> {
 
                                           const SizedBox(height: 5),
 
-                                          const Text(
-                                            "Riflessi",
+                                          Text(
+                                            s.presetReflexes,
 
-                                            style: TextStyle(fontSize: 14),
+                                            style: const TextStyle(fontSize: 14),
                                           ),
                                         ],
                                       ),
@@ -707,10 +708,10 @@ class _HomePageState extends State<HomePage> {
 
                                           const SizedBox(height: 5),
 
-                                          const Text(
-                                            "Focus",
+                                          Text(
+                                            s.presetFocus,
 
-                                            style: TextStyle(fontSize: 14),
+                                            style: const TextStyle(fontSize: 14),
                                           ),
                                         ],
                                       ),
@@ -746,10 +747,10 @@ class _HomePageState extends State<HomePage> {
 
                                           const SizedBox(height: 5),
 
-                                          const Text(
-                                            "Recupero",
+                                          Text(
+                                            s.presetRecovery,
 
-                                            style: TextStyle(fontSize: 14),
+                                            style: const TextStyle(fontSize: 14),
                                           ),
                                         ],
                                       ),
@@ -788,10 +789,10 @@ class _HomePageState extends State<HomePage> {
                                         Navigator.pop(context);
                                       },
 
-                                      label: const Text(
-                                        "Avvia pisolino",
+                                      label: Text(
+                                        s.startNapButton,
 
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 18,
 
                                           fontWeight: FontWeight.bold,
