@@ -419,6 +419,7 @@ class _HomePageState extends State<HomePage> {
                               groupValue: _isEnglish,
                               onChanged: (_) {
                                 setState(() => _isEnglish = false);
+                                PreferencesService.saveIsEnglish(false);
                                 Navigator.pop(ctx);
                               },
                               title: Text(s.languageItalian),
@@ -428,6 +429,7 @@ class _HomePageState extends State<HomePage> {
                               groupValue: _isEnglish,
                               onChanged: (_) {
                                 setState(() => _isEnglish = true);
+                                PreferencesService.saveIsEnglish(true);
                                 Navigator.pop(ctx);
                               },
                               title: Text(s.languageEnglish),
