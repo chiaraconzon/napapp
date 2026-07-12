@@ -493,4 +493,66 @@ class AppStrings {
           'Set up your schedule, monitor your rest and improve your daily productivity. Happy napping!',
     },
   ];
+  // ---------------------------------------------------------------------------
+  // NAP START DIALOG
+  // ---------------------------------------------------------------------------
+
+  String get napAttention => isEnglish ? 'Warning' : 'Attenzione';
+
+  String get napWrongTime => isEnglish
+      ? 'This does not seem to be the ideal time for your nap.\n\n'
+            'The recommended time is'
+      : 'Questo non sembra il momento ideale '
+            'per il tuo pisolino.\n\n'
+            'L\'orario consigliato è';
+
+  String get startNapTitle => isEnglish ? 'Start nap?' : 'Inizia il pisolino?';
+
+  String napStartConfirm(int minutes) => isEnglish
+      ? 'Do you want to start your $minutes-minute nap?'
+      : 'Vuoi iniziare il tuo pisolino '
+            'di $minutes minuti?';
+
+  String get noButton => isEnglish ? 'No' : 'No';
+
+  String get yesButton => isEnglish ? 'Yes' : 'Sì';
+  // ---------------------------------------------------------------------------
+  // NAP CARD STATUS DIALOGS
+  // ---------------------------------------------------------------------------
+
+  String get napRunningTitle =>
+      isEnglish ? 'Nap in progress' : 'Pisolino in corso';
+
+  String get interruptNapQuestion => isEnglish
+      ? 'Do you want to interrupt the nap?'
+      : 'Vuoi interrompere il pisolino?';
+
+  String get continueButton => isEnglish ? 'Continue' : 'Continua';
+
+  String get interruptButton => isEnglish ? 'Interrupt' : 'Interrompi';
+
+  String get napInterruptedTitle =>
+      isEnglish ? 'Nap interrupted' : 'Pisolino interrotto';
+
+  String interruptedNapMessage(int minutes) => isEnglish
+      ? 'You slept for $minutes minutes.\n\n'
+            'Would you like to try another nap?'
+      : 'Hai dormito per $minutes minuti.\n\n'
+            'È un po\' poco. Vuoi provare a fare un altro pisolino?';
+
+  String interruptedNapEnoughMessage(int minutes) => isEnglish
+      ? 'You slept for $minutes minutes.\n\n'
+            'That should be enough!'
+      : 'Hai dormito per $minutes minuti.\n\n'
+            'Può bastare così!';
+
+  String get newNapButton => isEnglish ? 'New nap' : 'Nuovo pisolino';
+
+  String get cancelButton => isEnglish ? 'Cancel' : 'Annulla';
+
+  String get newNapQuestion => isEnglish
+      ? 'Do you want to set a new nap?'
+      : 'Vuoi impostare un nuovo pisolino?';
+  String get napCompletedTitle =>
+      isEnglish ? 'Nap completed' : 'Pisolino completato';
 }

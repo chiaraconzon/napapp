@@ -80,15 +80,14 @@ class _NapCardState extends State<NapCard> {
 
     switch (widget.r.status) {
       case NapStatus.running:
-        label = "Pisolino in corso";
+        label = s.napRunningTitle;
         break;
-
       case NapStatus.completed:
-        label = "Pisolino completato";
+        label = s.napCompletedTitle;
         break;
 
       case NapStatus.interrupted:
-        label = "Pisolino interrotto";
+        label = s.napInterruptedTitle;
         break;
 
       case NapStatus.suggested:
@@ -132,15 +131,14 @@ class _NapCardState extends State<NapCard> {
                       ? Theme.of(context).colorScheme.surface
                       : null,
 
-                  title: const Text("Pisolino in corso"),
+                  title: Text(s.napRunningTitle),
 
-                  content: const Text("Vuoi interrompere il pisolino?"),
-
+                  content: Text(s.interruptNapQuestion),
                   actions: [
                     // Closes the dialog without interrupting the nap
                     TextButton(
                       onPressed: () => Navigator.pop(ctx),
-                      child: const Text("Continua"),
+                      child: Text(s.continueButton),
                     ),
 
                     // Stops the nap
@@ -176,15 +174,14 @@ class _NapCardState extends State<NapCard> {
                                   ? Theme.of(context).colorScheme.surface
                                   : null,
 
-                              title: const Text("Pisolino interrotto"),
-
+                              title: Text(s.napInterruptedTitle),
                               // Shows a different message depending on nap duration
                               content: Text(
                                 tooShort
-                                    ? "Hai dormito per $sleptMinutes minuti.\n\n"
-                                          "È un po' poco. Vuoi provare a fare un altro pisolino?"
-                                    : "Hai dormito per $sleptMinutes minuti.\n\n"
-                                          "Può bastare così!",
+                                    ? s.interruptedNapMessage(sleptMinutes)
+                                    : s.interruptedNapEnoughMessage(
+                                        sleptMinutes,
+                                      ),
                               ),
 
                               actions: [
@@ -195,13 +192,13 @@ class _NapCardState extends State<NapCard> {
                                       Navigator.pop(ctx2);
                                       widget.onRequestNewNap();
                                     },
-                                    child: const Text("Nuovo pisolino"),
+                                    child: Text(s.newNapButton),
                                   ),
 
                                 // Closes the dialog
                                 TextButton(
                                   onPressed: () => Navigator.pop(ctx2),
-                                  child: const Text("Annulla"),
+                                  child: Text(s.cancelButton),
                                 ),
                               ],
                             );
@@ -209,7 +206,7 @@ class _NapCardState extends State<NapCard> {
                         );
                       },
 
-                      child: const Text("Interrompi"),
+                      child: Text(s.interruptButton),
                     ),
                   ],
                 );
@@ -231,10 +228,8 @@ class _NapCardState extends State<NapCard> {
                       ? Theme.of(context).colorScheme.surface
                       : null,
 
-                  title: const Text("Pisolino interrotto"),
-
-                  content: const Text("Vuoi impostare un nuovo pisolino?"),
-
+                  title: Text(s.napInterruptedTitle),
+                  content: Text(s.newNapQuestion),
                   actions: [
                     // Closes the dialog
                     TextButton(
@@ -248,7 +243,7 @@ class _NapCardState extends State<NapCard> {
                         Navigator.pop(ctx);
                         widget.onRequestNewNap();
                       },
-                      child: const Text("Sì"),
+                      child: Text(s.yesButton),
                     ),
                   ],
                 );

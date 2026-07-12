@@ -10,9 +10,8 @@ void showNapDialog({
   required AppStrings s,
   required VoidCallback onNapStarted,
 }) {
-  // Current time (fixed for testing purposes)
-  // final now = TimeOfDay.now();
-  final now = const TimeOfDay(hour: 18, minute: 0);
+  // Current time
+  final now = TimeOfDay.now();
 
   // Suggested nap start time calculated by the algorithm
   final suggestedTime = napResult.suggestedStart!;
@@ -39,13 +38,11 @@ void showNapDialog({
             : null,
 
         // Dialog title
-        title: const Text("Attenzione"),
+        title: Text(s.napAttention),
 
         // Explains that the current time is not recommended
         content: Text(
-          "Questo non sembra il momento ideale "
-          "per il tuo pisolino.\n\n"
-          "L'orario consigliato è "
+          "${s.napWrongTime} "
           "${suggestedTime.format(context)}.",
         ),
 
@@ -76,13 +73,10 @@ void showNapDialog({
           : null,
 
       // Dialog title
-      title: const Text("Inizia il pisolino?"),
+      title: Text(s.startNapTitle),
 
       // Shows the recommended nap duration
-      content: Text(
-        "Vuoi iniziare il tuo pisolino "
-        "di ${napResult.totalDisplayMin} minuti?",
-      ),
+      content: Text(s.napStartConfirm(napResult.totalDisplayMin)),
 
       actions: [
         // Cancels the operation and closes the dialog
@@ -91,7 +85,7 @@ void showNapDialog({
             Navigator.pop(ctx);
           },
 
-          child: const Text("No"),
+          child: Text(s.noButton),
         ),
 
         // Starts the nap
@@ -114,7 +108,7 @@ void showNapDialog({
             );
           },
 
-          child: const Text("Sì"),
+          child: Text(s.yesButton),
         ),
       ],
     ),
