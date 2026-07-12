@@ -249,7 +249,7 @@ class NapAlgorithm {
 
   // Nap Labels based on nap duration
   String _scopeLabel(int n) {
-    if (n >= 60) return 'Energie';
+    if (n >= 60) return 'Recupero';
     if (n >= 20) return 'Focus';
     return 'Riflessi';
   }
