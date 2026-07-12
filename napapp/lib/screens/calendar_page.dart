@@ -922,7 +922,6 @@ class _CalendarPageState extends State<CalendarPage> {
 
   // Generates and saves single or multiple recurring events based on the repetition rule.
   void _save(
-  void _save(
     String t,
     String cat,
     TimeOfDay start,
