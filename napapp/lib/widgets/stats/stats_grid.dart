@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'stats_card.dart';
 import 'package:napapp/models/sleep.dart';
+import '../../screens/app_strings.dart';
 
 class StatsGrid extends StatelessWidget {
   final List<SleepData> sleepData;
+  final bool isEnglish;
   final int nNaps = 2; // mock value, could be improved upon further development
 
-  const StatsGrid({super.key, required this.sleepData});
+  const StatsGrid({super.key, required this.sleepData, this.isEnglish = false});
 
   // Computes average minutes of sleep of the past 7 days
   int avgSleepMin(List<SleepData> sleepData) {
@@ -38,6 +40,7 @@ class StatsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final s = AppStrings(isEnglish);
 
     return GridView.count(
       crossAxisCount: 2,
@@ -54,15 +57,15 @@ class StatsGrid extends StatelessWidget {
         // Displays the sleep average of the past 7 days
         StatCard(
           icon: Icons.nightlight_round,
-          title: "Average Sleep (last 7 days)",
+          title: s.avgSleepTitle,
           value: avgSleepMsg(sleepData),
           accentColor: colors.tertiary,
         ),
         // Displays number of naps of the week (mock value: point of possible future developments)
         StatCard(
           icon: Icons.calendar_month_rounded,
-          title: "This Week",
-          value: "$nNaps naps",
+          title: s.thisWeekTitle,
+          value: s.napsCount(nNaps),
           accentColor: colors.secondary,
         ),
       ],
