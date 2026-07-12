@@ -6,12 +6,13 @@ class AppStrings {
   // ---------------------------------------------------------------------------
   // DRAWER
   // ---------------------------------------------------------------------------
-  String hello(String name) => isEnglish ? 'Hello $name' : 'Ciao $name';
+  String get greetingLabel => isEnglish ? 'Hello,' : 'Ciao,';
+  String get userLabel => isEnglish ? 'USER' : 'UTENTE';
   String get logout => isEnglish ? 'Logout' : 'Logout';
   String get themeLabel => isEnglish ? 'THEME' : 'TEMA';
   String get languageLabel => isEnglish ? 'LANGUAGE' : 'LINGUA';
   String get tutorialLabel => isEnglish ? 'TUTORIAL' : 'TUTORIAL';
-  String get creditsLabel => isEnglish ? 'CREDITS' : 'CREDITS';
+  
 
   // ---------------------------------------------------------------------------
   // BOTTOM NAV
@@ -27,10 +28,6 @@ class AppStrings {
       isEnglish ? "Today's Schedule" : 'Impegni di oggi';
   String get noEvents =>
       isEnglish ? 'No events today' : 'Nessun impegno per oggi';
-
-  // Drawer greeting (two-line layout: "Hello," + name)
-  String get greetingLabel => isEnglish ? 'Hello,' : 'Ciao,';
-  String get userLabel => isEnglish ? 'USER' : 'UTENTE';
 
   // Alarm dialog recommendation box
   String get recommendedNap =>
