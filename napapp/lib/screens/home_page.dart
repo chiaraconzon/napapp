@@ -319,7 +319,7 @@ class _HomePageState extends State<HomePage> {
                       title: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("Seleziona tema:"),
+                          const Text("Seleziona tema:", style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
                           IconButton(
                             icon: const Icon(Icons.close),
                             onPressed: () => Navigator.pop(ctx),
@@ -397,7 +397,7 @@ class _HomePageState extends State<HomePage> {
                     title: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text("Seleziona lingua:"),
+                        const Text("Seleziona lingua:", style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold)),
                         IconButton(
                           icon: const Icon(Icons.close),
                           onPressed: () => Navigator.pop(ctx),
