@@ -916,17 +916,30 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 12),
 
           // Debug zone
-          if (_controller.zoneLimits != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: DebugZonesBox(
-                lim: _controller.zoneLimits!,
-                isEnglish: _isEnglish,
-                wakeUpTime: _controller.wakeUpTime,
-                sds: _controller.sds,
+          // if (_controller.zoneLimits != null)
+          //   Padding(
+          //     padding: const EdgeInsets.symmetric(horizontal: 16),
+          //     child: DebugZonesBox(
+          //       lim: _controller.zoneLimits!,
+          //       isEnglish: _isEnglish,
+          //       wakeUpTime: _controller.wakeUpTime,
+          //       sds: _controller.sds,
+          //     ),
+          //   ),
+          // if (_controller.zoneLimits != null) const SizedBox(height: 8),
+
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 4),
+            child: Text(
+              s.todaySchedule,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
-          if (_controller.zoneLimits != null) const SizedBox(height: 8),
+          ),
+          const SizedBox(height: 12),
 
           // timeline of tasks and naps
           Expanded(
