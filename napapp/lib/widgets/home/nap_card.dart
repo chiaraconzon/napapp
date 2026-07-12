@@ -49,7 +49,7 @@ class _NapCardState extends State<NapCard> {
     napTimer?.cancel();
 
     // Starts a new timer with the nap duration
-    napTimer = Timer(Duration(seconds: widget.r.totalDisplayMin), () {
+    napTimer = Timer(Duration(minutes: widget.r.totalDisplayMin), () {
       if (!mounted) return;
 
       // Updates the nap status when the timer ends

@@ -98,8 +98,9 @@ void showNapDialog({
             onNapStarted();
 
             // Starts the system timer with the recommended duration
-            FlutterAlarmClock.createTimer(length: napResult.totalDisplayMin);
-
+            FlutterAlarmClock.createTimer(
+              length: napResult.totalDisplayMin * 60,
+            );
             // Displays a confirmation message
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
